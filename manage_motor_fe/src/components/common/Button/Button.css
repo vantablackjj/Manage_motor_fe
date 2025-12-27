@@ -1,0 +1,35 @@
+/* src/components/common/Button/Button.css */
+
+.custom-button {
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.custom-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.custom-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .custom-button {
+    font-size: 14px;
+    height: 36px;
+    padding: 4px 12px;
+  }
+  
+  .custom-button.ant-btn-lg {
+    height: 42px;
+    padding: 6px 16px;
+  }
+  
+  .custom-button.ant-btn-sm {
+    height: 30px;
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+}

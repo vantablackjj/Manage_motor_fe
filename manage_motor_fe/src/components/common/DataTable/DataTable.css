@@ -1,0 +1,82 @@
+/* src/components/common/DataTable/DataTable.css */
+
+.data-table-card {
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--border-radius);
+}
+
+.data-table {
+  font-size: var(--font-size-base);
+}
+
+.data-table .ant-table-thead > tr > th {
+  background-color: var(--gray-2);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.data-table .ant-table-tbody > tr:hover > td {
+  background-color: var(--gray-2);
+}
+
+.data-table .ant-table-tbody > tr.ant-table-row-selected > td {
+  background-color: #e6f7ff;
+}
+
+/* Summary row styling */
+.data-table .ant-table-summary > tr > td {
+  background-color: var(--gray-3);
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .data-table {
+    font-size: var(--font-size-sm);
+  }
+  
+  .data-table .ant-table-thead > tr > th,
+  .data-table .ant-table-tbody > tr > td {
+    padding: 8px 4px;
+  }
+  
+  .data-table .ant-pagination {
+    text-align: center;
+    margin-top: var(--spacing-md);
+  }
+  
+  .data-table .ant-pagination-options {
+    display: none;
+  }
+  
+  /* Stack action buttons vertically on mobile */
+  .data-table .ant-space {
+    flex-direction: column;
+    gap: 4px !important;
+  }
+}
+
+/* Loading state */
+.data-table .ant-spin-nested-loading > div > .ant-spin {
+  max-height: 400px;
+}
+
+/* Empty state */
+.data-table .ant-empty {
+  padding: var(--spacing-xxl) 0;
+}
+
+/* Fixed columns shadow */
+.data-table .ant-table-cell-fix-left,
+.data-table .ant-table-cell-fix-right {
+  background-color: var(--bg-primary);
+}
+
+.data-table .ant-table-cell-fix-left-last::after {
+  box-shadow: inset 10px 0 8px -8px rgba(0, 0, 0, 0.15);
+}
+
+.data-table .ant-table-cell-fix-right-first::after {
+  box-shadow: inset -10px 0 8px -8px rgba(0, 0, 0, 0.15);
+}
