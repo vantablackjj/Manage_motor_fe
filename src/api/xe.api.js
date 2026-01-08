@@ -1,33 +1,33 @@
 // src/api/xe.api.js
-import axiosInstance from './axios.config';
-import { API_ENDPOINTS } from '../utils/constant';
+import axiosInstance from "./axios.config";
+import { API_ENDPOINTS } from "../utils/constant";
 
 export const xeAPI = {
   // Get xe ton kho
-  getTonKho: async (ma_kho, data) => {
-    return axiosInstance.get(API_ENDPOINTS.XE_TON_KHO(ma_kho), { data });
+  getTonKho: async (ma_kho, params) => {
+    return axiosInstance.get(API_ENDPOINTS.XE_TON_KHO(ma_kho), { params });
   },
-  
+
   // Get xe detail
   getDetail: async (xe_key) => {
     return axiosInstance.get(API_ENDPOINTS.XE_DETAIL(xe_key));
   },
-  
+
   // Get xe lich su
   getLichSu: async (xe_key) => {
     return axiosInstance.get(API_ENDPOINTS.XE_LICH_SU(xe_key));
   },
-  
+
   // Create xe
   create: async (data) => {
     return axiosInstance.post(API_ENDPOINTS.XE, data);
   },
-  
+
   // Update xe
   update: async (xe_key, data) => {
     return axiosInstance.put(API_ENDPOINTS.XE_DETAIL(xe_key), data);
   },
-  
+
   // Delete xe
   delete: async (xe_key) => {
     return axiosInstance.put(API_ENDPOINTS.XE_KHOA(xe_key));
@@ -37,6 +37,5 @@ export const xeAPI = {
   },
   lockPhieu: async (xe_key) => {
     return axiosInstance.put(API_ENDPOINTS.XE_KHOA_PHIEU(xe_key));
-  }
-  
+  },
 };

@@ -31,7 +31,7 @@ const MasterDataPage = () => {
 
   const { type } = useParams();
   const config = MASTER_DATA_CONFIG[type];
-
+  console.log(config);
   if (!config) {
     return <div>Master data not found</div>;
   }

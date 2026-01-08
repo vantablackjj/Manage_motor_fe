@@ -20,12 +20,12 @@ import {
   ReloadOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import { danhMucAPI } from "../../api";
+import { danhMucAPI } from "../../../api";
 import {
   formatService,
   notificationService,
   authService,
-} from "../../services";
+} from "../../../services";
 
 const { TabPane } = Tabs;
 

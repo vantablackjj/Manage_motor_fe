@@ -12,6 +12,8 @@ import {
   Checkbox,
   Tag,
   Tabs,
+  Row,
+  Col,
 } from "antd";
 import {
   PlusOutlined,
@@ -22,14 +24,14 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { khachHangAPI } from "../../api";
+import { khachHangAPI } from "../../../api";
 import {
   formatService,
   notificationService,
   authService,
   validationService,
-} from "../../services";
-import { useDebounce } from "../../hooks";
+} from "../../../services";
+import { useDebounce } from "../../../hooks";
 
 const { Search } = Input;
 const { TabPane } = Tabs;
@@ -128,6 +130,7 @@ const KhachHangListPage = () => {
     try {
       const data = {
         ...values,
+        la_ncc: values.loai === "supplier",
         ngay_sinh: values.ngay_sinh
           ? values.ngay_sinh.format("YYYY-MM-DD")
           : null,
@@ -400,6 +403,19 @@ const KhachHangListPage = () => {
           <Form.Item name="la_ncc" valuePropName="checked">
             <Checkbox>Là nhà cung cấp</Checkbox>
           </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="dai_dien" label="Người đại diện">
+                <Input placeholder="Tên người đại diện" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="ma_so_thue" label="Mã số thuế">
+                <Input placeholder="Mã số thuế" />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item style={{ marginBottom: 0 }}>
             <Space style={{ width: "100%", justifyContent: "flex-end" }}>

@@ -59,6 +59,7 @@ const XeForm = ({
     try {
       const payload = {
         ...values,
+        ma_kho_hien_tai: values.ma_kho,
         ma_loai_xe: values.ma_loai,
         ngay_nhap: values.ngay_nhap
           ? values.ngay_nhap.format("YYYY-MM-DD")

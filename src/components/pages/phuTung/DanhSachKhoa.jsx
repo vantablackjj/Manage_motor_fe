@@ -12,7 +12,7 @@ import {
   Space,
 } from "antd";
 import { LockOutlined, SearchOutlined } from "@ant-design/icons";
-import { phuTungKhoaAPI, khoAPI } from "../../../api";
+import { tonKhoAPI, khoAPI } from "../../../api";
 import { useResponsive } from "../../../hooks/useResponsive";
 
 const { Option } = Select;
@@ -44,9 +44,16 @@ const DanhSachKhoaTab = () => {
   const fetchData = async (params) => {
     setLoading(true);
     try {
-      const res = await phuTungKhoaAPI.getAllByKho(params);
-      if (res?.data?.success) {
-        setData(res.data.data || []);
+      // Lấy tất cả tồn kho, sau đó lọc những phụ tùng bị khóa
+      const res = await tonKhoAPI.getAll(params);
+
+      if (res?.success) {
+        const allData = res.data || [];
+        // Lọc chỉ lấy phụ tùng có số lượng khóa > 0
+        const lockedData = allData.filter(
+          (item) => item.so_luong_khoa && item.so_luong_khoa > 0
+        );
+        setData(lockedData);
       } else {
         setData([]);
       }
@@ -80,49 +87,45 @@ const DanhSachKhoaTab = () => {
       width: 100,
       fixed: isMobile ? false : "left",
     },
-    {
-      title: "Tên phụ tùng",
-      dataIndex: "ten_pt",
-      width: 200,
-      ellipsis: true,
-    },
     !isMobile && {
       title: "Kho",
       dataIndex: "ma_kho",
       width: 120,
       render: (ma_kho) => {
         const k = kho.find((k) => k.ma_kho === ma_kho);
-        return k ? k.ten_kho : ma_kho;
+        return k ? <Tag color="blue">{k.ten_kho}</Tag> : <Tag>{ma_kho}</Tag>;
       },
     },
     {
-      title: "Số phiếu",
-      dataIndex: "so_phieu",
-      width: 120,
-      render: (val) => <Tag color="red">{val}</Tag>,
-    },
-    !isMobile && {
-      title: "Loại phiếu",
-      dataIndex: "loai_phieu",
-      width: 120,
+      title: "SL tồn",
+      dataIndex: "so_luong_ton",
+      width: 100,
+      align: "right",
+      render: (val) => <Tag color="green">{val || 0}</Tag>,
     },
     {
       title: "SL khóa",
       dataIndex: "so_luong_khoa",
       width: 100,
       align: "right",
-      render: (val) => <Tag color="orange">{val}</Tag>,
+      render: (val) => (
+        <Tag color="red">
+          <strong>{val || 0}</strong>
+        </Tag>
+      ),
+    },
+    {
+      title: "SL khả dụng",
+      dataIndex: "so_luong_kha_dung",
+      width: 120,
+      align: "right",
+      render: (val) => <Tag color="orange">{val || 0}</Tag>,
     },
     !isMobile && {
-      title: "Ngày khóa",
-      dataIndex: "ngay_khoa",
+      title: "Cập nhật",
+      dataIndex: "ngay_cap_nhat",
       width: 160,
-      render: (val) => new Date(val).toLocaleString("vi-VN"),
-    },
-    !isMobile && {
-      title: "Lý do",
-      dataIndex: "ly_do",
-      ellipsis: true,
+      render: (val) => (val ? new Date(val).toLocaleString("vi-VN") : "-"),
     },
   ].filter(Boolean);
 
@@ -184,14 +187,14 @@ const DanhSachKhoaTab = () => {
 
       {/* TABLE */}
       <Table
-        rowKey="id"
+        rowKey={(record) => `${record.ma_kho}-${record.ma_pt}`}
         columns={columns}
         dataSource={data}
         loading={loading}
         scroll={{ x: "max-content" }}
         pagination={{
           pageSize: isMobile ? 8 : 10,
-          showTotal: (total) => `Tổng ${total} bản ghi`,
+          showTotal: (total) => `Tổng ${total} phụ tùng bị khóa`,
         }}
       />
     </>

@@ -25,6 +25,8 @@ import {
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
+  AppstoreOutlined,
+  CustomerServiceOutlined,
 } from "@ant-design/icons";
 
 import "./MainLayout.css";
@@ -50,71 +52,107 @@ const MainLayout = ({ children }) => {
 
   const menuItems = [
     { key: "/", icon: <DashboardOutlined />, label: "Dashboard" },
+
+    // KHO VẬN (Mới)
+    {
+      key: "/kho-van",
+      icon: <SwapOutlined />,
+      label: "Kho vận",
+      children: [{ key: "/chuyen-kho", label: "Chuyển kho" }],
+    },
+
+    // MUA HÀNG (PURCHASE)
+    {
+      key: "/purchase",
+      icon: <ShoppingCartOutlined />,
+      label: "Mua Hàng",
+      children: [
+        { key: "/purchase/vehicles", label: "Mua Xe" },
+        { key: "/purchase/parts", label: "Mua Phụ Tùng" },
+      ],
+    },
+
+    // 1. QUẢN LÝ XE
     {
       key: "/xe",
       icon: <CarOutlined />,
       label: "Quản lý xe",
       children: [
-        { key: "/xe/thuc-te", label: "Xe Thực Tế" },
-        { key: "/xe/lich-su", label: "Lịch sử" },
-        { key: "/xe/model-car", label: "Xe Loại" },
-      ],
-    },
-    {
-      key: "/phu-tung",
-      icon: <ToolOutlined />,
-      label: "Phụ tùng",
-      children: [{ key: "/phu-tung/danh-muc", label: "Danh mục" }],
-    },
-    { key: "/don-hang", icon: <ShoppingCartOutlined />, label: "Đơn hàng mua" },
-    { key: "/hoa-don", icon: <FileTextOutlined />, label: "Hóa đơn bán" },
-    { key: "/chuyen-kho", icon: <SwapOutlined />, label: "Chuyển kho" },
-    { key: "/thu-chi", icon: <DollarOutlined />, label: "Thu chi" },
-    { key: "/khach-hang", icon: <TeamOutlined />, label: "Khách hàng" },
-    { key: "/kho", icon: <HomeOutlined />, label: "Quản lý kho" },
-    {
-      key: "/config",
-      icon: <SettingOutlined />,
-      label: "Cấu hình",
-      children: [
-        {
-          key: "/master-data/mau",
-          label: "Màu",
-        },
-        {
-          key: "/master-data/users",
-          label: "Nhân Viên",
-        },
-        {
-          key: "/master-data/noiSX",
-          label: "Nơi sản xuất",
-        },
-        {
-          key: "/master-data/khachHang",
-          label: "Khách Hàng",
-        },
-        {
-          key: "/master-data/nhanHieu",
-          label: "Nhãn Hiệu Xe ",
-        },
-        {
-          key: "/master-data/kho",
-          label: "Kho",
-        },
-        {
-          key: "/master-data/loaiHinh",
-          label: "Loại hình xe",
-        },
+        { key: "/xe/danh-sach", label: "Danh sách xe" },
+        { key: "/xe/lich-su", label: "Lịch sử xe" },
       ],
     },
 
+    // 2. QUẢN LÝ PHỤ TÙNG
     {
-      key: "/reports",
-      icon: <BarChartOutlined />,
-      label: "Báo cáo",
+      key: "/phu-tung",
+      icon: <ToolOutlined />,
+      label: "Quản lý phụ tùng",
+      children: [{ key: "/phu-tung/danh-sach", label: "Danh sách phụ tùng" }],
+    },
+
+    // 3. DỊCH VỤ
+    {
+      key: "/dich-vu",
+      icon: <CustomerServiceOutlined />,
+      label: "Dịch vụ",
       children: [
-        { key: "/reports/inventory", label: "Tồn kho" },
-        { key: "/reports/sales", label: "Bán hàng" },
+        { key: "/dich-vu/danh-sach", label: "Danh sách dịch vụ" },
+        { key: "/dich-vu/phieu-sua-chua", label: "Phiếu sửa chữa" },
+      ],
+    },
+
+    // 4. TÀI CHÍNH
+    {
+      key: "/tai-chinh",
+      icon: <DollarOutlined />,
+      label: "Tài chính",
+      children: [
+        { key: "/tai-chinh/thu", label: "Phiếu thu" },
+        { key: "/tai-chinh/chi", label: "Phiếu chi" },
+        { key: "/cong-no/quan-ly", label: "Công nợ" },
+      ],
+    },
+
+    // 5. QUẢN LÝ DANH MỤC
+    {
+      key: "/danh-muc",
+      icon: <AppstoreOutlined />,
+      label: "Quản lý danh mục",
+      children: [
+        {
+          key: "/danh-muc/xe",
+          label: "Danh mục xe",
+          children: [
+            { key: "/danh-muc/loai-xe", label: "Loại xe" },
+            { key: "/danh-muc/nhan-hieu", label: "Nhãn hiệu" },
+            { key: "/danh-muc/loai-hinh", label: "Loại hình" },
+            { key: "/danh-muc/noi-san-xuat", label: "Nơi sản xuất" },
+            { key: "/danh-muc/mau-xe", label: "Màu sắc" },
+          ],
+        },
+        {
+          key: "/danh-muc/phu-tung",
+          label: "Danh mục phụ tùng",
+          children: [
+            { key: "/danh-muc/nhom-phu-tung", label: "Nhóm phụ tùng" },
+          ],
+        },
+        { key: "/danh-muc/kho", label: "Kho" },
+        { key: "/danh-muc/khach-hang", label: "Khách hàng" },
+        { key: "/danh-muc/nha-cung-cap", label: "Nhà cung cấp" },
+      ],
+    },
+
+    // 6. QUẢN LÝ HỆ THỐNG
+    {
+      key: "/he-thong",
+      icon: <SettingOutlined />,
+      label: "Quản lý hệ thống",
+      children: [
+        { key: "/he-thong/nguoi-dung", label: "Người dùng" },
+        { key: "/he-thong/phan-quyen", label: "Phân quyền" },
+        { key: "/he-thong/cau-hinh", label: "Cấu hình" },
       ],
     },
   ];

@@ -1,4 +1,4 @@
-// src/pages/xe/XeTonKhoPage.jsx
+// src/pages/xe/XeThucTe.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -13,6 +13,8 @@ import {
   Col,
   Statistic,
   Tooltip,
+  Tabs,
+  Badge,
 } from "antd";
 import {
   PlusOutlined,
@@ -25,6 +27,7 @@ import {
   CarOutlined,
   StopOutlined,
   UnlockOutlined,
+  LockOutlined,
 } from "@ant-design/icons";
 
 import { xeAPI, khoAPI, danhMucAPI } from "../../../api";
@@ -37,12 +40,15 @@ import {
 import { XE_TRANG_THAI_COLORS } from "../../../utils/constant";
 import { useResponsive } from "../../../hooks/useResponsive";
 import XeForm from "./XeForm";
+import DanhSachXeBiKhoa from "./DanhSachXeBiKhoa";
+import TonKhoXe from "./TonKhoXe";
 
 const { Option } = Select;
 const { Search } = Input;
 
 const XeThucTe = () => {
   const { isMobile } = useResponsive();
+  const [activeTab, setActiveTab] = useState("danh-sach");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
@@ -78,6 +84,7 @@ const XeThucTe = () => {
     tonKho: 0,
     daBan: 0,
     dangChuyen: 0,
+    biKhoa: 0,
   });
 
   useEffect(() => {
@@ -85,8 +92,10 @@ const XeThucTe = () => {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [page, pageSize, filters]);
+    if (activeTab === "danh-sach") {
+      fetchData();
+    }
+  }, [page, pageSize, filters, activeTab]);
 
   const handleLockXe = (record) => {
     Modal.confirm({
@@ -197,12 +206,14 @@ const XeThucTe = () => {
       const dangChuyen = list.filter(
         (x) => x.trang_thai === "DANG_CHUYEN"
       ).length;
+      const biKhoa = list.filter((x) => x.locked === true).length;
 
       setStats({
         total: list.length,
         tonKho,
         daBan,
         dangChuyen,
+        biKhoa,
       });
     } catch (error) {
       notificationService.error("Không thể tải danh sách xe");
@@ -420,167 +431,234 @@ const XeThucTe = () => {
   };
 
   return (
-    <div className="page-container">
-      {/* Page Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">
-            <CarOutlined /> Tồn kho xe
-          </h1>
-          <p style={{ color: "#8c8c8c", margin: 0 }}>
-            Quản lý danh sách xe tồn kho
-          </p>
-        </div>
-        <Space wrap>
-          <Button icon={<ReloadOutlined />} onClick={fetchData}>
-            Làm mới
-          </Button>
-          <Button icon={<ExportOutlined />} onClick={handleExport}>
-            Xuất Excel
-          </Button>
-          {authService.canCreate() && (
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleCreate}
-            >
-              Nhập kho xe
-            </Button>
-          )}
-        </Space>
-      </div>
-
-      {/* Statistics */}
-      <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
-        <Col xs={12} sm={6}>
-          <Card>
-            <Statistic
-              title="Tổng số xe"
-              value={stats.total}
-              prefix={<CarOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card>
-            <Statistic
-              title="Tồn kho"
-              value={stats.tonKho}
-              valueStyle={{ color: "#3f8600" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card>
-            <Statistic
-              title="Đã bán"
-              value={stats.daBan}
-              valueStyle={{ color: "#cf1322" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card>
-            <Statistic
-              title="Đang chuyển"
-              value={stats.dangChuyen}
-              valueStyle={{ color: "#1890ff" }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Filters */}
-      <Card style={{ marginBottom: "16px" }}>
-        <Space wrap style={{ width: "100%" }}>
-          <Select
-            placeholder="Chọn kho"
-            style={{ width: isMobile ? "100%" : 200 }}
-            value={filters.ma_kho}
-            onChange={(value) => handleFilterChange("ma_kho", value)}
-          >
-            {khoList.map((kho) => (
-              <Option key={kho.ma_kho} value={kho.ma_kho}>
-                {kho.ten_kho}
-              </Option>
-            ))}
-          </Select>
-
-          <Select
-            placeholder="Loại xe"
-            style={{ width: isMobile ? "100%" : 200 }}
-            value={filters.ma_loai_xe}
-            onChange={(value) => handleFilterChange("ma_loai_xe", value)}
-            allowClear
-          >
-            {loaiXeList.map((loai) => (
-              <Option key={loai.ma_loai} value={loai.ma_loai}>
-                {loai.ten_loai}
-              </Option>
-            ))}
-          </Select>
-
-          <Select
-            placeholder="Màu xe"
-            style={{ width: isMobile ? "100%" : 150 }}
-            value={filters.ma_mau}
-            onChange={(value) => handleFilterChange("ma_mau", value)}
-            allowClear
-          >
-            {mauList.map((mau) => (
-              <Option key={mau.ma_mau} value={mau.ma_mau}>
-                <Tag color={mau.gia_tri}>{mau.ten_mau}</Tag>
-              </Option>
-            ))}
-          </Select>
-
-          <Select
-            placeholder="Trạng thái"
-            style={{ width: isMobile ? "100%" : 150 }}
-            value={filters.trang_thai}
-            onChange={(value) => handleFilterChange("trang_thai", value)}
-            allowClear
-          >
-            <Option value="TON_KHO">Tồn kho</Option>
-            <Option value="DANG_CHUYEN">Đang chuyển</Option>
-            <Option value="DA_BAN">Đã bán</Option>
-          </Select>
-
-          <Search
-            placeholder="Tìm kiếm xe key, số khung, số máy..."
-            style={{ width: isMobile ? "100%" : 300 }}
-            onSearch={handleSearch}
-            allowClear
-          />
-
-          <Button onClick={handleReset}>Xóa bộ lọc</Button>
-        </Space>
-      </Card>
-
-      {/* Table */}
+    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
       <Card>
-        <Table
-          rowSelection={authService.canEdit() ? rowSelection : null}
-          columns={columns}
-          dataSource={data}
-          rowKey="xe_key"
-          loading={loading}
-          scroll={{ x: 1400 }}
-          pagination={{
-            current: page,
-            pageSize: pageSize,
-            total: total,
-            showSizeChanger: true,
-            showTotal: (total) => `Tổng ${total} xe`,
-            onChange: (page, pageSize) => {
-              setPage(page);
-              setPageSize(pageSize);
-            },
-          }}
-          locale={{
-            emptyText: "Không có dữ liệu",
-          }}
-        />
+        {/* Header */}
+        <div style={{ marginBottom: 16 }}>
+          <h2 style={{ marginBottom: 24 }}>
+            <Space>
+              <CarOutlined />
+              <span>Quản lý xe</span>
+              <Badge
+                count={stats.total}
+                showZero
+                style={{ backgroundColor: "#52c41a" }}
+              />
+            </Space>
+          </h2>
+
+          {/* Tabs */}
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={[
+              {
+                key: "danh-sach",
+                label: "Danh sách xe",
+              },
+              {
+                key: "ton-kho",
+                label: "Tồn kho",
+              },
+              {
+                key: "bi-khoa",
+                label: (
+                  <Badge count={stats.biKhoa} offset={[10, 0]}>
+                    <Space>
+                      <LockOutlined />
+                      Bị khóa
+                    </Space>
+                  </Badge>
+                ),
+              },
+            ]}
+          />
+        </div>
+
+        {/* Tab: Danh sách xe */}
+        {activeTab === "danh-sach" && (
+          <>
+            {/* Statistics */}
+            <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
+              <Col xs={12} sm={6}>
+                <Card>
+                  <Statistic
+                    title="Tổng số xe"
+                    value={stats.total}
+                    prefix={<CarOutlined />}
+                  />
+                </Card>
+              </Col>
+              <Col xs={12} sm={6}>
+                <Card>
+                  <Statistic
+                    title="Tồn kho"
+                    value={stats.tonKho}
+                    valueStyle={{ color: "#3f8600" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={12} sm={6}>
+                <Card>
+                  <Statistic
+                    title="Đã bán"
+                    value={stats.daBan}
+                    valueStyle={{ color: "#cf1322" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={12} sm={6}>
+                <Card>
+                  <Statistic
+                    title="Đang chuyển"
+                    value={stats.dangChuyen}
+                    valueStyle={{ color: "#1890ff" }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+
+            {/* Filters */}
+            <Card
+              style={{
+                marginBottom: 16,
+                padding: 16,
+                background: "#fafafa",
+                borderRadius: 8,
+              }}
+            >
+              <Row gutter={[16, 16]}>
+                <Col xs={24} sm={12} md={6}>
+                  <Select
+                    placeholder="Chọn kho"
+                    style={{ width: "100%" }}
+                    value={filters.ma_kho}
+                    onChange={(value) => handleFilterChange("ma_kho", value)}
+                  >
+                    {khoList.map((kho) => (
+                      <Option key={kho.ma_kho} value={kho.ma_kho}>
+                        {kho.ten_kho}
+                      </Option>
+                    ))}
+                  </Select>
+                </Col>
+
+                <Col xs={24} sm={12} md={6}>
+                  <Select
+                    placeholder="Loại xe"
+                    style={{ width: "100%" }}
+                    value={filters.ma_loai_xe}
+                    onChange={(value) =>
+                      handleFilterChange("ma_loai_xe", value)
+                    }
+                    allowClear
+                  >
+                    {loaiXeList.map((loai) => (
+                      <Option key={loai.ma_loai} value={loai.ma_loai}>
+                        {loai.ten_loai}
+                      </Option>
+                    ))}
+                  </Select>
+                </Col>
+
+                <Col xs={24} sm={12} md={6}>
+                  <Select
+                    placeholder="Màu xe"
+                    style={{ width: "100%" }}
+                    value={filters.ma_mau}
+                    onChange={(value) => handleFilterChange("ma_mau", value)}
+                    allowClear
+                  >
+                    {mauList.map((mau) => (
+                      <Option key={mau.ma_mau} value={mau.ma_mau}>
+                        <Tag color={mau.gia_tri}>{mau.ten_mau}</Tag>
+                      </Option>
+                    ))}
+                  </Select>
+                </Col>
+
+                <Col xs={24} sm={12} md={6}>
+                  <Select
+                    placeholder="Trạng thái"
+                    style={{ width: "100%" }}
+                    value={filters.trang_thai}
+                    onChange={(value) =>
+                      handleFilterChange("trang_thai", value)
+                    }
+                    allowClear
+                  >
+                    <Option value="TON_KHO">Tồn kho</Option>
+                    <Option value="DANG_CHUYEN">Đang chuyển</Option>
+                    <Option value="DA_BAN">Đã bán</Option>
+                  </Select>
+                </Col>
+
+                <Col xs={24} md={12}>
+                  <Search
+                    placeholder="Tìm kiếm xe key, số khung, số máy..."
+                    onSearch={handleSearch}
+                    allowClear
+                  />
+                </Col>
+
+                <Col xs={24} md={12} style={{ textAlign: "right" }}>
+                  <Space>
+                    <Button onClick={handleReset}>Xóa bộ lọc</Button>
+                    <Button icon={<ReloadOutlined />} onClick={fetchData}>
+                      Làm mới
+                    </Button>
+                    <Button icon={<ExportOutlined />} onClick={handleExport}>
+                      Xuất Excel
+                    </Button>
+                    {authService.canCreate() && (
+                      <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={handleCreate}
+                      >
+                        Nhập kho xe
+                      </Button>
+                    )}
+                  </Space>
+                </Col>
+              </Row>
+            </Card>
+
+            {/* Table */}
+            <Table
+              rowSelection={authService.canEdit() ? rowSelection : null}
+              columns={columns}
+              dataSource={data}
+              rowKey="xe_key"
+              loading={loading}
+              scroll={{ x: 1400 }}
+              pagination={{
+                current: page,
+                pageSize: pageSize,
+                total: total,
+                showSizeChanger: true,
+                showTotal: (total) => `Tổng ${total} xe`,
+                onChange: (page, pageSize) => {
+                  setPage(page);
+                  setPageSize(pageSize);
+                },
+              }}
+              locale={{
+                emptyText: "Không có dữ liệu",
+              }}
+            />
+          </>
+        )}
+
+        {/* Tab: Tồn kho */}
+        {activeTab === "ton-kho" && (
+          <TonKhoXe ma_kho={filters.ma_kho} khoList={khoList} />
+        )}
+
+        {/* Tab: Bị khóa */}
+        {activeTab === "bi-khoa" && (
+          <DanhSachXeBiKhoa ma_kho={filters.ma_kho} />
+        )}
       </Card>
 
       {/* Form Modal */}

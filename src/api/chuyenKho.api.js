@@ -1,85 +1,70 @@
 // src/api/chuyenKho.api.js
-import axiosInstance from './axios.config';
-import { API_ENDPOINTS } from '../utils/constant';
+import axiosInstance from "./axios.config";
+import { API_ENDPOINTS } from "../utils/constant";
 
 export const chuyenKhoAPI = {
-  // Get all chuyen kho
+  // Lấy danh sách phiếu chuyển kho
   getAll: async (params) => {
-    return axiosInstance.get(API_ENDPOINTS.CHUYEN_KHO, { params });
+    const res = await axiosInstance.get(API_ENDPOINTS.CHUYEN_KHO, { params });
+    return res;
   },
-  
-  // Get chuyen kho by ma_phieu
+
+  // Lấy chi tiết phiếu
   getById: async (ma_phieu) => {
-    return axiosInstance.get(API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu));
+    const res = await axiosInstance.get(
+      API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu)
+    );
+    return res;
   },
-  
-  // Create chuyen kho
+
+  // Tạo phiếu mới
   create: async (data) => {
-    return axiosInstance.post(API_ENDPOINTS.CHUYEN_KHO, data);
+    const res = await axiosInstance.post(API_ENDPOINTS.CHUYEN_KHO, data);
+    return res;
   },
-  
-  // Update chuyen kho
-  update: async (ma_phieu, data) => {
-    return axiosInstance.put(API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu), data);
-  },
-  
-  // Delete chuyen kho
-  delete: async (ma_phieu) => {
-    return axiosInstance.delete(API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu));
-  },
-  
-  // Add xe to chuyen kho
+
+  // Thêm xe vào phiếu
   addXe: async (ma_phieu, data) => {
-    return axiosInstance.post(`${API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu)}/xe`, data);
+    // data: { xe_key, ma_kho_hien_tai }
+    const res = await axiosInstance.post(
+      API_ENDPOINTS.CHUYEN_KHO_THEM_XE(ma_phieu),
+      data
+    );
+    return res;
   },
-  
-  // Remove xe from chuyen kho
-  removeXe: async (ma_phieu, xe_key) => {
-    return axiosInstance.delete(`${API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu)}/xe/${xe_key}`);
-  },
-  
-  // Add phu tung to chuyen kho
+
+  // Thêm phụ tùng vào phiếu
   addPhuTung: async (ma_phieu, data) => {
-    return axiosInstance.post(`${API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu)}/phu-tung`, data);
+    // data: { ma_pt, ten_pt, don_vi_tinh, so_luong, don_gia }
+    const res = await axiosInstance.post(
+      API_ENDPOINTS.CHUYEN_KHO_THEM_PT(ma_phieu),
+      data
+    );
+    return res;
   },
-  
-  // Update phu tung in chuyen kho
-  updatePhuTung: async (ma_phieu, stt, data) => {
-    return axiosInstance.put(`${API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu)}/phu-tung/${stt}`, data);
-  },
-  
-  // Remove phu tung from chuyen kho
-  removePhuTung: async (ma_phieu, stt) => {
-    return axiosInstance.delete(`${API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu)}/phu-tung/${stt}`);
-  },
-  
-  // Send for approval (gui duyet)
+
+  // Gửi duyệt
   guiDuyet: async (ma_phieu) => {
-    return axiosInstance.post(`${API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu)}/gui-duyet`);
+    const res = await axiosInstance.post(
+      API_ENDPOINTS.CHUYEN_KHO_GUI_DUYET(ma_phieu)
+    );
+    return res;
   },
-  
-  // Approve (phe duyet)
-  pheDuyet: async (ma_phieu, data) => {
-    return axiosInstance.post(API_ENDPOINTS.CHUYEN_KHO_PHE_DUYET(ma_phieu), data);
+
+  // Phê duyệt
+  pheDuyet: async (ma_phieu) => {
+    const res = await axiosInstance.post(
+      API_ENDPOINTS.CHUYEN_KHO_PHE_DUYET(ma_phieu)
+    );
+    return res;
   },
-  
-  // Reject (tu choi)
-  tuChoi: async (ma_phieu, data) => {
-    return axiosInstance.post(API_ENDPOINTS.CHUYEN_KHO_TU_CHOI(ma_phieu), data);
+
+  // Hủy/Từ chối duyệt
+  huy: async (so_phieu, ly_do) => {
+    const res = await axiosInstance.post(
+      API_ENDPOINTS.CHUYEN_KHO_HUY(so_phieu),
+      { ly_do }
+    );
+    return res;
   },
-  
-  // Cancel (huy)
-  huy: async (ma_phieu) => {
-    return axiosInstance.post(`${API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu)}/huy`);
-  },
-  
-  // Get phieu xuat kho
-  getPhieuXuat: async (ma_phieu) => {
-    return axiosInstance.get(`${API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu)}/phieu-xuat`);
-  },
-  
-  // Get phieu nhap kho
-  getPhieuNhap: async (ma_phieu) => {
-    return axiosInstance.get(`${API_ENDPOINTS.CHUYEN_KHO_DETAIL(ma_phieu)}/phieu-nhap`);
-  }
 };
