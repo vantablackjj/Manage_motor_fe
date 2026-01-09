@@ -18,5 +18,6 @@ export { reportAPI } from "./report.api";
 export { masterDataApi } from "./masterData.api";
 export { phuTungKhoaAPI } from "./phuTungKhoa.api";
 export { donHangMuaXeAPI } from "./donHangMuaXe.api";
+export { hoaDonBanAPI } from "./hoaDonBan.api";
 // Re-export axios instance nếu cần
 export { default as axiosInstance } from "./axios.config";

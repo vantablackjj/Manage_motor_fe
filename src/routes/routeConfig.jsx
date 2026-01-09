@@ -28,6 +28,11 @@ import PartPurchaseList from "../components/pages/purchase/parts/PartPurchaseLis
 import PartPurchaseCreate from "../components/pages/purchase/parts/PartPurchaseCreate";
 import PartPurchaseDetail from "../components/pages/purchase/parts/PartPurchaseDetail";
 
+// Sales Orders
+import SalesOrderList from "../components/pages/sales/SalesOrderList";
+import SalesOrderCreate from "../components/pages/sales/SalesOrderCreate";
+import SalesOrderDetail from "../components/pages/sales/SalesOrderDetail";
+
 export const publicRoutes = [
   {
     path: "/login",
@@ -76,6 +81,24 @@ export const privateRoutes = [
   {
     path: "/purchase/parts/:id",
     component: PartPurchaseDetail,
+    layout: MainLayout,
+  },
+  // ===================================
+
+  // === QUẢN LÝ BÁN HÀNG (SALES) ===
+  {
+    path: "/sales/orders",
+    component: SalesOrderList,
+    layout: MainLayout,
+  },
+  {
+    path: "/sales/orders/create",
+    component: SalesOrderCreate,
+    layout: MainLayout,
+  },
+  {
+    path: "/sales/orders/:so_hd",
+    component: SalesOrderDetail,
     layout: MainLayout,
   },
   // ===================================

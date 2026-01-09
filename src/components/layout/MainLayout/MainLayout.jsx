@@ -82,6 +82,13 @@ const MainLayout = ({ children }) => {
         { key: "/xe/lich-su", label: "Lịch sử xe" },
       ],
     },
+    //3.Bán hàng
+    {
+      key: "/sales",
+      icon: <ShoppingCartOutlined />,
+      label: "Bán hàng",
+      children: [{ key: "/sales/orders", label: "Bán hàng" }],
+    },
 
     // 2. QUẢN LÝ PHỤ TÙNG
     {
