@@ -5,10 +5,15 @@ import { useNavigate } from "react-router-dom";
 import { authService } from "../../../services";
 import { notificationService, storageService } from "../../../services";
 import { authAPI } from "../../../api";
+import { useResponsive } from "../../../hooks/useResponsive";
+
 const LoginPage = () => {
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+
+  // ... rest of the component
 
   // Get redirect path or default to dashboard
 
@@ -68,18 +73,23 @@ const LoginPage = () => {
       <Card
         style={{
           width: "100%",
-          maxWidth: "420px",
-          boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
-          borderRadius: "12px",
+          maxWidth: isMobile ? "100%" : "420px",
+          boxShadow: isMobile ? "none" : "0 10px 40px rgba(0, 0, 0, 0.2)",
+          borderRadius: isMobile ? "8px" : "12px",
         }}
-        bodyStyle={{ padding: "40px" }}
+        bodyStyle={{ padding: isMobile ? "24px 16px" : "40px" }}
       >
         {/* Logo & Title */}
-        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: isMobile ? "24px" : "32px",
+          }}
+        >
           <div
             style={{
-              width: "80px",
-              height: "80px",
+              width: isMobile ? "60px" : "80px",
+              height: isMobile ? "60px" : "80px",
               background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               borderRadius: "50%",
               display: "flex",
@@ -89,19 +99,29 @@ const LoginPage = () => {
               boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
             }}
           >
-            <LoginOutlined style={{ fontSize: "36px", color: "#fff" }} />
+            <LoginOutlined
+              style={{ fontSize: isMobile ? "28px" : "36px", color: "#fff" }}
+            />
           </div>
           <h1
             style={{
-              fontSize: "24px",
+              fontSize: isMobile ? "1.25rem" : "1.5rem",
               fontWeight: "700",
               color: "#1f1f1f",
-              margin: "0 0 8px 0",
+              margin: "0 0 4px 0",
             }}
           >
-            Motor Management System
+            Motor Manage
           </h1>
-          <p style={{ color: "#8c8c8c", margin: 0 }}>Hệ thống quản lý xe máy</p>
+          <p
+            style={{
+              color: "#8c8c8c",
+              margin: 0,
+              fontSize: isMobile ? "13px" : "14px",
+            }}
+          >
+            Hệ thống quản lý xe máy
+          </p>
         </div>
 
         {/* Login Form */}
@@ -110,7 +130,7 @@ const LoginPage = () => {
           name="login"
           onFinish={handleSubmit}
           autoComplete="off"
-          size="large"
+          size={isMobile ? "middle" : "large"}
           layout="vertical"
         >
           <Form.Item

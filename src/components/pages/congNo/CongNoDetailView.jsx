@@ -97,10 +97,10 @@ const CongNoDetailView = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: "16px 8px" }}>
       <Card
         title={
-          <Space>
+          <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate("/cong-no/quan-ly")}
@@ -108,8 +108,14 @@ const CongNoDetailView = () => {
             <span>Chi tiết công nợ</span>
           </Space>
         }
+        size="small"
       >
-        <Descriptions bordered column={2} style={{ marginBottom: 24 }}>
+        <Descriptions
+          bordered
+          column={{ xs: 1, sm: 2 }}
+          size="small"
+          style={{ marginBottom: 24 }}
+        >
           <Descriptions.Item label="Kho Nợ (Người Trả)">
             <b>{getKhoName(ma_kho_no)}</b>
           </Descriptions.Item>
@@ -123,7 +129,9 @@ const CongNoDetailView = () => {
           columns={columns}
           rowKey="id"
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          size="small"
+          scroll={{ x: 800 }}
+          pagination={{ pageSize: 10, size: "small" }}
         />
       </Card>
     </div>

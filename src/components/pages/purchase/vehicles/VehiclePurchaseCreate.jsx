@@ -250,10 +250,10 @@ const VehiclePurchaseCreate = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: "16px 8px" }}>
       <Card
         title={
-          <Space>
+          <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate("/purchase/vehicles")}
@@ -261,6 +261,7 @@ const VehiclePurchaseCreate = () => {
             <span>Tạo Đơn Mua Xe</span>
           </Space>
         }
+        size="small"
       >
         <Form
           form={form}
@@ -268,8 +269,8 @@ const VehiclePurchaseCreate = () => {
           onFinish={onFinish}
           initialValues={{ ngay_dat_hang: moment() }}
         >
-          <Row gutter={16}>
-            <Col span={8}>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={8}>
               <Form.Item
                 name="ma_ncc"
                 label="Nhà cung cấp"
@@ -279,6 +280,7 @@ const VehiclePurchaseCreate = () => {
                   placeholder="Chọn NCC"
                   showSearch
                   optionFilterProp="children"
+                  style={{ width: "100%" }}
                 >
                   {supplierList.map((s) => (
                     <Option key={s.ma_kh} value={s.ma_kh}>
@@ -288,13 +290,13 @@ const VehiclePurchaseCreate = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col xs={24} sm={8}>
               <Form.Item
                 name="ma_kho_nhap"
                 label="Kho nhập"
                 rules={[{ required: true, message: "Chọn kho nhập" }]}
               >
-                <Select placeholder="Chọn kho">
+                <Select placeholder="Chọn kho" style={{ width: "100%" }}>
                   {khoList.map((k) => (
                     <Option key={k.ma_kho} value={k.ma_kho}>
                       {k.ten_kho}
@@ -303,7 +305,7 @@ const VehiclePurchaseCreate = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col xs={24} sm={8}>
               <Form.Item
                 name="ngay_dat_hang"
                 label="Ngày đặt hàng"
@@ -320,27 +322,33 @@ const VehiclePurchaseCreate = () => {
 
           {/* DETAILS TABLE */}
           <div style={{ marginBottom: 16 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 8,
-              }}
+            <Row
+              justify="space-between"
+              align="middle"
+              style={{ marginBottom: 8 }}
+              gutter={[8, 8]}
             >
-              <h3>Chi tiết xe</h3>
-              <Button
-                type="dashed"
-                icon={<PlusOutlined />}
-                onClick={handleAddItem}
-              >
-                Thêm dòng
-              </Button>
-            </div>
+              <Col xs={24} sm={12}>
+                <h3 style={{ margin: 0 }}>Chi tiết xe</h3>
+              </Col>
+              <Col xs={24} sm={12} style={{ textAlign: "right" }}>
+                <Button
+                  type="dashed"
+                  icon={<PlusOutlined />}
+                  onClick={handleAddItem}
+                  block
+                >
+                  Thêm dòng
+                </Button>
+              </Col>
+            </Row>
             <Table
               dataSource={items}
               columns={columns}
               rowKey="key"
               pagination={false}
+              size="small"
+              scroll={{ x: 800 }}
               locale={{ emptyText: "Chưa có dữ liệu" }}
               summary={(pageData) => {
                 let totalAmt = 0;
@@ -363,7 +371,7 @@ const VehiclePurchaseCreate = () => {
           </div>
 
           <div style={{ textAlign: "right", marginTop: 24 }}>
-            <Space>
+            <Space wrap>
               <Button onClick={() => navigate("/purchase/vehicles")}>
                 Hủy
               </Button>

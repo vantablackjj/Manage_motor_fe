@@ -22,6 +22,7 @@ import {
 } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { xeAPI } from "../../api";
+import { useResponsive } from "../../hooks/useResponsive";
 import {
   formatService,
   notificationService,
@@ -32,6 +33,7 @@ import { XE_TRANG_THAI_COLORS } from "../../utils/constants";
 const { TabPane } = Tabs;
 
 const XeDetailPage = () => {
+  const { isMobile } = useResponsive();
   const { xe_key } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -161,160 +163,196 @@ const XeDetailPage = () => {
   ];
 
   return (
-    <div className="page-container">
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
       {/* Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">
-            <CarOutlined /> Chi tiết xe: {xe.xe_key}
-          </h1>
-          <p style={{ color: "#8c8c8c", margin: 0 }}>
-            Thông tin chi tiết và lịch sử của xe
-          </p>
-        </div>
-        <Space>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate("/xe/ton-kho")}
+      <div style={{ marginBottom: 16 }}>
+        <Row justify="space-between" align="middle" gutter={[8, 16]}>
+          <Col xs={24} sm={16}>
+            <h1
+              style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.5rem" }}
+            >
+              <Space wrap>
+                <CarOutlined />
+                <span>Xe: {xe.xe_key}</span>
+              </Space>
+            </h1>
+            <p style={{ color: "#8c8c8c", margin: 0 }}>
+              Chi tiết và lịch sử xe
+            </p>
+          </Col>
+          <Col
+            xs={24}
+            sm={8}
+            style={{ textAlign: isMobile ? "left" : "right" }}
           >
-            Quay lại
-          </Button>
-          {authService.canEdit() && xe.trang_thai !== "DA_BAN" && (
-            <Button type="primary" icon={<EditOutlined />} onClick={handleEdit}>
-              Chỉnh sửa
-            </Button>
-          )}
-        </Space>
+            <Space wrap>
+              <Button
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate("/xe/ton-kho")}
+              >
+                Trở lại
+              </Button>
+              {authService.canEdit() && xe.trang_thai !== "DA_BAN" && (
+                <Button
+                  type="primary"
+                  icon={<EditOutlined />}
+                  onClick={handleEdit}
+                >
+                  Sửa
+                </Button>
+              )}
+            </Space>
+          </Col>
+        </Row>
       </div>
 
-      <Tabs defaultActiveKey="info">
+      <Tabs defaultActiveKey="info" size={isMobile ? "small" : "middle"}>
         {/* Tab Thông tin */}
         <TabPane
           tab={
             <span>
               <InfoCircleOutlined />
-              Thông tin xe
+              Thông tin
             </span>
           }
           key="info"
         >
-          <Card>
+          <Card size="small">
             <Descriptions
               bordered
               column={{ xs: 1, sm: 1, md: 2 }}
-              labelStyle={{ fontWeight: 600, width: "200px" }}
+              size="small"
+              labelStyle={{
+                fontWeight: 600,
+                width: isMobile ? "auto" : "150px",
+              }}
             >
               <Descriptions.Item label="Mã xe">
                 <strong>{xe.xe_key}</strong>
               </Descriptions.Item>
 
               <Descriptions.Item label="Trạng thái">
-                <Tag color={XE_TRANG_THAI_COLORS[xe.trang_thai]}>
-                  {formatService.formatXeTrangThai(xe.trang_thai)}
-                </Tag>
-                {xe.locked && (
-                  <Tag color="red" style={{ marginLeft: 8 }}>
-                    Đang bị khóa
+                <Space wrap>
+                  <Tag
+                    color={XE_TRANG_THAI_COLORS[xe.trang_thai]}
+                    style={{ margin: 0 }}
+                  >
+                    {formatService.formatXeTrangThai(xe.trang_thai)}
                   </Tag>
-                )}
+                  {xe.locked && (
+                    <Tag color="red" style={{ margin: 0 }}>
+                      Bị khóa
+                    </Tag>
+                  )}
+                </Space>
               </Descriptions.Item>
 
               <Descriptions.Item label="Loại xe">
                 {xe.ten_loai}
               </Descriptions.Item>
 
-              <Descriptions.Item label="Nhãn hiệu">
-                {xe.ten_nhan_hieu}
-              </Descriptions.Item>
-
               <Descriptions.Item label="Màu sắc">
                 <Tag color={xe.gia_tri_mau}>{xe.ten_mau}</Tag>
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Loại hình">
-                {xe.ten_loai_hinh || "-"}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Nơi sản xuất">
-                {xe.ten_noi_sx || "-"}
               </Descriptions.Item>
 
               <Descriptions.Item label="Kho hiện tại">
                 <strong>{xe.ten_kho}</strong>
               </Descriptions.Item>
+
+              <Descriptions.Item label="Ngày nhập">
+                {formatService.formatDate(xe.ngay_nhap)}
+              </Descriptions.Item>
             </Descriptions>
 
-            <Divider>Thông tin số máy & số khung</Divider>
+            <Divider orientation="left" style={{ margin: "16px 0" }}>
+              Số máy & Số khung
+            </Divider>
 
             <Descriptions
               bordered
               column={1}
-              labelStyle={{ fontWeight: 600, width: "200px" }}
+              size="small"
+              labelStyle={{
+                fontWeight: 600,
+                width: isMobile ? "auto" : "150px",
+              }}
             >
               <Descriptions.Item label="Số khung">
-                <strong style={{ fontSize: "16px", fontFamily: "monospace" }}>
+                <code
+                  style={{
+                    fontSize: isMobile ? "14px" : "16px",
+                    fontWeight: "bold",
+                  }}
+                >
                   {formatService.formatSoKhung(xe.so_khung)}
-                </strong>
+                </code>
               </Descriptions.Item>
 
               <Descriptions.Item label="Số máy">
-                <strong style={{ fontSize: "16px", fontFamily: "monospace" }}>
+                <code
+                  style={{
+                    fontSize: isMobile ? "14px" : "16px",
+                    fontWeight: "bold",
+                  }}
+                >
                   {formatService.formatSoMay(xe.so_may)}
-                </strong>
+                </code>
               </Descriptions.Item>
 
-              <Descriptions.Item label="Biển số">
-                {xe.bien_so ? (
-                  <strong style={{ fontSize: "16px" }}>
-                    {formatService.formatBienSo(xe.bien_so)}
-                  </strong>
-                ) : (
-                  "-"
-                )}
-              </Descriptions.Item>
+              {xe.bien_so && (
+                <Descriptions.Item label="Biển số">
+                  <strong>{formatService.formatBienSo(xe.bien_so)}</strong>
+                </Descriptions.Item>
+              )}
             </Descriptions>
 
-            <Divider>Thông tin giá & ngày tháng</Divider>
+            <Divider orientation="left" style={{ margin: "16px 0" }}>
+              Giá bán
+            </Divider>
 
             <Descriptions
               bordered
-              column={{ xs: 1, sm: 1, md: 2 }}
-              labelStyle={{ fontWeight: 600, width: "200px" }}
+              column={{ xs: 1, sm: 2 }}
+              size="small"
+              labelStyle={{
+                fontWeight: 600,
+                width: isMobile ? "auto" : "150px",
+              }}
             >
               <Descriptions.Item label="Giá nhập">
-                <strong style={{ color: "#1890ff", fontSize: "16px" }}>
+                <strong style={{ color: "#1890ff" }}>
                   {formatService.formatCurrency(xe.gia_nhap)}
                 </strong>
               </Descriptions.Item>
 
               <Descriptions.Item label="Giá bán">
                 {xe.gia_ban ? (
-                  <strong style={{ color: "#52c41a", fontSize: "16px" }}>
+                  <strong style={{ color: "#52c41a" }}>
                     {formatService.formatCurrency(xe.gia_ban)}
                   </strong>
                 ) : (
                   "-"
                 )}
               </Descriptions.Item>
-
-              <Descriptions.Item label="Ngày nhập kho">
-                {formatService.formatDate(xe.ngay_nhap)}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Ngày bán">
-                {xe.ngay_ban ? formatService.formatDate(xe.ngay_ban) : "-"}
-              </Descriptions.Item>
             </Descriptions>
 
             {xe.da_ban && xe.khach_hang && (
               <>
-                <Divider>Thông tin khách hàng</Divider>
+                <Divider orientation="left" style={{ margin: "16px 0" }}>
+                  Khách hàng
+                </Divider>
                 <Descriptions
                   bordered
                   column={1}
-                  labelStyle={{ fontWeight: 600, width: "200px" }}
+                  size="small"
+                  labelStyle={{
+                    fontWeight: 600,
+                    width: isMobile ? "auto" : "150px",
+                  }}
                 >
-                  <Descriptions.Item label="Khách hàng">
+                  <Descriptions.Item label="Họ tên">
                     {xe.khach_hang.ho_ten}
                   </Descriptions.Item>
                   <Descriptions.Item label="Điện thoại">
@@ -329,16 +367,22 @@ const XeDetailPage = () => {
 
             {xe.locked && (
               <>
-                <Divider>Thông tin khóa</Divider>
+                <Divider orientation="left" style={{ margin: "16px 0" }}>
+                  Thông tin khóa
+                </Divider>
                 <Descriptions
                   bordered
                   column={1}
-                  labelStyle={{ fontWeight: 600, width: "200px" }}
+                  size="small"
+                  labelStyle={{
+                    fontWeight: 600,
+                    width: isMobile ? "auto" : "150px",
+                  }}
                 >
-                  <Descriptions.Item label="Bị khóa bởi">
+                  <Descriptions.Item label="Bởi">
                     {xe.locked_by}
                   </Descriptions.Item>
-                  <Descriptions.Item label="Thời gian khóa">
+                  <Descriptions.Item label="Lúc">
                     {formatService.formatDateTime(xe.locked_at)}
                   </Descriptions.Item>
                   <Descriptions.Item label="Lý do">
@@ -350,8 +394,10 @@ const XeDetailPage = () => {
 
             {xe.ghi_chu && (
               <>
-                <Divider>Ghi chú</Divider>
-                <p>{xe.ghi_chu}</p>
+                <Divider orientation="left" style={{ margin: "16px 0" }}>
+                  Ghi chú
+                </Divider>
+                <p style={{ margin: 0 }}>{xe.ghi_chu}</p>
               </>
             )}
           </Card>
@@ -362,44 +408,32 @@ const XeDetailPage = () => {
           tab={
             <span>
               <HistoryOutlined />
-              Lịch sử giao dịch
+              Lịch sử
             </span>
           }
           key="history"
         >
-          <Card>
-            {lichSu.length === 0 && !loadingLichSu ? (
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
-                <Button
-                  type="primary"
-                  icon={<HistoryOutlined />}
-                  onClick={fetchLichSu}
-                >
-                  Tải lịch sử
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div style={{ marginBottom: 16 }}>
-                  <Button
-                    icon={<HistoryOutlined />}
-                    onClick={fetchLichSu}
-                    loading={loadingLichSu}
-                  >
-                    Làm mới
-                  </Button>
-                </div>
-                <Table
-                  dataSource={lichSu}
-                  columns={lichSuColumns}
-                  rowKey="id"
-                  loading={loadingLichSu}
-                  pagination={{ pageSize: 10 }}
-                  scroll={{ x: 1000 }}
-                  locale={{ emptyText: "Chưa có lịch sử giao dịch" }}
-                />
-              </>
-            )}
+          <Card size="small">
+            <div style={{ marginBottom: 16 }}>
+              <Button
+                size="small"
+                icon={<ReloadOutlined />}
+                onClick={fetchLichSu}
+                loading={loadingLichSu}
+              >
+                Làm mới
+              </Button>
+            </div>
+            <Table
+              dataSource={lichSu}
+              columns={lichSuColumns}
+              rowKey="id"
+              size="small"
+              loading={loadingLichSu}
+              pagination={{ pageSize: 10, size: "small" }}
+              scroll={{ x: 1000 }}
+              locale={{ emptyText: "Chưa có lịch sử" }}
+            />
           </Card>
         </TabPane>
       </Tabs>

@@ -144,14 +144,19 @@ const VehiclePurchaseList = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <Card>
-        <Row justify="space-between" style={{ marginBottom: 16 }}>
-          <Col>
-            <h2>Quản lý Mua Xe</h2>
+    <div style={{ padding: "16px 8px" }}>
+      <Card size="small">
+        <Row
+          justify="space-between"
+          align="middle"
+          gutter={[8, 16]}
+          style={{ marginBottom: 16 }}
+        >
+          <Col xs={24} md={12}>
+            <h2 style={{ margin: 0 }}>Mua Xe</h2>
           </Col>
-          <Col>
-            <Space>
+          <Col xs={24} md={12} style={{ textAlign: "right" }}>
+            <Space wrap>
               <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
                 Làm mới
               </Button>
@@ -167,42 +172,54 @@ const VehiclePurchaseList = () => {
         </Row>
 
         <div style={{ marginBottom: 16 }}>
-          <Space wrap>
-            <Select
-              placeholder="Chọn kho"
-              style={{ width: 200 }}
-              allowClear
-              onChange={(v) => handleFilterChange("ma_kho", v)}
-            >
-              {khoList.map((k) => (
-                <Option key={k.ma_kho} value={k.ma_kho}>
-                  {k.ten_kho}
-                </Option>
-              ))}
-            </Select>
-            <Select
-              placeholder="Trạng thái"
-              style={{ width: 150 }}
-              allowClear
-              onChange={(v) => handleFilterChange("trang_thai", v)}
-            >
-              <Option value="NHAP">Nháp</Option>
-              <Option value="GUI_DUYET">Chờ duyệt</Option>
-              <Option value="DA_DUYET">Đã duyệt</Option>
-            </Select>
-            <RangePicker
-              onChange={(dates) => {
-                handleFilterChange("tu_ngay", dates ? dates[0] : null);
-                handleFilterChange("den_ngay", dates ? dates[1] : null);
-              }}
-            />
-            <Button
-              type="primary"
-              icon={<SearchOutlined />}
-              onClick={() => fetchData()}
-            >
-              Tìm kiếm
-            </Button>
+          <Space direction="vertical" style={{ width: "100%" }} size="middle">
+            <Row gutter={[8, 8]}>
+              <Col xs={24} sm={12} md={6}>
+                <Select
+                  placeholder="Chọn kho"
+                  style={{ width: "100%" }}
+                  allowClear
+                  onChange={(v) => handleFilterChange("ma_kho", v)}
+                >
+                  {khoList.map((k) => (
+                    <Option key={k.ma_kho} value={k.ma_kho}>
+                      {k.ten_kho}
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Select
+                  placeholder="Trạng thái"
+                  style={{ width: "100%" }}
+                  allowClear
+                  onChange={(v) => handleFilterChange("trang_thai", v)}
+                >
+                  <Option value="NHAP">Nháp</Option>
+                  <Option value="GUI_DUYET">Chờ duyệt</Option>
+                  <Option value="DA_DUYET">Đã duyệt</Option>
+                </Select>
+              </Col>
+              <Col xs={24} sm={12} md={8}>
+                <RangePicker
+                  style={{ width: "100%" }}
+                  onChange={(dates) => {
+                    handleFilterChange("tu_ngay", dates ? dates[0] : null);
+                    handleFilterChange("den_ngay", dates ? dates[1] : null);
+                  }}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={4}>
+                <Button
+                  type="primary"
+                  icon={<SearchOutlined />}
+                  onClick={() => fetchData()}
+                  block
+                >
+                  Tìm
+                </Button>
+              </Col>
+            </Row>
           </Space>
         </div>
 
@@ -211,6 +228,12 @@ const VehiclePurchaseList = () => {
           columns={columns}
           rowKey="id"
           loading={loading}
+          size="small"
+          scroll={{ x: 800 }}
+          pagination={{
+            size: "small",
+            showTotal: (total) => `Tổng: ${total}`,
+          }}
         />
       </Card>
     </div>

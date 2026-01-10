@@ -132,15 +132,15 @@ const CongNoListPage = () => {
   );
 
   return (
-    <div style={{ padding: 24 }}>
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={8}>
-          <Card>
+    <div style={{ padding: "16px 8px" }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col xs={24} sm={12} md={8}>
+          <Card size="small">
             <Statistic
-              title="Tổng công nợ toàn hệ thống"
+              title="Tổng công nợ hệ thống"
               value={totalDebt}
               precision={0}
-              valueStyle={{ color: "#cf1322" }}
+              valueStyle={{ color: "#cf1322", fontSize: "18px" }}
               prefix={<DollarOutlined />}
               suffix="₫"
             />
@@ -149,41 +149,51 @@ const CongNoListPage = () => {
       </Row>
 
       <div style={{ marginBottom: 16 }}>
-        <Space>
-          <Select
-            placeholder="Lọc theo Kho Nợ"
-            style={{ width: 200 }}
-            allowClear
-            onChange={(v) => handleFilterChange("ma_kho_no", v)}
-          >
-            {khoList.map((k) => (
-              <Option key={k.ma_kho} value={k.ma_kho}>
-                {k.ten_kho}
-              </Option>
-            ))}
-          </Select>
-          <Select
-            placeholder="Lọc theo Kho Có"
-            style={{ width: 200 }}
-            allowClear
-            onChange={(v) => handleFilterChange("ma_kho_co", v)}
-          >
-            {khoList.map((k) => (
-              <Option key={k.ma_kho} value={k.ma_kho}>
-                {k.ten_kho}
-              </Option>
-            ))}
-          </Select>
-          <Button onClick={() => fetchData()}>Làm mới</Button>
+        <Space direction="vertical" style={{ width: "100%" }}>
+          <Row gutter={[8, 8]}>
+            <Col xs={24} sm={12}>
+              <Select
+                placeholder="Lọc theo Kho Nợ"
+                style={{ width: "100%" }}
+                allowClear
+                onChange={(v) => handleFilterChange("ma_kho_no", v)}
+              >
+                {khoList.map((k) => (
+                  <Option key={k.ma_kho} value={k.ma_kho}>
+                    {k.ten_kho}
+                  </Option>
+                ))}
+              </Select>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Select
+                placeholder="Lọc theo Kho Có"
+                style={{ width: "100%" }}
+                allowClear
+                onChange={(v) => handleFilterChange("ma_kho_co", v)}
+              >
+                {khoList.map((k) => (
+                  <Option key={k.ma_kho} value={k.ma_kho}>
+                    {k.ten_kho}
+                  </Option>
+                ))}
+              </Select>
+            </Col>
+          </Row>
+          <Button onClick={() => fetchData()} block size="small">
+            Làm mới
+          </Button>
         </Space>
       </div>
 
-      <Card title="Chi tiết công nợ các kho">
+      <Card title="Chi tiết công nợ các kho" size="small">
         <Table
           dataSource={data}
           columns={columns}
           rowKey={(r) => `${r.ma_kho_no}_${r.ma_kho_co}`}
           loading={loading}
+          size="small"
+          scroll={{ x: 800 }}
           locale={{ emptyText: "Không có dữ liệu công nợ" }}
         />
       </Card>

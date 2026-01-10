@@ -431,30 +431,53 @@ const XeThucTe = () => {
   };
 
   return (
-    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <Card>
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
+      <Card size="small">
         {/* Header */}
         <div style={{ marginBottom: 16 }}>
-          <h2 style={{ marginBottom: 24 }}>
-            <Space>
-              <CarOutlined />
-              <span>Quản lý xe</span>
-              <Badge
-                count={stats.total}
-                showZero
-                style={{ backgroundColor: "#52c41a" }}
-              />
-            </Space>
-          </h2>
+          <Row justify="space-between" align="middle" gutter={[8, 16]}>
+            <Col xs={24} sm={12}>
+              <h2 style={{ margin: 0 }}>
+                <Space wrap>
+                  <CarOutlined />
+                  <span>Quản lý xe</span>
+                  <Badge
+                    count={stats.total}
+                    showZero
+                    style={{ backgroundColor: "#52c41a" }}
+                  />
+                </Space>
+              </h2>
+            </Col>
+            <Col
+              xs={24}
+              sm={12}
+              style={{ textAlign: isMobile ? "left" : "right" }}
+            >
+              {activeTab === "danh-sach" && authService.canCreate() && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleCreate}
+                  block={isMobile}
+                >
+                  Nhập kho xe
+                </Button>
+              )}
+            </Col>
+          </Row>
 
           {/* Tabs */}
           <Tabs
             activeKey={activeTab}
             onChange={setActiveTab}
+            size={isMobile ? "small" : "middle"}
             items={[
               {
                 key: "danh-sach",
-                label: "Danh sách xe",
+                label: "Danh sách",
               },
               {
                 key: "ton-kho",
@@ -463,7 +486,7 @@ const XeThucTe = () => {
               {
                 key: "bi-khoa",
                 label: (
-                  <Badge count={stats.biKhoa} offset={[10, 0]}>
+                  <Badge count={stats.biKhoa} offset={[10, 0]} size="small">
                     <Space>
                       <LockOutlined />
                       Bị khóa
@@ -479,40 +502,50 @@ const XeThucTe = () => {
         {activeTab === "danh-sach" && (
           <>
             {/* Statistics */}
-            <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
+            <Row gutter={[8, 8]} style={{ marginBottom: "16px" }}>
               <Col xs={12} sm={6}>
-                <Card>
+                <Card size="small">
                   <Statistic
-                    title="Tổng số xe"
+                    title="Tổng"
                     value={stats.total}
                     prefix={<CarOutlined />}
+                    valueStyle={{ fontSize: isMobile ? 16 : 24 }}
                   />
                 </Card>
               </Col>
               <Col xs={12} sm={6}>
-                <Card>
+                <Card size="small">
                   <Statistic
                     title="Tồn kho"
                     value={stats.tonKho}
-                    valueStyle={{ color: "#3f8600" }}
+                    valueStyle={{
+                      color: "#3f8600",
+                      fontSize: isMobile ? 16 : 24,
+                    }}
                   />
                 </Card>
               </Col>
               <Col xs={12} sm={6}>
-                <Card>
+                <Card size="small">
                   <Statistic
                     title="Đã bán"
                     value={stats.daBan}
-                    valueStyle={{ color: "#cf1322" }}
+                    valueStyle={{
+                      color: "#cf1322",
+                      fontSize: isMobile ? 16 : 24,
+                    }}
                   />
                 </Card>
               </Col>
               <Col xs={12} sm={6}>
-                <Card>
+                <Card size="small">
                   <Statistic
-                    title="Đang chuyển"
+                    title="Chuyển"
                     value={stats.dangChuyen}
-                    valueStyle={{ color: "#1890ff" }}
+                    valueStyle={{
+                      color: "#1890ff",
+                      fontSize: isMobile ? 16 : 24,
+                    }}
                   />
                 </Card>
               </Col>
@@ -520,14 +553,13 @@ const XeThucTe = () => {
 
             {/* Filters */}
             <Card
+              size="small"
               style={{
                 marginBottom: 16,
-                padding: 16,
                 background: "#fafafa",
-                borderRadius: 8,
               }}
             >
-              <Row gutter={[16, 16]}>
+              <Row gutter={[8, 8]}>
                 <Col xs={24} sm={12} md={6}>
                   <Select
                     placeholder="Chọn kho"
@@ -595,7 +627,7 @@ const XeThucTe = () => {
 
                 <Col xs={24} md={12}>
                   <Search
-                    placeholder="Tìm kiếm xe key, số khung, số máy..."
+                    placeholder="Tìm kiếm xe, số khung, số máy..."
                     onSearch={handleSearch}
                     allowClear
                   />
@@ -631,13 +663,15 @@ const XeThucTe = () => {
               dataSource={data}
               rowKey="xe_key"
               loading={loading}
-              scroll={{ x: 1400 }}
+              scroll={{ x: 1200 }}
+              size="small"
               pagination={{
                 current: page,
                 pageSize: pageSize,
                 total: total,
                 showSizeChanger: true,
-                showTotal: (total) => `Tổng ${total} xe`,
+                showTotal: (total) => `Tổng: ${total}`,
+                size: "small",
                 onChange: (page, pageSize) => {
                   setPage(page);
                   setPageSize(pageSize);

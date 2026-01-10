@@ -31,12 +31,14 @@ import {
   authService,
   validationService,
 } from "../../../services";
+import { useResponsive } from "../../../hooks/useResponsive";
 import { useDebounce } from "../../../hooks";
 
 const { Search } = Input;
 const { TabPane } = Tabs;
 
 const KhachHangListPage = () => {
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
@@ -254,70 +256,101 @@ const KhachHangListPage = () => {
   ];
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">
-            <TeamOutlined /> Quản lý khách hàng
-          </h1>
-          <p style={{ color: "#8c8c8c", margin: 0 }}>
-            Quản lý khách hàng và nhà cung cấp
-          </p>
-        </div>
-        <Space>
-          {authService.canCreate() && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              Thêm khách hàng
-            </Button>
-          )}
-        </Space>
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
+      <div style={{ marginBottom: 16 }}>
+        <Row justify="space-between" align="middle" gutter={[8, 16]}>
+          <Col xs={24} sm={16}>
+            <h1
+              style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.5rem" }}
+            >
+              <Space wrap>
+                <TeamOutlined />
+                <span>Danh sách đối tác</span>
+              </Space>
+            </h1>
+          </Col>
+          <Col
+            xs={24}
+            sm={8}
+            style={{ textAlign: isMobile ? "left" : "right" }}
+          >
+            {authService.canCreate() && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleAdd}
+                block={isMobile}
+                size="small"
+              >
+                Thêm đối tác
+              </Button>
+            )}
+          </Col>
+        </Row>
       </div>
 
-      <Card style={{ marginBottom: "16px" }}>
+      <Card size="small" style={{ marginBottom: "16px" }}>
         <Search
-          placeholder="Tìm theo tên, SĐT, email..."
+          placeholder="Tìm tên, SĐT, email..."
           allowClear
           enterButton={<SearchOutlined />}
-          size="large"
+          size="small"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ maxWidth: 400 }}
+          style={{ width: "100%", maxWidth: isMobile ? "100%" : 400 }}
         />
       </Card>
 
-      <Card>
-        <Tabs activeKey={activeTab} onChange={setActiveTab}>
-          <TabPane tab="Tất cả" key="all" />
-          <TabPane
-            tab={
-              <span>
-                <UserOutlined /> Khách hàng
-              </span>
-            }
-            key="customer"
-          />
-          <TabPane
-            tab={
-              <span>
-                <TeamOutlined /> Nhà cung cấp
-              </span>
-            }
-            key="supplier"
-          />
-        </Tabs>
+      <Card size="small">
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          size={isMobile ? "small" : "middle"}
+          items={[
+            {
+              key: "all",
+              label: "Tất cả",
+            },
+            {
+              key: "customer",
+              label: (
+                <span>
+                  <UserOutlined /> Khách
+                </span>
+              ),
+            },
+            {
+              key: "supplier",
+              label: (
+                <span>
+                  <TeamOutlined /> NCC
+                </span>
+              ),
+            },
+          ]}
+        />
 
         <Table
-          columns={columns}
+          columns={columns.filter(
+            (col) =>
+              !isMobile ||
+              col.fixed ||
+              ["ho_ten", "la_ncc", "dien_thoai"].includes(col.dataIndex)
+          )}
           dataSource={data}
           rowKey="ma_kh"
           loading={loading}
-          scroll={{ x: 1400 }}
+          scroll={{ x: 800 }}
+          size="small"
           pagination={{
             current: page,
             pageSize: pageSize,
             total: total,
             showSizeChanger: true,
-            showTotal: (total) => `Tổng ${total} khách hàng`,
+            showTotal: (total) => `Tổng: ${total}`,
+            size: "small",
             onChange: (page, pageSize) => {
               setPage(page);
               setPageSize(pageSize);
@@ -328,73 +361,103 @@ const KhachHangListPage = () => {
 
       {/* Modal Form */}
       <Modal
-        title={`${editingRecord ? "Chỉnh sửa" : "Thêm"} khách hàng`}
+        title={`${editingRecord ? "Sửa" : "Thêm"} đối tác`}
         open={modalVisible}
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();
         }}
         footer={null}
-        width={700}
+        width={isMobile ? "100%" : 700}
+        size="small"
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item
-            name="ma_kh"
-            label="Mã khách hàng"
-            rules={[
-              { required: true, message: "Vui lòng nhập mã" },
-              {
-                pattern: /^[A-Z0-9_]+$/,
-                message: "Chỉ dùng chữ in hoa, số và _",
-              },
-            ]}
-          >
-            <Input disabled={!!editingRecord} placeholder="VD: KH001" />
-          </Form.Item>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          size="small"
+        >
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="ma_kh"
+                label="Mã định danh"
+                rules={[
+                  { required: true, message: "Vui lòng nhập mã" },
+                  {
+                    pattern: /^[A-Z0-9_]+$/,
+                    message: "Chỉ dùng chữ in hoa, số và _",
+                  },
+                ]}
+              >
+                <Input disabled={!!editingRecord} placeholder="VD: KH001" />
+              </Form.Item>
+            </Col>
 
-          <Form.Item
-            name="ho_ten"
-            label="Họ tên"
-            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
-          >
-            <Input placeholder="Nhập họ tên đầy đủ" />
-          </Form.Item>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="ho_ten"
+                label="Họ tên"
+                rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+              >
+                <Input placeholder="Nhập họ tên" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-          <Form.Item
-            name="dien_thoai"
-            label="Điện thoại"
-            rules={[
-              { pattern: /^(0|\+84)[0-9]{9}$/, message: "SĐT không hợp lệ" },
-            ]}
-          >
-            <Input placeholder="0xxxxxxxxx" />
-          </Form.Item>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="dien_thoai"
+                label="Điện thoại"
+                rules={[
+                  {
+                    pattern: /^(0|\+84)[0-9]{9}$/,
+                    message: "SĐT không hợp lệ",
+                  },
+                ]}
+              >
+                <Input placeholder="0xxxxxxxxx" />
+              </Form.Item>
+            </Col>
 
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[{ type: "email", message: "Email không hợp lệ" }]}
-          >
-            <Input placeholder="email@example.com" />
-          </Form.Item>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="email"
+                label="Email"
+                rules={[{ type: "email", message: "Email không hợp lệ" }]}
+              >
+                <Input placeholder="email@example.com" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-          <Form.Item
-            name="so_cmnd"
-            label="CMND/CCCD"
-            rules={[
-              { pattern: /^[0-9]{9,12}$/, message: "CMND/CCCD không hợp lệ" },
-            ]}
-          >
-            <Input placeholder="9-12 số" />
-          </Form.Item>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="so_cmnd"
+                label="CMND/CCCD"
+                rules={[
+                  {
+                    pattern: /^[0-9]{9,12}$/,
+                    message: "CMND/CCCD không hợp lệ",
+                  },
+                ]}
+              >
+                <Input placeholder="9-12 số" />
+              </Form.Item>
+            </Col>
 
-          <Form.Item name="ngay_sinh" label="Ngày sinh">
-            <DatePicker
-              style={{ width: "100%" }}
-              format="DD/MM/YYYY"
-              placeholder="Chọn ngày sinh"
-            />
-          </Form.Item>
+            <Col xs={24} sm={12}>
+              <Form.Item name="ngay_sinh" label="Ngày sinh">
+                <DatePicker
+                  style={{ width: "100%" }}
+                  format="DD/MM/YYYY"
+                  placeholder="Chọn ngày sinh"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item name="dia_chi" label="Địa chỉ">
             <Input.TextArea rows={2} placeholder="Nhập địa chỉ" />
@@ -404,23 +467,25 @@ const KhachHangListPage = () => {
             <Checkbox>Là nhà cung cấp</Checkbox>
           </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
               <Form.Item name="dai_dien" label="Người đại diện">
                 <Input placeholder="Tên người đại diện" />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item name="ma_so_thue" label="Mã số thuế">
                 <Input placeholder="Mã số thuế" />
               </Form.Item>
             </Col>
           </Row>
 
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <Button onClick={() => setModalVisible(false)}>Hủy</Button>
-              <Button type="primary" htmlType="submit">
+          <Form.Item style={{ marginBottom: 0, marginTop: 16 }}>
+            <Space wrap style={{ width: "100%", justifyContent: "flex-end" }}>
+              <Button onClick={() => setModalVisible(false)} block={isMobile}>
+                Hủy
+              </Button>
+              <Button type="primary" htmlType="submit" block={isMobile}>
                 {editingRecord ? "Cập nhật" : "Thêm"}
               </Button>
             </Space>

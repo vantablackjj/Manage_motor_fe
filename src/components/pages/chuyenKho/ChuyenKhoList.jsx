@@ -49,8 +49,6 @@ const ChuyenKhoList = () => {
     den_ngay: null,
   });
 
-
-
   useEffect(() => {
     fetchKhoList();
     fetchData();
@@ -180,15 +178,17 @@ const ChuyenKhoList = () => {
   ];
 
   return (
-    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <Card>
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
+      <Card size="small">
         <div style={{ marginBottom: 16 }}>
-          <Row justify="space-between" align="middle" gutter={[16, 16]}>
-            <Col>
-              <h2 style={{ margin: 0 }}>Quản lý chuyển kho</h2>
+          <Row justify="space-between" align="middle" gutter={[8, 16]}>
+            <Col xs={24} md={12}>
+              <h2 style={{ margin: 0 }}>Chuyển kho</h2>
             </Col>
-            <Col>
-              <Space>
+            <Col xs={24} md={12} style={{ textAlign: "right" }}>
+              <Space wrap>
                 <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
                   Làm mới
                 </Button>
@@ -198,7 +198,7 @@ const ChuyenKhoList = () => {
                     icon={<PlusOutlined />}
                     onClick={() => navigate("/chuyen-kho/tao-moi")}
                   >
-                    Tạo phiếu chuyển
+                    Tạo mới
                   </Button>
                 )}
               </Space>
@@ -207,7 +207,7 @@ const ChuyenKhoList = () => {
         </div>
 
         <div style={{ marginBottom: 16 }}>
-          <Row gutter={[16, 16]}>
+          <Row gutter={[8, 8]}>
             <Col xs={24} sm={12} md={6}>
               <Select
                 placeholder="Chọn kho xuất"
@@ -266,10 +266,13 @@ const ChuyenKhoList = () => {
           columns={columns}
           rowKey="so_phieu"
           loading={loading}
+          size="small"
+          scroll={{ x: 800 }}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
-            showTotal: (total) => `Tổng ${total} phiếu`,
+            showTotal: (total) => `Tổng ${total}`,
+            size: "small",
           }}
         />
       </Card>

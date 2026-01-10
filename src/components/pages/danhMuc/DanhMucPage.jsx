@@ -12,7 +12,10 @@ import {
   Tag,
   Card,
   ColorPicker,
+  Row,
+  Col,
 } from "antd";
+import { useResponsive } from "../../../hooks/useResponsive";
 import {
   PlusOutlined,
   EditOutlined,
@@ -30,6 +33,7 @@ import {
 const { TabPane } = Tabs;
 
 const DanhMucPage = () => {
+  const { isMobile } = useResponsive();
   const [activeTab, setActiveTab] = useState("brand");
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -197,7 +201,7 @@ const DanhMucPage = () => {
   const getActionColumn = () => ({
     title: "Thao tác",
     key: "action",
-    width: 120,
+    width: 100,
     fixed: "right",
     render: (_, record) => (
       <Space size="small">
@@ -207,20 +211,16 @@ const DanhMucPage = () => {
             size="small"
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
-          >
-            Sửa
-          </Button>
+          />
         )}
         {authService.canDelete() && (
           <Popconfirm
-            title="Xác nhận xóa?"
+            title="Xóa?"
             onConfirm={() => handleDelete(record)}
             okText="Xóa"
             cancelText="Hủy"
           >
-            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-              Xóa
-            </Button>
+            <Button type="link" danger size="small" icon={<DeleteOutlined />} />
           </Popconfirm>
         )}
       </Space>
@@ -557,111 +557,164 @@ const DanhMucPage = () => {
   };
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">
-            <SettingOutlined /> Quản lý danh mục
-          </h1>
-          <p style={{ color: "#8c8c8c", margin: 0 }}>
-            Quản lý danh mục cơ bản của hệ thống
-          </p>
-        </div>
-        <Space>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={() => fetchTabData(activeTab)}
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
+      <div style={{ marginBottom: 16 }}>
+        <Row justify="space-between" align="middle" gutter={[8, 16]}>
+          <Col xs={24} sm={16}>
+            <h1
+              style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.5rem" }}
+            >
+              <Space wrap>
+                <SettingOutlined />
+                <span>Danh mục</span>
+              </Space>
+            </h1>
+          </Col>
+          <Col
+            xs={24}
+            sm={8}
+            style={{ textAlign: isMobile ? "left" : "right" }}
           >
-            Làm mới
-          </Button>
-          {authService.canCreate() && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              Thêm {getTitle()}
-            </Button>
-          )}
-        </Space>
+            <Space wrap>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => fetchTabData(activeTab)}
+                size="small"
+              >
+                Tải lại
+              </Button>
+              {authService.canCreate() && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleAdd}
+                  size="small"
+                >
+                  Thêm
+                </Button>
+              )}
+            </Space>
+          </Col>
+        </Row>
       </div>
 
-      <Card>
+      <Card size="small">
         <Tabs
           activeKey={activeTab}
+          size={isMobile ? "small" : "middle"}
           onChange={(key) => {
             setActiveTab(key);
             fetchTabData(key);
           }}
-        >
-          <TabPane tab="Nhãn hiệu" key="brand">
-            <Table
-              dataSource={brandList}
-              columns={brandColumns}
-              rowKey="ma_nh"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          </TabPane>
-
-          <TabPane tab="Màu sắc" key="color">
-            <Table
-              dataSource={colorList}
-              columns={colorColumns}
-              rowKey="ma_mau"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          </TabPane>
-
-          <TabPane tab="Loại hình" key="loaiHinh">
-            <Table
-              dataSource={loaiHinhList}
-              columns={loaiHinhColumns}
-              rowKey="ma_lh"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          </TabPane>
-
-          <TabPane tab="Nơi sản xuất" key="noiSX">
-            <Table
-              dataSource={noiSXList}
-              columns={noiSXColumns}
-              rowKey="ma"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          </TabPane>
-
-          <TabPane tab="Model xe" key="model">
-            <Table
-              dataSource={modelList}
-              columns={modelColumns}
-              rowKey="ma_loai"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-              scroll={{ x: 1000 }}
-            />
-          </TabPane>
-        </Tabs>
+          items={[
+            {
+              key: "brand",
+              label: "Nhãn hiệu",
+              children: (
+                <Table
+                  dataSource={brandList}
+                  columns={brandColumns}
+                  rowKey="ma_nh"
+                  loading={loading}
+                  size="small"
+                  scroll={{ x: 400 }}
+                  pagination={{ pageSize: 10, size: "small" }}
+                />
+              ),
+            },
+            {
+              key: "color",
+              label: "Màu sắc",
+              children: (
+                <Table
+                  dataSource={colorList}
+                  columns={colorColumns}
+                  rowKey="ma_mau"
+                  loading={loading}
+                  size="small"
+                  scroll={{ x: 500 }}
+                  pagination={{ pageSize: 10, size: "small" }}
+                />
+              ),
+            },
+            {
+              key: "loaiHinh",
+              label: "Loại hình",
+              children: (
+                <Table
+                  dataSource={loaiHinhList}
+                  columns={loaiHinhColumns}
+                  rowKey="ma_lh"
+                  loading={loading}
+                  size="small"
+                  scroll={{ x: 400 }}
+                  pagination={{ pageSize: 10, size: "small" }}
+                />
+              ),
+            },
+            {
+              key: "noiSX",
+              label: "Nơi SX",
+              children: (
+                <Table
+                  dataSource={noiSXList}
+                  columns={noiSXColumns}
+                  rowKey="ma"
+                  loading={loading}
+                  size="small"
+                  scroll={{ x: 400 }}
+                  pagination={{ pageSize: 10, size: "small" }}
+                />
+              ),
+            },
+            {
+              key: "model",
+              label: "Model xe",
+              children: (
+                <Table
+                  dataSource={modelList}
+                  columns={modelColumns}
+                  rowKey="ma_loai"
+                  loading={loading}
+                  size="small"
+                  scroll={{ x: 800 }}
+                  pagination={{ pageSize: 10, size: "small" }}
+                />
+              ),
+            },
+          ]}
+        />
       </Card>
 
       {/* Modal Form */}
       <Modal
-        title={`${editingRecord ? "Chỉnh sửa" : "Thêm"} ${getTitle()}`}
+        title={`${editingRecord ? "Sửa" : "Thêm"} ${getTitle()}`}
         open={modalVisible}
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();
         }}
         footer={null}
-        width={600}
+        width={isMobile ? "100%" : 500}
+        size="small"
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          size="small"
+        >
           {getFormFields()}
 
-          <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
-            <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <Button onClick={() => setModalVisible(false)}>Hủy</Button>
-              <Button type="primary" htmlType="submit">
-                {editingRecord ? "Cập nhật" : "Thêm"}
+          <Form.Item style={{ marginBottom: 0, marginTop: 16 }}>
+            <Space wrap style={{ width: "100%", justifyContent: "flex-end" }}>
+              <Button onClick={() => setModalVisible(false)} block={isMobile}>
+                Hủy
+              </Button>
+              <Button type="primary" htmlType="submit" block={isMobile}>
+                {editingRecord ? "Cập nhật" : "Thêm mới"}
               </Button>
             </Space>
           </Form.Item>

@@ -115,8 +115,7 @@ const MainLayout = ({ children }) => {
       icon: <DollarOutlined />,
       label: "Tài chính",
       children: [
-        { key: "/tai-chinh/thu", label: "Phiếu thu" },
-        { key: "/tai-chinh/chi", label: "Phiếu chi" },
+        { key: "/thu-chi", label: "Quản lý Thu Chi" },
         { key: "/cong-no/quan-ly", label: "Công nợ" },
       ],
     },

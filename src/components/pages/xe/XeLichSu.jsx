@@ -1,6 +1,17 @@
 // src/pages/xe/XeLichSuPage.jsx
 import React, { useEffect, useState } from "react";
-import { Card, Table, Select, Space, Tag, Button, Input, Empty } from "antd";
+import {
+  Card,
+  Table,
+  Select,
+  Space,
+  Tag,
+  Button,
+  Input,
+  Empty,
+  Row,
+  Col,
+} from "antd";
 import {
   HistoryOutlined,
   ReloadOutlined,
@@ -75,49 +86,62 @@ const XeLichSuPage = () => {
   ];
 
   return (
-    <div className="page-container">
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
       {/* Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">
-            <HistoryOutlined /> Lịch sử xe
-          </h1>
-          <p style={{ color: "#8c8c8c", margin: 0 }}>
-            Tra cứu lịch sử thao tác theo từng xe
-          </p>
-        </div>
-        <Button
-          icon={<ReloadOutlined />}
-          disabled={!xeKey}
-          onClick={() => fetchData()}
-        >
-          Làm mới
-        </Button>
+      <div style={{ marginBottom: 16 }}>
+        <Row justify="space-between" align="middle" gutter={[8, 16]}>
+          <Col xs={24} sm={16}>
+            <h1
+              style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.5rem" }}
+            >
+              <Space wrap>
+                <HistoryOutlined />
+                <span>Lịch sử xe</span>
+              </Space>
+            </h1>
+          </Col>
+          <Col
+            xs={24}
+            sm={8}
+            style={{ textAlign: isMobile ? "left" : "right" }}
+          >
+            <Button
+              icon={<ReloadOutlined />}
+              disabled={!xeKey}
+              onClick={() => fetchData()}
+              size="small"
+              block={isMobile}
+            >
+              Tải lại
+            </Button>
+          </Col>
+        </Row>
       </div>
 
       {/* Bộ chọn xe */}
-      <Card style={{ marginBottom: 16 }}>
-        <Space
-          direction={isMobile ? "vertical" : "horizontal"}
-          style={{ width: "100%" }}
-        >
-          <Search
-            placeholder="Nhập mã xe (xe_key)"
-            allowClear
-            enterButton="Xem lịch sử"
-            onSearch={(value) => {
-              setXeKey(value);
-              fetchData(value);
-            }}
-            style={{ maxWidth: 400 }}
-          />
-        </Space>
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Search
+          placeholder="Nhập mã xe (xe_key)..."
+          allowClear
+          enterButton={isMobile ? <HistoryOutlined /> : "Xem lịch sử"}
+          size="small"
+          onSearch={(value) => {
+            setXeKey(value);
+            fetchData(value);
+          }}
+          style={{ width: "100%", maxWidth: isMobile ? "100%" : 400 }}
+        />
       </Card>
 
       {/* Table */}
-      <Card>
+      <Card size="small">
         {!xeKey ? (
-          <Empty description="Vui lòng nhập mã xe để xem lịch sử" />
+          <Empty
+            description="Nhập mã xe để xem"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
         ) : (
           <Table
             columns={columns}
@@ -125,7 +149,9 @@ const XeLichSuPage = () => {
             rowKey="id"
             loading={loading}
             pagination={false}
-            locale={{ emptyText: "Xe chưa có lịch sử" }}
+            size="small"
+            scroll={{ x: 600 }}
+            locale={{ emptyText: "Chưa có lịch sử" }}
           />
         )}
       </Card>

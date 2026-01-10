@@ -12,9 +12,11 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import { reportAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
+import { useResponsive } from "../../../hooks/useResponsive";
 
 const DashboardPage = () => {
   const { user } = useAuth();
+  const { isMobile, isTablet } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalVehicles: 0,
@@ -63,16 +65,21 @@ const DashboardPage = () => {
   };
 
   const StatCard = ({ title, value, prefix, suffix, trend, color, icon }) => (
-    <Card hoverable style={{ height: "100%" }}>
+    <Card hoverable size="small" style={{ height: "100%" }}>
       <Statistic
-        title={title}
+        title={
+          <span style={{ fontSize: isMobile ? "12px" : "14px" }}>{title}</span>
+        }
         value={value}
         prefix={icon}
         suffix={suffix}
-        valueStyle={{ color: color || "#3f8600" }}
+        valueStyle={{
+          color: color || "#3f8600",
+          fontSize: isMobile ? "18px" : "24px",
+        }}
       />
       {trend !== undefined && (
-        <div style={{ marginTop: "8px", fontSize: "14px" }}>
+        <div style={{ marginTop: "4px", fontSize: isMobile ? "11px" : "13px" }}>
           {trend >= 0 ? (
             <span style={{ color: "#3f8600" }}>
               <ArrowUpOutlined /> {trend}%
@@ -82,8 +89,8 @@ const DashboardPage = () => {
               <ArrowDownOutlined /> {Math.abs(trend)}%
             </span>
           )}
-          <span style={{ marginLeft: "8px", color: "#8c8c8c" }}>
-            so với tháng trước
+          <span style={{ marginLeft: "4px", color: "#8c8c8c" }}>
+            so với trước
           </span>
         </div>
       )}
@@ -95,16 +102,17 @@ const DashboardPage = () => {
       title: "Thời gian",
       dataIndex: "ngay_giao_dich",
       key: "ngay_giao_dich",
-      width: 180,
+      width: 120,
       render: (text) => formatService.formatRelativeTime(text),
     },
     {
       title: "Loại",
       dataIndex: "loai_giao_dich",
       key: "loai_giao_dich",
-      width: 120,
+      width: 100,
       render: (text) => (
         <Tag
+          size="small"
           color={
             text === "NHAP_KHO"
               ? "green"
@@ -131,15 +139,15 @@ const DashboardPage = () => {
       title: "Giá trị",
       dataIndex: "gia_tri",
       key: "gia_tri",
-      width: 150,
+      width: 110,
       align: "right",
       render: (text) => formatService.formatCurrency(text),
     },
     {
-      title: "Người thực hiện",
+      title: "Người làm",
       dataIndex: "nguoi_thuc_hien",
       key: "nguoi_thuc_hien",
-      width: 150,
+      width: 110,
     },
   ];
 
@@ -153,55 +161,63 @@ const DashboardPage = () => {
           minHeight: "400px",
         }}
       >
-        <Spin size="large" tip="Đang tải dữ liệu..." />
+        <Spin size="large" tip="Đang tải..." />
       </div>
     );
   }
 
   return (
-    <div className="page-container">
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
       {/* Page Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Dashboard</h1>
-          <p style={{ color: "#8c8c8c", margin: 0 }}>
-            Xin chào, {user?.ho_ten || user?.username}! Chào mừng trở lại.
-          </p>
-        </div>
+      <div style={{ marginBottom: 16 }}>
+        <h1 style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.5rem" }}>
+          Dashboard
+        </h1>
+        <p
+          style={{
+            color: "#8c8c8c",
+            margin: 0,
+            fontSize: isMobile ? "13px" : "14px",
+          }}
+        >
+          Xin chào, {user?.ho_ten || user?.username}!
+        </p>
       </div>
 
       {/* Statistics Cards */}
-      <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
-        <Col xs={24} sm={12} lg={6}>
+      <Row gutter={[8, 8]} style={{ marginBottom: "16px" }}>
+        <Col xs={12} sm={12} lg={6}>
           <StatCard
-            title="Tổng xe tồn kho"
+            title="Xe tồn kho"
             value={stats.totalVehicles}
             icon={<CarOutlined />}
             trend={stats.vehicleChange}
             color="#1890ff"
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <StatCard
-            title="Phụ tùng tồn kho"
+            title="Phụ tùng tồn"
             value={stats.totalParts}
             icon={<ToolOutlined />}
             trend={stats.partsChange}
             color="#52c41a"
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <StatCard
-            title="Đơn hàng tháng này"
+            title="Đơn hàng"
             value={stats.totalOrders}
             icon={<ShoppingCartOutlined />}
             trend={stats.ordersChange}
             color="#fa8c16"
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <StatCard
-            title="Doanh thu tháng này"
+            title="Doanh thu"
             value={formatService.formatCompactNumber(stats.totalRevenue)}
             icon={<DollarOutlined />}
             suffix="₫"
@@ -212,46 +228,48 @@ const DashboardPage = () => {
       </Row>
 
       {/* Charts Section */}
-      <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
+      <Row gutter={[8, 8]} style={{ marginBottom: "16px" }}>
         <Col xs={24} lg={16}>
           <Card
-            title="Doanh thu theo tháng"
+            size="small"
+            title="Biểu đồ doanh thu"
             extra={
-              <Space>
-                <span style={{ color: "#8c8c8c" }}>Năm 2025</span>
-                {/* <TrendingUpOutlined style={{ color: "#52c41a" }} /> */}
-              </Space>
+              <span style={{ color: "#8c8c8c", fontSize: "12px" }}>
+                Năm 2025
+              </span>
             }
           >
             <div
               style={{
-                height: "300px",
+                height: isMobile ? "200px" : "300px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 background: "#fafafa",
                 borderRadius: "8px",
                 color: "#8c8c8c",
+                fontSize: "12px",
               }}
             >
-              Biểu đồ doanh thu (Sẽ tích hợp Chart.js hoặc Recharts)
+              (Biểu đồ chưa sẵn sàng)
             </div>
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card title="Phân bố sản phẩm">
+          <Card size="small" title="Cơ cấu hàng hóa">
             <div
               style={{
-                height: "300px",
+                height: isMobile ? "200px" : "300px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 background: "#fafafa",
                 borderRadius: "8px",
                 color: "#8c8c8c",
+                fontSize: "12px",
               }}
             >
-              Biểu đồ tròn phân bố
+              (Phân bố)
             </div>
           </Card>
         </Col>
@@ -259,10 +277,14 @@ const DashboardPage = () => {
 
       {/* Recent Activities */}
       <Card
-        title="Hoạt động gần đây"
+        size="small"
+        title="Giao dịch mới"
         extra={
-          <a onClick={() => (window.location.href = "/reports/activities")}>
-            Xem tất cả
+          <a
+            onClick={() => (window.location.href = "/reports/activities")}
+            style={{ fontSize: "12px" }}
+          >
+            Chi tiết
           </a>
         }
       >
@@ -271,55 +293,82 @@ const DashboardPage = () => {
           columns={activityColumns}
           rowKey="id"
           pagination={false}
-          scroll={{ x: 800 }}
+          scroll={{ x: 600 }}
+          size="small"
           locale={{
-            emptyText: "Chưa có hoạt động nào",
+            emptyText: "Chưa có dữ liệu",
           }}
         />
       </Card>
 
       {/* Quick Actions */}
-      <Row gutter={[16, 16]} style={{ marginTop: "24px" }}>
-        <Col xs={24} sm={12} md={6}>
+      <Row gutter={[8, 8]} style={{ marginTop: "16px" }}>
+        <Col xs={12} sm={6}>
           <Card
             hoverable
+            size="small"
             onClick={() => (window.location.href = "/don-hang/create")}
-            style={{ textAlign: "center", cursor: "pointer" }}
+            style={{ textAlign: "center", cursor: "pointer", height: "100%" }}
           >
             <ShoppingCartOutlined
-              style={{ fontSize: "32px", color: "#1890ff" }}
+              style={{ fontSize: isMobile ? "24px" : "32px", color: "#1890ff" }}
             />
-            <h3 style={{ marginTop: "16px" }}>Tạo đơn hàng</h3>
+            <h4
+              style={{ marginTop: "8px", fontSize: isMobile ? "12px" : "14px" }}
+            >
+              Đơn hàng
+            </h4>
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={12} sm={6}>
           <Card
             hoverable
+            size="small"
             onClick={() => (window.location.href = "/hoa-don/create")}
-            style={{ textAlign: "center", cursor: "pointer" }}
+            style={{ textAlign: "center", cursor: "pointer", height: "100%" }}
           >
-            <DollarOutlined style={{ fontSize: "32px", color: "#52c41a" }} />
-            <h3 style={{ marginTop: "16px" }}>Tạo hóa đơn</h3>
+            <DollarOutlined
+              style={{ fontSize: isMobile ? "24px" : "32px", color: "#52c41a" }}
+            />
+            <h4
+              style={{ marginTop: "8px", fontSize: isMobile ? "12px" : "14px" }}
+            >
+              Hóa đơn
+            </h4>
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={12} sm={6}>
           <Card
             hoverable
+            size="small"
             onClick={() => (window.location.href = "/chuyen-kho/create")}
-            style={{ textAlign: "center", cursor: "pointer" }}
+            style={{ textAlign: "center", cursor: "pointer", height: "100%" }}
           >
-            <CarOutlined style={{ fontSize: "32px", color: "#fa8c16" }} />
-            <h3 style={{ marginTop: "16px" }}>Chuyển kho</h3>
+            <CarOutlined
+              style={{ fontSize: isMobile ? "24px" : "32px", color: "#fa8c16" }}
+            />
+            <h4
+              style={{ marginTop: "8px", fontSize: isMobile ? "12px" : "14px" }}
+            >
+              Chuyển kho
+            </h4>
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={12} sm={6}>
           <Card
             hoverable
+            size="small"
             onClick={() => (window.location.href = "/xe/ton-kho")}
-            style={{ textAlign: "center", cursor: "pointer" }}
+            style={{ textAlign: "center", cursor: "pointer", height: "100%" }}
           >
-            <ToolOutlined style={{ fontSize: "32px", color: "#722ed1" }} />
-            <h3 style={{ marginTop: "16px" }}>Tồn kho</h3>
+            <ToolOutlined
+              style={{ fontSize: isMobile ? "24px" : "32px", color: "#722ed1" }}
+            />
+            <h4
+              style={{ marginTop: "8px", fontSize: isMobile ? "12px" : "14px" }}
+            >
+              Tồn kho
+            </h4>
           </Card>
         </Col>
       </Row>

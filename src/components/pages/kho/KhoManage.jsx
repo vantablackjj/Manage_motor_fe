@@ -200,28 +200,41 @@ const KhoManage = () => {
   ].filter(Boolean);
 
   return (
-    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <Card>
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
+      <Card size="small">
         <div style={{ marginBottom: 16 }}>
-          <Row justify="space-between" align="middle">
-            <Col>
-              <h2 style={{ margin: 0 }}>
-                <HomeOutlined /> Quản lý kho
+          <Row justify="space-between" align="middle" gutter={[8, 16]}>
+            <Col xs={24} sm={16}>
+              <h2
+                style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.5rem" }}
+              >
+                <Space wrap>
+                  <HomeOutlined />
+                  <span>Quản lý kho</span>
+                </Space>
               </h2>
-              <p style={{ color: "#8c8c8c", margin: "4px 0 0 0" }}>
-                Quản lý danh sách kho hàng
-              </p>
             </Col>
-            <Col>
-              <Space>
-                <Button icon={<ReloadOutlined />} onClick={fetchData}>
-                  Làm mới
+            <Col
+              xs={24}
+              sm={8}
+              style={{ textAlign: isMobile ? "left" : "right" }}
+            >
+              <Space wrap>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={fetchData}
+                  size="small"
+                >
+                  Tải lại
                 </Button>
                 {authService.canCreate() && (
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
                     onClick={handleAdd}
+                    size="small"
                   >
                     Thêm kho
                   </Button>
@@ -236,27 +249,35 @@ const KhoManage = () => {
           columns={columns}
           rowKey="ma_kho"
           loading={loading}
-          scroll={{ x: 1000 }}
+          scroll={{ x: 800 }}
+          size="small"
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
-            showTotal: (total) => `Tổng ${total} kho`,
+            showTotal: (total) => `Tổng: ${total}`,
+            size: "small",
           }}
         />
       </Card>
 
       {/* Modal Form */}
       <Modal
-        title={editingRecord ? "Chỉnh sửa kho" : "Thêm kho mới"}
+        title={editingRecord ? "Sửa kho" : "Thêm kho"}
         open={modalVisible}
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();
         }}
         footer={null}
-        width={600}
+        width={isMobile ? "100%" : 500}
+        size="small"
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          size="small"
+        >
           <Form.Item
             name="ma_kho"
             label="Mã kho"
@@ -265,7 +286,7 @@ const KhoManage = () => {
               { max: 50, message: "Mã kho tối đa 50 ký tự" },
             ]}
           >
-            <Input placeholder="VD: KHO01, KHO_HN" disabled={!!editingRecord} />
+            <Input placeholder="VD: KHO01..." disabled={!!editingRecord} />
           </Form.Item>
 
           <Form.Item
@@ -276,7 +297,7 @@ const KhoManage = () => {
               { max: 200, message: "Tên kho tối đa 200 ký tự" },
             ]}
           >
-            <Input placeholder="VD: Kho Hà Nội, Kho Đại lý Cầu Giấy" />
+            <Input placeholder="Nhập tên kho" />
           </Form.Item>
 
           <Form.Item
@@ -297,32 +318,34 @@ const KhoManage = () => {
           <Form.Item name="dia_chi" label="Địa chỉ">
             <Input.TextArea
               rows={2}
-              placeholder="Nhập địa chỉ kho"
+              placeholder="Nhập địa chỉ"
               maxLength={500}
             />
           </Form.Item>
 
           <Form.Item name="dien_thoai" label="Điện thoại">
-            <Input placeholder="VD: 0123456789" maxLength={50} />
+            <Input placeholder="SĐT kho" maxLength={50} />
           </Form.Item>
 
           <Form.Item
             name="mac_dinh"
-            label="Đặt làm kho mặc định"
+            label="Kho mặc định"
             valuePropName="checked"
           >
-            <Switch />
+            <Switch size="small" />
           </Form.Item>
 
           <Form.Item name="ghi_chu" label="Ghi chú">
-            <Input.TextArea rows={2} placeholder="Ghi chú thêm (nếu có)" />
+            <Input.TextArea rows={2} placeholder="Ghi chú (nếu có)" />
           </Form.Item>
 
-          <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
-            <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <Button onClick={() => setModalVisible(false)}>Hủy</Button>
-              <Button type="primary" htmlType="submit">
-                {editingRecord ? "Cập nhật" : "Thêm"}
+          <Form.Item style={{ marginBottom: 0, marginTop: 16 }}>
+            <Space wrap style={{ width: "100%", justifyContent: "flex-end" }}>
+              <Button onClick={() => setModalVisible(false)} block={isMobile}>
+                Hủy
+              </Button>
+              <Button type="primary" htmlType="submit" block={isMobile}>
+                {editingRecord ? "Cập nhật" : "Thêm mới"}
               </Button>
             </Space>
           </Form.Item>

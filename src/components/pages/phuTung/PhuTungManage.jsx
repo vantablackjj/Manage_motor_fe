@@ -302,35 +302,56 @@ const PhuTungManagement = () => {
   ).length;
   const khoHetHang = tonKhoData.filter((i) => i.so_luong_ton === 0).length;
   return (
-    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <Card>
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
+      <Card size="small">
         <div style={{ marginBottom: 16 }}>
-          <h2 style={{ marginBottom: 24 }}>
-            <Space>
-              <span>Quản lý Phụ tùng</span>
-              <Badge
-                count={data.length}
-                showZero
-                style={{ backgroundColor: "#52c41a" }}
-              />
-            </Space>
-          </h2>
+          <Row justify="space-between" align="middle" gutter={[8, 16]}>
+            <Col xs={24} sm={12}>
+              <h2 style={{ margin: 0 }}>
+                <Space wrap>
+                  <span>Quản lý Phụ tùng</span>
+                  <Badge
+                    count={data.length}
+                    showZero
+                    style={{ backgroundColor: "#52c41a" }}
+                  />
+                </Space>
+              </h2>
+            </Col>
+            <Col
+              xs={24}
+              sm={12}
+              style={{ textAlign: isMobile ? "left" : "right" }}
+            >
+              {activeTab === "danh-sach" && authService.canCreate() && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleCreate}
+                  block={isMobile}
+                >
+                  Thêm phụ tùng
+                </Button>
+              )}
+            </Col>
+          </Row>
 
           <Tabs
-            tabPosition={isMobile ? "top" : "top"}
             size={isMobile ? "small" : "middle"}
             activeKey={activeTab}
             onChange={setActiveTab}
             items={[
               {
                 key: "danh-sach",
-                label: "Danh sách phụ tùng",
+                label: "Danh sách",
               },
               {
                 key: "ton-kho",
                 label: (
-                  <Badge count={phuTungSapHet} offset={[10, 0]}>
-                    Tồn kho ({ma_kho})
+                  <Badge count={phuTungSapHet} offset={[10, 0]} size="small">
+                    Tồn kho
                   </Badge>
                 ),
               },
@@ -339,7 +360,7 @@ const PhuTungManagement = () => {
                 label: (
                   <Space>
                     <LockOutlined />
-                    Đang bị khóa
+                    Bị khóa
                   </Space>
                 ),
               },
@@ -351,30 +372,32 @@ const PhuTungManagement = () => {
         <div
           style={{
             marginBottom: 16,
-            padding: 16,
+            padding: isMobile ? 8 : 16,
             background: "#fafafa",
             borderRadius: 8,
           }}
         >
-          <Row gutter={[16, 16]}>
+          <Row gutter={[8, 8]}>
             <Col xs={24} sm={24} md={12} lg={8}>
               <Input
-                placeholder="Tìm kiếm theo mã, tên phụ tùng..."
+                placeholder="Mã, tên phụ tùng..."
                 prefix={<SearchOutlined />}
                 value={searchText}
                 onChange={handleSearch}
                 allowClear
+                size="small"
               />
             </Col>
 
             {activeTab === "danh-sach" && (
               <Col xs={24} sm={12} md={6} lg={6}>
                 <Select
-                  placeholder="Chọn nhóm phụ tùng"
+                  placeholder="Nhóm phụ tùng"
                   style={{ width: "100%" }}
                   value={nhomPT}
                   onChange={setNhomPT}
                   allowClear
+                  size="small"
                 >
                   <Select.Option value="Động cơ">Động cơ</Select.Option>
                   <Select.Option value="Phanh">Phanh</Select.Option>
@@ -386,31 +409,25 @@ const PhuTungManagement = () => {
 
             <Col
               xs={24}
-              sm={24}
-              md={isMobile ? 24 : 10}
+              sm={activeTab === "danh-sach" ? 12 : 24}
+              md={activeTab === "danh-sach" ? 6 : 12}
+              lg={activeTab === "danh-sach" ? 10 : 16}
               style={{ textAlign: isMobile ? "left" : "right" }}
             >
-              <Space>
+              <Space wrap>
                 <Button
+                  size="small"
                   icon={<ReloadOutlined />}
                   onClick={() =>
                     activeTab === "danh-sach" ? loadDanhSach() : loadTonKho()
                   }
                 >
-                  Làm mới
+                  Tải lại
                 </Button>
 
                 {activeTab !== "bi-khoa" && (
-                  <Button icon={<ExportOutlined />}>Xuất Excel</Button>
-                )}
-
-                {activeTab === "danh-sach" && authService.canCreate() && (
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleCreate}
-                  >
-                    Thêm phụ tùng
+                  <Button size="small" icon={<ExportOutlined />}>
+                    Xuất
                   </Button>
                 )}
               </Space>
@@ -420,18 +437,25 @@ const PhuTungManagement = () => {
 
         {/* Statistics for Ton Kho tab */}
         {activeTab === "ton-kho" && (
-          <Row gutter={16} style={{ marginBottom: 16 }}>
+          <Row gutter={[8, 8]} style={{ marginBottom: 16 }}>
             <Col xs={12} md={6}>
               <Card size="small">
-                <Statistic title="Tổng tồn" value={tongTonKho} />
+                <Statistic
+                  title="Tổng tồn"
+                  value={tongTonKho}
+                  valueStyle={{ fontSize: isMobile ? 16 : 24 }}
+                />
               </Card>
             </Col>
             <Col xs={12} md={6}>
               <Card size="small">
                 <Statistic
-                  title="Kho hết hàng"
+                  title="Hết hàng"
                   value={khoHetHang}
-                  valueStyle={{ color: khoHetHang ? "#cf1322" : "#3f8600" }}
+                  valueStyle={{
+                    color: khoHetHang ? "#cf1322" : "#3f8600",
+                    fontSize: isMobile ? 16 : 24,
+                  }}
                 />
               </Card>
             </Col>
@@ -446,15 +470,16 @@ const PhuTungManagement = () => {
                 !isMobile ||
                 !["gia_nhap", "gia_ban", "vat"].includes(col.dataIndex)
             )}
-            scroll={{ x: isMobile ? 800 : 1200 }}
             dataSource={data}
             rowKey="ma_pt"
             loading={loading}
-            // scroll={{ x: 1200 }}
+            scroll={{ x: 800 }}
+            size="small"
             pagination={{
-              pageSize: 20,
+              pageSize: 10,
               showSizeChanger: true,
-              showTotal: (total) => `Tổng ${total} phụ tùng`,
+              showTotal: (total) => `Tổng: ${total}`,
+              size: "small",
             }}
           />
         )}
@@ -465,11 +490,13 @@ const PhuTungManagement = () => {
             dataSource={tonKhoData}
             rowKey="ma_pt"
             loading={loading}
-            scroll={{ x: 1300 }}
+            scroll={{ x: 800 }}
+            size="small"
             pagination={{
-              pageSize: 20,
+              pageSize: 10,
               showSizeChanger: true,
-              showTotal: (total) => `Tổng ${total} phụ tùng`,
+              showTotal: (total) => `Tổng: ${total}`,
+              size: "small",
             }}
             rowClassName={(record) =>
               record.so_luong_ton < record.so_luong_toi_thieu

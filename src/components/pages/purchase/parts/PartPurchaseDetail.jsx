@@ -74,20 +74,22 @@ const PartPurchaseDetail = () => {
   // Note: if API items are nested differently, adapt here.
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: "16px 8px" }}>
       <Card
         title={
-          <Space>
+          <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate("/purchase/parts")}
             />
-            <span>Chi tiết đơn hàng: {so_phieu}</span>
-            <Tag color={TRANG_THAI_COLORS[trang_thai]}>{trang_thai}</Tag>
+            <span>Đơn mua: {so_phieu}</span>
+            <Tag color={TRANG_THAI_COLORS[trang_thai]} style={{ margin: 0 }}>
+              {trang_thai}
+            </Tag>
           </Space>
         }
         extra={
-          <Space>
+          <Space wrap>
             {trang_thai === "NHAP" && (
               <Button
                 type="primary"
@@ -103,17 +105,18 @@ const PartPurchaseDetail = () => {
                 icon={<CheckCircleOutlined />}
                 onClick={handleApprove}
               >
-                Phê duyệt
+                Duyệt
               </Button>
             )}
           </Space>
         }
+        size="small"
       >
-        <Descriptions bordered column={2}>
+        <Descriptions bordered column={{ xs: 1, sm: 2 }} size="small">
           <Descriptions.Item label="Ngày đặt">
             {formatService.formatDate(ngay_dat_hang)}
           </Descriptions.Item>
-          <Descriptions.Item label="Nhà cung cấp">
+          <Descriptions.Item label="NCC">
             {ten_ncc || data.ma_ncc}
           </Descriptions.Item>
           <Descriptions.Item label="Kho nhập">
@@ -122,7 +125,7 @@ const PartPurchaseDetail = () => {
           <Descriptions.Item label="Tổng tiền">
             {formatService.formatCurrency(Number(tong_tien))}
           </Descriptions.Item>
-          <Descriptions.Item label="Ghi chú" span={2}>
+          <Descriptions.Item label="Ghi chú" span={{ xs: 1, sm: 2 }}>
             {dien_giai}
           </Descriptions.Item>
         </Descriptions>
@@ -132,6 +135,8 @@ const PartPurchaseDetail = () => {
           dataSource={chi_tiet || []}
           rowKey="id"
           pagination={false}
+          size="small"
+          scroll={{ x: 800 }}
           columns={[
             { title: "Mã phụ tùng", dataIndex: "ma_pt" },
             {

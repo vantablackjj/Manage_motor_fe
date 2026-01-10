@@ -16,6 +16,7 @@ import {
 import dayjs from "dayjs";
 import { xeAPI } from "../../../api";
 import { notificationService, formatService } from "../../../services";
+import { useResponsive } from "../../../hooks/useResponsive";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -30,6 +31,7 @@ const XeForm = ({
   onSuccess,
   onCancel,
 }) => {
+  const { isMobile } = useResponsive();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const isView = mode === "view";
@@ -354,8 +356,10 @@ const XeForm = ({
 
       {/* Action buttons */}
       <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
-        <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-          <Button onClick={onCancel}>{isView ? "Đóng" : "Hủy"}</Button>
+        <Space wrap style={{ width: "100%", justifyContent: "flex-end" }}>
+          <Button onClick={onCancel} block={isMobile}>
+            {isView ? "Đóng" : "Hủy"}
+          </Button>
 
           {!isView && (
             <Button
@@ -363,6 +367,7 @@ const XeForm = ({
               htmlType="submit"
               loading={loading}
               disabled={isEdit && initialData?.locked}
+              block={isMobile}
             >
               {isCreate ? "Thêm xe" : "Cập nhật"}
             </Button>

@@ -248,35 +248,41 @@ const KhachHangManage = () => {
   ].filter(Boolean);
 
   return (
-    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <Card>
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
+      <Card size="small">
         <div style={{ marginBottom: 16 }}>
-          <Row justify="space-between" align="middle">
-            <Col>
-              <h2 style={{ margin: 0 }}>
-                <UserOutlined /> Quản lý khách hàng & nhà cung cấp
+          <Row justify="space-between" align="middle" gutter={[8, 16]}>
+            <Col xs={24} sm={16}>
+              <h2
+                style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.5rem" }}
+              >
+                <Space wrap>
+                  <UserOutlined />
+                  <span>Đối tác</span>
+                </Space>
               </h2>
-              <p style={{ color: "#8c8c8c", margin: "4px 0 0 0" }}>
-                Quản lý thông tin khách hàng và nhà cung cấp
-              </p>
             </Col>
-            <Col>
-              <Space>
-                <Input.Search
-                  placeholder="Tìm theo tên, SĐT, mã KH..."
-                  allowClear
-                  onSearch={handleSearch}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  style={{ width: 250 }}
-                />
-                <Button icon={<ReloadOutlined />} onClick={fetchData}>
-                  Làm mới
+            <Col
+              xs={24}
+              sm={8}
+              style={{ textAlign: isMobile ? "left" : "right" }}
+            >
+              <Space wrap>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={fetchData}
+                  size="small"
+                >
+                  Tải lại
                 </Button>
                 {authService.canCreate() && (
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
                     onClick={handleAdd}
+                    size="small"
                   >
                     Thêm mới
                   </Button>
@@ -284,10 +290,22 @@ const KhachHangManage = () => {
               </Space>
             </Col>
           </Row>
+
+          <div style={{ marginTop: 16 }}>
+            <Input.Search
+              placeholder="Tìm tên, SĐT, mã..."
+              allowClear
+              onSearch={handleSearch}
+              onChange={(e) => handleSearch(e.target.value)}
+              style={{ width: "100%", maxWidth: isMobile ? "100%" : 300 }}
+              size="small"
+            />
+          </div>
         </div>
 
         <Tabs
           activeKey={activeTab}
+          size={isMobile ? "small" : "middle"}
           onChange={(key) => {
             if (key === "nha-cung-cap") {
               navigate("/danh-muc/nha-cung-cap");
@@ -300,7 +318,7 @@ const KhachHangManage = () => {
               key: "khach-hang",
               label: (
                 <span>
-                  <UserOutlined /> Khách hàng
+                  <UserOutlined /> Khách
                 </span>
               ),
             },
@@ -308,7 +326,7 @@ const KhachHangManage = () => {
               key: "nha-cung-cap",
               label: (
                 <span>
-                  <ShopOutlined /> Nhà cung cấp
+                  <ShopOutlined /> NCC
                 </span>
               ),
             },
@@ -320,11 +338,13 @@ const KhachHangManage = () => {
           columns={columns}
           rowKey="ma_kh"
           loading={loading}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 800 }}
+          size="small"
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
-            showTotal: (total) => `Tổng ${total} bản ghi`,
+            showTotal: (total) => `Tổng: ${total}`,
+            size: "small",
           }}
         />
       </Card>
@@ -333,12 +353,8 @@ const KhachHangManage = () => {
       <Modal
         title={
           editingRecord
-            ? `Chỉnh sửa ${
-                activeTab === "khach-hang" ? "khách hàng" : "nhà cung cấp"
-              }`
-            : `Thêm ${
-                activeTab === "khach-hang" ? "khách hàng" : "nhà cung cấp"
-              } mới`
+            ? `Sửa ${activeTab === "khach-hang" ? "khách" : "NCC"}`
+            : `Thêm ${activeTab === "khach-hang" ? "khách" : "NCC"}`
         }
         open={modalVisible}
         onCancel={() => {
@@ -346,42 +362,45 @@ const KhachHangManage = () => {
           form.resetFields();
         }}
         footer={null}
-        width={700}
+        width={isMobile ? "100%" : 700}
+        size="small"
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Row gutter={16}>
-            <Col span={12}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          size="small"
+        >
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="ma_kh"
-                label="Mã khách hàng"
+                label="Mã định danh"
                 rules={[
                   { required: true, message: "Vui lòng nhập mã" },
                   { max: 50, message: "Mã tối đa 50 ký tự" },
                 ]}
               >
-                <Input
-                  placeholder="VD: KH001, NCC001"
-                  disabled={!!editingRecord}
-                />
+                <Input placeholder="VD: KH001..." disabled={!!editingRecord} />
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="ho_ten"
-                label="Họ và tên"
+                label="Họ tên"
                 rules={[
                   { required: true, message: "Vui lòng nhập họ tên" },
                   { max: 200, message: "Họ tên tối đa 200 ký tự" },
                 ]}
               >
-                <Input placeholder="Nhập họ và tên" />
+                <Input placeholder="Nhập họ tên" />
               </Form.Item>
             </Col>
           </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="dien_thoai"
                 label="Điện thoại"
@@ -393,11 +412,11 @@ const KhachHangManage = () => {
                   },
                 ]}
               >
-                <Input placeholder="VD: 0123456789" maxLength={15} />
+                <Input placeholder="0xxxxxxxxx" maxLength={15} />
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="email"
                 label="Email"
@@ -406,18 +425,18 @@ const KhachHangManage = () => {
                   { max: 100, message: "Email tối đa 100 ký tự" },
                 ]}
               >
-                <Input placeholder="example@email.com" />
+                <Input placeholder="email@example.com" />
               </Form.Item>
             </Col>
           </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
               <Form.Item name="dai_dien" label="Người đại diện">
                 <Input placeholder="Tên người đại diện" />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item name="ngay_sinh" label="Ngày sinh">
                 <DatePicker
                   style={{ width: "100%" }}
@@ -428,13 +447,13 @@ const KhachHangManage = () => {
             </Col>
           </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="ma_so_thue" label="Mã số thuế">
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <Form.Item name="ma_so_thue" label="MST">
                 <Input placeholder="Mã số thuế" />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item name="so_cmnd" label="CMND/CCCD">
                 <Input placeholder="Số CMND/CCCD" />
               </Form.Item>
@@ -449,23 +468,17 @@ const KhachHangManage = () => {
             />
           </Form.Item>
 
-          <Form.Item name="ho_khau" label="Hộ khẩu thường trú">
-            <Input.TextArea
-              rows={2}
-              placeholder="Nhập địa chỉ hộ khẩu"
-              maxLength={300}
-            />
-          </Form.Item>
-
           <Form.Item name="la_ncc" valuePropName="checked">
             <Checkbox>Là Nhà cung cấp</Checkbox>
           </Form.Item>
 
-          <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
-            <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <Button onClick={() => setModalVisible(false)}>Hủy</Button>
-              <Button type="primary" htmlType="submit">
-                {editingRecord ? "Cập nhật" : "Thêm"}
+          <Form.Item style={{ marginBottom: 0, marginTop: 16 }}>
+            <Space wrap style={{ width: "100%", justifyContent: "flex-end" }}>
+              <Button onClick={() => setModalVisible(false)} block={isMobile}>
+                Hủy
+              </Button>
+              <Button type="primary" htmlType="submit" block={isMobile}>
+                {editingRecord ? "Cập nhật" : "Thêm mới"}
               </Button>
             </Space>
           </Form.Item>

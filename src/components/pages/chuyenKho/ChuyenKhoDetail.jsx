@@ -126,22 +126,27 @@ const ChuyenKhoDetail = () => {
   const canSend = phieu.trang_thai === "NHAP";
 
   return (
-    <div style={{ padding: 24, background: "#f0f2f5", minHeight: "100vh" }}>
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
       <Card
         title={
-          <Space>
+          <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate("/chuyen-kho")}
             />
-            <span>Chi tiết phiếu chuyển: {phieu.so_phieu}</span>
-            <Tag color={TRANG_THAI_COLORS[phieu.trang_thai]}>
+            <span>Phiếu: {phieu.so_phieu}</span>
+            <Tag
+              color={TRANG_THAI_COLORS[phieu.trang_thai]}
+              style={{ margin: 0 }}
+            >
               {TRANG_THAI_LABELS[phieu.trang_thai]}
             </Tag>
           </Space>
         }
         extra={
-          <Space>
+          <Space wrap>
             {canSend && (
               <Button type="primary" onClick={handleGuiDuyet}>
                 Gửi duyệt
@@ -158,7 +163,7 @@ const ChuyenKhoDetail = () => {
                   icon={<CheckCircleOutlined />}
                   onClick={handleApprove}
                 >
-                  Phê duyệt
+                  Duyệt
                 </Button>
               </>
             )}
@@ -166,15 +171,16 @@ const ChuyenKhoDetail = () => {
             {/* Show cancel for creator if still draft */}
             {phieu.trang_thai === "NHAP" && (
               <Button danger onClick={() => setRejectModalHtml(true)}>
-                Hủy phiếu
+                Hủy
               </Button>
             )}
 
-            <Button icon={<PrinterOutlined />}>In phiếu</Button>
+            <Button icon={<PrinterOutlined />}>In</Button>
           </Space>
         }
+        size="small"
       >
-        <Descriptions bordered column={2}>
+        <Descriptions bordered column={{ xs: 1, sm: 2 }} size="small">
           <Descriptions.Item label="Mã phiếu">
             {phieu.so_phieu}
           </Descriptions.Item>
@@ -193,18 +199,18 @@ const ChuyenKhoDetail = () => {
           <Descriptions.Item label="Ngày tạo">
             {formatService.formatDateTime(phieu.created_at)}
           </Descriptions.Item>
-          <Descriptions.Item label="Ghi chú" span={2}>
+          <Descriptions.Item label="Ghi chú" span={{ xs: 1, sm: 2 }}>
             {phieu.dien_giai}
           </Descriptions.Item>
           {phieu.so_phieu_xuat && (
-            <Descriptions.Item label="Phiếu xuất kho">
+            <Descriptions.Item label="Phiếu xuất">
               <a onClick={() => navigate(`/xuat-kho/${phieu.so_phieu_xuat}`)}>
                 {phieu.so_phieu_xuat}
               </a>
             </Descriptions.Item>
           )}
           {phieu.so_phieu_nhap && (
-            <Descriptions.Item label="Phiếu nhập kho">
+            <Descriptions.Item label="Phiếu nhập">
               <a onClick={() => navigate(`/nhap-kho/${phieu.so_phieu_nhap}`)}>
                 {phieu.so_phieu_nhap}
               </a>
@@ -220,6 +226,8 @@ const ChuyenKhoDetail = () => {
               dataSource={chi_tiet_xe}
               rowKey="xe_key"
               pagination={false}
+              size="small"
+              scroll={{ x: 800 }}
               columns={[
                 { title: "STT", render: (_, __, i) => i + 1, width: 60 },
                 { title: "Số khung", dataIndex: "so_khung" },
@@ -243,6 +251,8 @@ const ChuyenKhoDetail = () => {
               dataSource={chi_tiet_phu_tung}
               rowKey="ma_pt"
               pagination={false}
+              size="small"
+              scroll={{ x: 800 }}
               columns={[
                 { title: "STT", render: (_, __, i) => i + 1, width: 60 },
                 { title: "Mã PT", dataIndex: "ma_pt" },

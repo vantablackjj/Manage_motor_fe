@@ -13,6 +13,8 @@ import {
   Select,
   InputNumber,
   Popconfirm,
+  Row,
+  Col,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -228,6 +230,9 @@ const SalesOrderDetail = () => {
     ten_kh,
     ten_kho,
     tong_tien,
+    chiet_khau,
+    vat,
+    thanh_toan,
     ghi_chu,
     trang_thai,
     chi_tiet_xe = [],
@@ -246,6 +251,12 @@ const SalesOrderDetail = () => {
     {
       title: "Đơn giá",
       dataIndex: "don_gia",
+      align: "right",
+      render: (v) => formatService.formatCurrency(Number(v)),
+    },
+    {
+      title: "Thành tiền",
+      dataIndex: "thanh_tien",
       align: "right",
       render: (v) => formatService.formatCurrency(Number(v)),
     },
@@ -297,20 +308,22 @@ const SalesOrderDetail = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: "16px 8px" }}>
       <Card
         title={
-          <Space>
+          <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate("/sales/orders")}
             />
-            <span>Chi tiết hóa đơn: {so_hd}</span>
-            <Tag color={TRANG_THAI_COLORS[trang_thai]}>{trang_thai}</Tag>
+            <span>Bán hàng: {so_hd}</span>
+            <Tag color={TRANG_THAI_COLORS[trang_thai]} style={{ margin: 0 }}>
+              {trang_thai}
+            </Tag>
           </Space>
         }
         extra={
-          <Space>
+          <Space wrap>
             {isEditable && hasItems && (
               <Button
                 type="primary"
@@ -327,7 +340,7 @@ const SalesOrderDetail = () => {
                   icon={<CheckCircleOutlined />}
                   onClick={handleApprove}
                 >
-                  Phê duyệt
+                  Duyệt
                 </Button>
                 <Button
                   danger
@@ -345,8 +358,9 @@ const SalesOrderDetail = () => {
             )}
           </Space>
         }
+        size="small"
       >
-        <Descriptions bordered column={2}>
+        <Descriptions bordered column={{ xs: 1, sm: 2 }} size="small">
           <Descriptions.Item label="Ngày bán">
             {formatService.formatDate(ngay_ban)}
           </Descriptions.Item>
@@ -356,20 +370,64 @@ const SalesOrderDetail = () => {
           <Descriptions.Item label="Kho xuất">
             {ten_kho || data.ma_kho_xuat}
           </Descriptions.Item>
-          <Descriptions.Item label="Tổng tiền">
-            {formatService.formatCurrency(Number(tong_tien))}
-          </Descriptions.Item>
-          <Descriptions.Item label="Ghi chú" span={2}>
-            {ghi_chu}
+          <Descriptions.Item label="Ghi chú">
+            {ghi_chu || "-"}
           </Descriptions.Item>
         </Descriptions>
 
+        {/* Summary Box */}
+        <Card
+          style={{ marginTop: 16, backgroundColor: "#f5f5f5" }}
+          size="small"
+        >
+          <Row gutter={[16, 8]} justify="end">
+            <Col xs={12} sm={8} style={{ textAlign: "right" }}>
+              <span style={{ color: "rgba(0,0,0,0.45)" }}>Tổng tiền:</span>
+              <br />
+              <b style={{ fontSize: 16 }}>
+                {formatService.formatCurrency(Number(tong_tien || 0))}
+              </b>
+            </Col>
+            <Col xs={12} sm={8} style={{ textAlign: "right" }}>
+              <span style={{ color: "rgba(0,0,0,0.45)" }}>Chiết khấu:</span>
+              <br />
+              <b style={{ fontSize: 16 }}>
+                {formatService.formatCurrency(Number(chiet_khau || 0))}
+              </b>
+            </Col>
+            <Col xs={12} sm={4} style={{ textAlign: "right" }}>
+              <span style={{ color: "rgba(0,0,0,0.45)" }}>VAT:</span>
+              <br />
+              <b style={{ fontSize: 16 }}>{vat || 0}%</b>
+            </Col>
+            <Col
+              xs={24}
+              style={{
+                marginTop: 8,
+                borderTop: "1px solid #d9d9d9",
+                paddingTop: 8,
+                textAlign: "right",
+              }}
+            >
+              <span style={{ marginRight: 16, fontWeight: "bold" }}>
+                Thanh toán:
+              </span>
+              <span
+                style={{ fontSize: 20, fontWeight: "bold", color: "#1890ff" }}
+              >
+                {formatService.formatCurrency(Number(thanh_toan || 0))}
+              </span>
+            </Col>
+          </Row>
+        </Card>
+
         <Tabs
-          style={{ marginTop: 24 }}
+          style={{ marginTop: 16 }}
+          size="small"
           items={[
             {
               key: "vehicles",
-              label: "Danh sách xe",
+              label: "Xe",
               children: (
                 <>
                   {isEditable && (
@@ -381,6 +439,7 @@ const SalesOrderDetail = () => {
                         setVehicleModalVisible(true);
                       }}
                       style={{ marginBottom: 16 }}
+                      block
                     >
                       Thêm xe
                     </Button>
@@ -390,6 +449,8 @@ const SalesOrderDetail = () => {
                     columns={vehicleColumns}
                     rowKey="stt"
                     pagination={false}
+                    size="small"
+                    scroll={{ x: 800 }}
                   />
                 </>
               ),
@@ -408,6 +469,7 @@ const SalesOrderDetail = () => {
                         setPartModalVisible(true);
                       }}
                       style={{ marginBottom: 16 }}
+                      block
                     >
                       Thêm phụ tùng
                     </Button>
@@ -417,6 +479,8 @@ const SalesOrderDetail = () => {
                     columns={partColumns}
                     rowKey="stt"
                     pagination={false}
+                    size="small"
+                    scroll={{ x: 800 }}
                   />
                 </>
               ),

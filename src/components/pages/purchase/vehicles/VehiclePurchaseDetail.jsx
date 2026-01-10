@@ -223,22 +223,25 @@ const VehiclePurchaseDetail = () => {
   const items = data.chi_tiet || data.items || [];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: "16px 8px" }}>
       <Card
         title={
-          <Space>
+          <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate("/purchase/vehicles")}
             />
-            <span>Chi tiết đơn hàng: {header.so_phieu}</span>
-            <Tag color={TRANG_THAI_COLORS[header.trang_thai]}>
+            <span>Đơn mua: {header.so_phieu}</span>
+            <Tag
+              color={TRANG_THAI_COLORS[header.trang_thai]}
+              style={{ margin: 0 }}
+            >
               {header.trang_thai}
             </Tag>
           </Space>
         }
         extra={
-          <Space>
+          <Space wrap>
             {header.trang_thai === "NHAP" && (
               <Button
                 type="primary"
@@ -254,7 +257,7 @@ const VehiclePurchaseDetail = () => {
                 icon={<CheckCircleOutlined />}
                 onClick={handleApprove}
               >
-                Phê duyệt
+                Duyệt
               </Button>
             )}
             {/* Show Receipt Button if Approved */}
@@ -264,17 +267,18 @@ const VehiclePurchaseDetail = () => {
                 icon={<ImportOutlined />}
                 onClick={handleOpenReceipt}
               >
-                Nhập kho (Thực tế)
+                Nhập kho
               </Button>
             )}
           </Space>
         }
+        size="small"
       >
-        <Descriptions bordered column={2}>
+        <Descriptions bordered column={{ xs: 1, sm: 2 }} size="small">
           <Descriptions.Item label="Ngày đặt">
             {formatService.formatDate(header.ngay_dat_hang)}
           </Descriptions.Item>
-          <Descriptions.Item label="Nhà cung cấp">
+          <Descriptions.Item label="NCC">
             {header.ten_ncc || header.ma_ncc}
           </Descriptions.Item>
           <Descriptions.Item label="Kho nhập">
@@ -283,7 +287,7 @@ const VehiclePurchaseDetail = () => {
           <Descriptions.Item label="Tổng tiền">
             {formatService.formatCurrency(Number(header.tong_tien))}
           </Descriptions.Item>
-          <Descriptions.Item label="Ghi chú" span={2}>
+          <Descriptions.Item label="Ghi chú" span={{ xs: 1, sm: 2 }}>
             {header.dien_giai || header.ghi_chu}
           </Descriptions.Item>
         </Descriptions>
@@ -293,6 +297,8 @@ const VehiclePurchaseDetail = () => {
           dataSource={items}
           rowKey="id" // item ID
           pagination={false}
+          size="small"
+          scroll={{ x: 800 }}
           columns={[
             {
               title: "Loại xe",

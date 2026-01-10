@@ -214,7 +214,7 @@ export const API_ENDPOINTS = {
 
   // Thu chi
   THU_CHI: "/thu-chi",
-  THU_CHI_DETAIL: (id) => `/thu-chi/${id}`,
+  THU_CHI_DETAIL: (so_phieu) => `/thu-chi/${so_phieu}`,
 
   // Danh mục
   BRAND: "/brand",

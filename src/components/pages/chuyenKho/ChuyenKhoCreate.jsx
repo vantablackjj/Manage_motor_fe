@@ -152,8 +152,8 @@ const ChuyenKhoCreate = () => {
         ngay_chuyen_kho: moment(),
       }}
     >
-      <Row gutter={16}>
-        <Col span={12}>
+      <Row gutter={[16, 0]}>
+        <Col xs={24} sm={12}>
           <Form.Item
             name="ma_kho_xuat"
             label="Kho xuất"
@@ -168,7 +168,7 @@ const ChuyenKhoCreate = () => {
             </Select>
           </Form.Item>
         </Col>
-        <Col span={12}>
+        <Col xs={24} sm={12}>
           <Form.Item
             name="ma_kho_nhap"
             label="Kho nhập"
@@ -197,8 +197,8 @@ const ChuyenKhoCreate = () => {
           </Form.Item>
         </Col>
       </Row>
-      <Row gutter={16}>
-        <Col span={12}>
+      <Row gutter={[16, 0]}>
+        <Col xs={24} sm={12}>
           <Form.Item
             name="ngay_chuyen_kho"
             label="Ngày chuyển"
@@ -207,7 +207,7 @@ const ChuyenKhoCreate = () => {
             <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
           </Form.Item>
         </Col>
-        <Col span={12}>
+        <Col xs={24} sm={12}>
           <Form.Item name="dien_giai" label="Ghi chú">
             <Input />
           </Form.Item>
@@ -258,27 +258,33 @@ const ChuyenKhoCreate = () => {
     <div>
       {/* SECTION XE */}
       <div style={{ marginBottom: 24 }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
+        <Row
+          justify="space-between"
+          align="middle"
+          style={{ marginBottom: 16 }}
+          gutter={[8, 8]}
         >
-          <h3>Danh sách Xe chuyển ({selectedXe.length})</h3>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setShowXeModal(true)}
-          >
-            Thêm Xe
-          </Button>
-        </div>
+          <Col xs={24} sm={12}>
+            <h3 style={{ margin: 0 }}>Danh sách Xe ({selectedXe.length})</h3>
+          </Col>
+          <Col xs={24} sm={12} style={{ textAlign: "right" }}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setShowXeModal(true)}
+              block
+            >
+              Thêm Xe
+            </Button>
+          </Col>
+        </Row>
 
         <Table
           dataSource={selectedXe}
           rowKey="xe_key"
           pagination={false}
+          size="small"
+          scroll={{ x: 800 }}
           locale={{ emptyText: "Chưa chọn xe nào" }}
           columns={[
             { title: "#", render: (_, __, i) => i + 1, width: 50 },
@@ -312,27 +318,33 @@ const ChuyenKhoCreate = () => {
 
       {/* SECTION PHU TUNG */}
       <div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
+        <Row
+          justify="space-between"
+          align="middle"
+          style={{ marginBottom: 16 }}
+          gutter={[8, 8]}
         >
-          <h3>Danh sách Phụ tùng chuyển ({selectedPhuTung.length})</h3>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setShowPhuTungModal(true)}
-          >
-            Thêm Phụ Tùng
-          </Button>
-        </div>
+          <Col xs={24} sm={12}>
+            <h3 style={{ margin: 0 }}>Phụ tùng ({selectedPhuTung.length})</h3>
+          </Col>
+          <Col xs={24} sm={12} style={{ textAlign: "right" }}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setShowPhuTungModal(true)}
+              block
+            >
+              Thêm Phụ Tùng
+            </Button>
+          </Col>
+        </Row>
 
         <Table
           dataSource={selectedPhuTung}
           rowKey="ma_pt"
           pagination={false}
+          size="small"
+          scroll={{ x: 800 }}
           locale={{ emptyText: "Chưa chọn phụ tùng nào" }}
           columns={[
             { title: "#", render: (_, __, i) => i + 1, width: 50 },
@@ -393,7 +405,7 @@ const ChuyenKhoCreate = () => {
 
       {/* MODAL CHON XE */}
       <Modal
-        title={`Chọn xe từ kho: ${
+        title={`Chọn xe: ${
           khoList.find((k) => k.ma_kho === transferInfo.ma_kho_xuat)?.ten_kho ||
           ""
         }`}
@@ -407,6 +419,8 @@ const ChuyenKhoCreate = () => {
         <Table
           dataSource={availableXe}
           rowKey="xe_key"
+          size="small"
+          scroll={{ x: 600 }}
           columns={[
             { title: "Mã loại", dataIndex: "ma_loai_xe" },
             { title: "Tên xe", dataIndex: "ten_loai_xe" },
@@ -418,13 +432,13 @@ const ChuyenKhoCreate = () => {
             selectedRowKeys: tempSelectedXeKeys,
             onChange: (keys) => setTempSelectedXeKeys(keys),
           }}
-          pagination={{ pageSize: 5 }}
+          pagination={{ pageSize: 5, size: "small" }}
         />
       </Modal>
 
       {/* MODAL CHON PHU TUNG */}
       <Modal
-        title={`Chọn phụ tùng từ kho: ${
+        title={`Chọn phụ tùng: ${
           khoList.find((k) => k.ma_kho === transferInfo.ma_kho_xuat)?.ten_kho ||
           ""
         }`}
@@ -438,6 +452,8 @@ const ChuyenKhoCreate = () => {
         <Table
           dataSource={availablePhuTung}
           rowKey="ma_pt"
+          size="small"
+          scroll={{ x: 600 }}
           columns={[
             { title: "Mã PT", dataIndex: "ma_pt" },
             { title: "Tên phụ tùng", dataIndex: "ten_pt" },
@@ -453,7 +469,7 @@ const ChuyenKhoCreate = () => {
             selectedRowKeys: tempSelectedPhuTungKeys,
             onChange: (keys) => setTempSelectedPhuTungKeys(keys),
           }}
-          pagination={{ pageSize: 5 }}
+          pagination={{ pageSize: 5, size: "small" }}
         />
       </Modal>
     </div>
@@ -461,44 +477,62 @@ const ChuyenKhoCreate = () => {
 
   const Step3Confirm = () => (
     <div>
-      <Card title="Thông tin phiếu">
-        <p>
-          <strong>Ngày chuyển:</strong>{" "}
-          {transferInfo.ngay_chuyen_kho?.format("DD/MM/YYYY")}
-        </p>
-        <p>
-          <strong>Kho xuất:</strong>{" "}
-          {khoList.find((k) => k.ma_kho === transferInfo.ma_kho_xuat)?.ten_kho}
-        </p>
-        <p>
-          <strong>Kho nhập:</strong>{" "}
-          {khoList.find((k) => k.ma_kho === transferInfo.ma_kho_nhap)?.ten_kho}
-        </p>
-        <p>
-          <strong>Ghi chú:</strong> {transferInfo.dien_giai || "(Không có)"}
-        </p>
+      <Card title="Thông tin phiếu" size="small">
+        <Row gutter={[16, 8]}>
+          <Col xs={24} sm={12}>
+            <p style={{ margin: 0 }}>
+              <strong>Ngày chuyển:</strong>{" "}
+              {transferInfo.ngay_chuyen_kho?.format("DD/MM/YYYY")}
+            </p>
+          </Col>
+          <Col xs={24} sm={12}>
+            <p style={{ margin: 0 }}>
+              <strong>Ghi chú:</strong> {transferInfo.dien_giai || "(Không có)"}
+            </p>
+          </Col>
+          <Col xs={24} sm={12}>
+            <p style={{ margin: 0 }}>
+              <strong>Kho xuất:</strong>{" "}
+              {
+                khoList.find((k) => k.ma_kho === transferInfo.ma_kho_xuat)
+                  ?.ten_kho
+              }
+            </p>
+          </Col>
+          <Col xs={24} sm={12}>
+            <p style={{ margin: 0 }}>
+              <strong>Kho nhập:</strong>{" "}
+              {
+                khoList.find((k) => k.ma_kho === transferInfo.ma_kho_nhap)
+                  ?.ten_kho
+              }
+            </p>
+          </Col>
+        </Row>
       </Card>
 
-      <Row gutter={16} style={{ marginTop: 16 }}>
-        <Col span={12}>
-          <Card title={`Xe (${selectedXe.length})`}>
-            <ul>
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} md={12}>
+          <Card title={`Xe (${selectedXe.length})`} size="small">
+            <ul style={{ paddingLeft: 20, margin: 0 }}>
               {selectedXe.map((xe) => (
                 <li key={xe.xe_key}>
                   {xe.ten_loai_xe} - {xe.so_khung}
                 </li>
               ))}
+              {selectedXe.length === 0 && <li>Không có</li>}
             </ul>
           </Card>
         </Col>
-        <Col span={12}>
-          <Card title={`Phụ tùng (${selectedPhuTung.length})`}>
-            <ul>
+        <Col xs={24} md={12}>
+          <Card title={`Phụ tùng (${selectedPhuTung.length})`} size="small">
+            <ul style={{ paddingLeft: 20, margin: 0 }}>
               {selectedPhuTung.map((pt) => (
                 <li key={pt.ma_pt}>
                   {pt.ten_pt} (x{pt.so_luong_chuyen})
                 </li>
               ))}
+              {selectedPhuTung.length === 0 && <li>Không có</li>}
             </ul>
           </Card>
         </Col>
@@ -507,10 +541,12 @@ const ChuyenKhoCreate = () => {
   );
 
   return (
-    <div style={{ padding: 24, background: "#f0f2f5", minHeight: "100vh" }}>
+    <div
+      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+    >
       <Card
         title={
-          <Space>
+          <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate("/chuyen-kho")}
@@ -518,10 +554,16 @@ const ChuyenKhoCreate = () => {
             <span>Tạo phiếu chuyển kho</span>
           </Space>
         }
+        size="small"
       >
-        <Steps current={currentStep} style={{ marginBottom: 24 }}>
-          <Step title="Thông tin chung" />
-          <Step title="Chọn hàng hóa" />
+        <Steps
+          current={currentStep}
+          style={{ marginBottom: 24 }}
+          size="small"
+          responsive={false}
+        >
+          <Step title="Thông tin" />
+          <Step title="Chọn hàng" />
           <Step title="Xác nhận" />
         </Steps>
 
@@ -532,7 +574,7 @@ const ChuyenKhoCreate = () => {
         </div>
 
         <div style={{ marginTop: 24, textAlign: "right" }}>
-          <Space>
+          <Space wrap>
             {currentStep > 0 && (
               <Button onClick={() => setCurrentStep(currentStep - 1)}>
                 Quay lại

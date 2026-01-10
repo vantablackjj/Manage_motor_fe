@@ -68,17 +68,18 @@ const SalesOrderCreate = () => {
   };
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: "16px 8px" }}>
       <Card
         title={
-          <Space>
+          <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate("/sales/orders")}
             />
-            <span>Tạo Hóa Đơn Bán Hàng</span>
+            <span>Tạo Bán Hàng</span>
           </Space>
         }
+        size="small"
       >
         <Form
           form={form}
@@ -86,8 +87,8 @@ const SalesOrderCreate = () => {
           onFinish={onFinish}
           initialValues={{ ngay_ban: moment() }}
         >
-          <Row gutter={16}>
-            <Col span={8}>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={8}>
               <Form.Item
                 name="ma_kh"
                 label="Khách hàng"
@@ -97,6 +98,7 @@ const SalesOrderCreate = () => {
                   placeholder="Chọn khách hàng"
                   showSearch
                   optionFilterProp="children"
+                  style={{ width: "100%" }}
                 >
                   {customerList.map((c) => (
                     <Option key={c.ma_kh} value={c.ma_kh}>
@@ -106,13 +108,13 @@ const SalesOrderCreate = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col xs={24} sm={8}>
               <Form.Item
                 name="ma_kho_xuat"
                 label="Kho xuất"
                 rules={[{ required: true, message: "Chọn kho xuất" }]}
               >
-                <Select placeholder="Chọn kho">
+                <Select placeholder="Chọn kho" style={{ width: "100%" }}>
                   {khoList.map((k) => (
                     <Option key={k.ma_kho} value={k.ma_kho}>
                       {k.ten_kho}
@@ -121,7 +123,7 @@ const SalesOrderCreate = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col xs={24} sm={8}>
               <Form.Item
                 name="ngay_ban"
                 label="Ngày bán"
@@ -137,7 +139,7 @@ const SalesOrderCreate = () => {
           </Form.Item>
 
           <div style={{ textAlign: "right", marginTop: 24 }}>
-            <Space>
+            <Space wrap>
               <Button onClick={() => navigate("/sales/orders")}>Hủy</Button>
               <Button
                 type="primary"
@@ -145,7 +147,7 @@ const SalesOrderCreate = () => {
                 icon={<SaveOutlined />}
                 loading={loading}
               >
-                Tạo & Tiếp tục
+                Tiếp tục
               </Button>
             </Space>
           </div>

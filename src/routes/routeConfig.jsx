@@ -33,6 +33,11 @@ import SalesOrderList from "../components/pages/sales/SalesOrderList";
 import SalesOrderCreate from "../components/pages/sales/SalesOrderCreate";
 import SalesOrderDetail from "../components/pages/sales/SalesOrderDetail";
 
+// Thu Chi
+import ThuChiList from "../components/pages/thuChi/ThuChiList";
+import ThuChiCreate from "../components/pages/thuChi/ThuChiCreate";
+import ThuChiDetail from "../components/pages/thuChi/ThuChiDetail";
+
 export const publicRoutes = [
   {
     path: "/login",
@@ -99,6 +104,24 @@ export const privateRoutes = [
   {
     path: "/sales/orders/:so_hd",
     component: SalesOrderDetail,
+    layout: MainLayout,
+  },
+  // ===================================
+
+  // === QUẢN LÝ THU CHI (FINANCE) ===
+  {
+    path: "/thu-chi",
+    component: ThuChiList,
+    layout: MainLayout,
+  },
+  {
+    path: "/thu-chi/create",
+    component: ThuChiCreate,
+    layout: MainLayout,
+  },
+  {
+    path: "/thu-chi/:so_phieu",
+    component: ThuChiDetail,
     layout: MainLayout,
   },
   // ===================================

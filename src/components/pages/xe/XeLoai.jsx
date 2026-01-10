@@ -10,7 +10,10 @@ import {
   Modal,
   Select,
   Tooltip,
+  Row,
+  Col,
 } from "antd";
+import { useResponsive } from "../../../hooks/useResponsive";
 import {
   PlusOutlined,
   EditOutlined,
@@ -28,6 +31,7 @@ const { Search } = Input;
 const { Option } = Select;
 
 const XeLoaiPage = () => {
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [filters, setFilters] = useState({
@@ -248,12 +252,13 @@ const XeLoaiPage = () => {
       </div>
 
       {/* Filters */}
-      <Card style={{ marginBottom: 16 }}>
-        <Space wrap>
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Space wrap style={{ width: "100%" }}>
           <Select
             placeholder="Nhãn hiệu"
             allowClear
-            style={{ width: 200 }}
+            size="small"
+            style={{ width: isMobile ? "48%" : 160 }}
             onChange={(v) => setFilters({ ...filters, ma_nh: v })}
           >
             {nhanHieuList.map((nh) => (
@@ -266,7 +271,8 @@ const XeLoaiPage = () => {
           <Select
             placeholder="Loại hình"
             allowClear
-            style={{ width: 200 }}
+            size="small"
+            style={{ width: isMobile ? "48%" : 160 }}
             onChange={(v) => setFilters({ ...filters, loai_hinh: v })}
           >
             {loaiHinhList.map((lh) => (
@@ -277,22 +283,29 @@ const XeLoaiPage = () => {
           </Select>
 
           <Search
-            placeholder="Tìm mã / tên loại xe"
+            placeholder="Mã / tên loại..."
             allowClear
-            style={{ width: 300 }}
+            size="small"
+            style={{ width: "100%", maxWidth: isMobile ? "100%" : 250 }}
             onSearch={(v) => setFilters({ ...filters, search: v })}
           />
         </Space>
       </Card>
 
       {/* Table */}
-      <Card>
+      <Card size="small">
         <Table
           rowKey="ma_loai"
           loading={loading}
           columns={columns}
           dataSource={data}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 800 }}
+          size="small"
+          pagination={{
+            pageSize: 10,
+            size: "small",
+            showTotal: (t) => `Tổng: ${t}`,
+          }}
           locale={{ emptyText: "Không có dữ liệu" }}
         />
       </Card>
@@ -300,11 +313,12 @@ const XeLoaiPage = () => {
       {/* Modal */}
       <Modal
         open={openModal}
-        title={editing ? "Cập nhật loại xe" : "Thêm loại xe"}
+        title={editing ? "Sửa loại xe" : "Thêm loại xe"}
         footer={null}
         destroyOnClose
         onCancel={() => setOpenModal(false)}
-        width={720}
+        width={isMobile ? "100%" : 720}
+        size="small"
       >
         <XeLoaiForm
           initialData={editing}
