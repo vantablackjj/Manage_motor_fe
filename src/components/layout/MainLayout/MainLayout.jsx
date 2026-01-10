@@ -119,8 +119,21 @@ const MainLayout = ({ children }) => {
         { key: "/cong-no/quan-ly", label: "Công nợ" },
       ],
     },
+    // 5. BÁO CÁO
+    {
+      key: "/bao-cao",
+      icon: <BarChartOutlined />,
+      label: "Báo cáo",
+      children: [
+        { key: "/bao-cao/ton-kho", label: "Báo cáo Tồn kho" },
+        { key: "/bao-cao/doanh-thu", label: "Báo cáo Doanh thu" },
+        { key: "/bao-cao/nhap-xuat", label: "Báo cáo Nhập xuất" },
+        { key: "/bao-cao/thu-chi", label: "Báo cáo Thu chi" },
+        { key: "/bao-cao/cong-no", label: "Báo cáo Công nợ" },
+      ],
+    },
 
-    // 5. QUẢN LÝ DANH MỤC
+    // 6. QUẢN LÝ DANH MỤC
     {
       key: "/danh-muc",
       icon: <AppstoreOutlined />,
@@ -150,7 +163,7 @@ const MainLayout = ({ children }) => {
       ],
     },
 
-    // 6. QUẢN LÝ HỆ THỐNG
+    // 7. QUẢN LÝ HỆ THỐNG
     {
       key: "/he-thong",
       icon: <SettingOutlined />,

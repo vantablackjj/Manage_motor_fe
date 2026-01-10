@@ -38,6 +38,9 @@ import ThuChiList from "../components/pages/thuChi/ThuChiList";
 import ThuChiCreate from "../components/pages/thuChi/ThuChiCreate";
 import ThuChiDetail from "../components/pages/thuChi/ThuChiDetail";
 
+// Reports
+import ReportPlaceholder from "../components/pages/reports/ReportPlaceholder";
+
 export const publicRoutes = [
   {
     path: "/login",
@@ -223,6 +226,33 @@ export const privateRoutes = [
   {
     path: "/cong-no/chi-tiet/:ma_kho_no/:ma_kho_co",
     component: CongNoDetailView,
+    layout: MainLayout,
+  },
+
+  // === BÁO CÁO (REPORTS) ===
+  {
+    path: "/bao-cao/ton-kho",
+    component: () => <ReportPlaceholder title="Tồn kho" />,
+    layout: MainLayout,
+  },
+  {
+    path: "/bao-cao/doanh-thu",
+    component: () => <ReportPlaceholder title="Doanh thu" />,
+    layout: MainLayout,
+  },
+  {
+    path: "/bao-cao/nhap-xuat",
+    component: () => <ReportPlaceholder title="Nhập xuất (Thẻ kho)" />,
+    layout: MainLayout,
+  },
+  {
+    path: "/bao-cao/thu-chi",
+    component: () => <ReportPlaceholder title="Thu chi" />,
+    layout: MainLayout,
+  },
+  {
+    path: "/bao-cao/cong-no",
+    component: () => <ReportPlaceholder title="Công nợ" />,
     layout: MainLayout,
   },
 

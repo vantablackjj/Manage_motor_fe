@@ -1,210 +1,193 @@
 // src/api/report.api.js
-// API cho các báo cáo và thống kê
-import axiosInstance from './axios.config';
+import axiosInstance from "./axios.config";
 
-const REPORT_ENDPOINTS = {
-  BASE: '/reports',
-  INVENTORY: '/reports/inventory',
-  SALES: '/reports/sales',
-  PURCHASE: '/reports/purchase',
-  TRANSFER: '/reports/transfer',
-  FINANCIAL: '/reports/financial'
-};
+const BAO_CAO_BASE = "/bao-cao";
 
 export const reportAPI = {
-  // ===== INVENTORY REPORTS (BÁO CÁO TỒN KHO) =====
+  // ===== DASHBOARD & THỐNG KÊ TỔNG HỢP =====
+  dashboard: {
+    // Get dashboard overview (doanh thu, tồn kho, công nợ...)
+    getOverview: async (params) => {
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/dashboard`, {
+        params,
+      });
+      return res.data;
+    },
+
+    // Dữ liệu biểu đồ doanh thu
+    getRevenueChart: async (params) => {
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/bieu-do/doanh-thu`, {
+        params,
+      });
+      return res.data;
+    },
+
+    // Dữ liệu biểu đồ tồn kho
+    getInventoryChart: async (params) => {
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/bieu-do/ton-kho`, {
+        params,
+      });
+      return res.data;
+    },
+  },
+
+  // ===== BÁO CÁO TỒN KHO =====
   inventory: {
-    // Báo cáo tồn kho tổng hợp
+    getVehicles: async (params) => {
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/ton-kho/xe`, {
+        params,
+      });
+      return res.data;
+    },
+    getParts: async (params) => {
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/ton-kho/phu-tung`, {
+        params,
+      });
+      return res.data;
+    },
     getSummary: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.INVENTORY}/summary`, { params });
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/ton-kho/tong-hop`, {
+        params,
+      });
+      return res.data;
     },
-    
-    // Báo cáo tồn kho theo kho
-    getByWarehouse: async (ma_kho, params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.INVENTORY}/warehouse/${ma_kho}`, { params });
-    },
-    
-    // Báo cáo tồn kho xe
-    getVehicleStock: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.INVENTORY}/vehicles`, { params });
-    },
-    
-    // Báo cáo tồn kho phụ tùng
-    getPartsStock: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.INVENTORY}/parts`, { params });
-    },
-    
-    // Báo cáo hàng tồn kho lâu
-    getSlowMoving: async (days, params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.INVENTORY}/slow-moving/${days}`, { params });
-    },
-    
-    // Báo cáo cảnh báo tồn kho
-    getStockAlert: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.INVENTORY}/alerts`, { params });
-    }
   },
 
-  // ===== SALES REPORTS (BÁO CÁO BÁN HÀNG) =====
+  // ===== BÁO CÁO DOANH THU =====
   sales: {
-    // Báo cáo doanh thu
-    getRevenue: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.SALES}/revenue`, { params });
-    },
-    
-    // Báo cáo bán hàng theo thời gian
-    getByPeriod: async (startDate, endDate, params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.SALES}/period`, {
-        params: { startDate, endDate, ...params }
-      });
-    },
-    
-    // Báo cáo bán hàng theo kho
-    getByWarehouse: async (ma_kho, params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.SALES}/warehouse/${ma_kho}`, { params });
-    },
-    
-    // Báo cáo bán hàng theo sản phẩm
-    getByProduct: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.SALES}/products`, { params });
-    },
-    
-    // Báo cáo bán hàng theo khách hàng
-    getByCustomer: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.SALES}/customers`, { params });
-    },
-    
-    // Top selling products
-    getTopSelling: async (limit, params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.SALES}/top-selling/${limit}`, { params });
-    },
-    
-    // Báo cáo lợi nhuận
-    getProfit: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.SALES}/profit`, { params });
-    }
-  },
-
-  // ===== PURCHASE REPORTS (BÁO CÁO MUA HÀNG) =====
-  purchase: {
-    // Báo cáo mua hàng
-    getSummary: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.PURCHASE}/summary`, { params });
-    },
-    
-    // Báo cáo mua hàng theo thời gian
-    getByPeriod: async (startDate, endDate, params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.PURCHASE}/period`, {
-        params: { startDate, endDate, ...params }
-      });
-    },
-    
-    // Báo cáo mua hàng theo nhà cung cấp
-    getBySupplier: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.PURCHASE}/suppliers`, { params });
-    },
-    
-    // Báo cáo mua hàng theo sản phẩm
-    getByProduct: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.PURCHASE}/products`, { params });
-    }
-  },
-
-  // ===== TRANSFER REPORTS (BÁO CÁO CHUYỂN KHO) =====
-  transfer: {
-    // Báo cáo chuyển kho
-    getSummary: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.TRANSFER}/summary`, { params });
-    },
-    
-    // Báo cáo chuyển kho theo thời gian
-    getByPeriod: async (startDate, endDate, params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.TRANSFER}/period`, {
-        params: { startDate, endDate, ...params }
-      });
-    },
-    
-    // Báo cáo chuyển kho giữa 2 kho
-    getBetweenWarehouses: async (ma_kho_xuat, ma_kho_nhap, params) => {
-      return axiosInstance.get(
-        `${REPORT_ENDPOINTS.TRANSFER}/between/${ma_kho_xuat}/${ma_kho_nhap}`, 
+    getByMonth: async (params) => {
+      const res = await axiosInstance.get(
+        `${BAO_CAO_BASE}/doanh-thu/theo-thang`,
         { params }
       );
-    }
+      return res.data;
+    },
+    getByWarehouse: async (params) => {
+      const res = await axiosInstance.get(
+        `${BAO_CAO_BASE}/doanh-thu/theo-kho`,
+        { params }
+      );
+      return res.data;
+    },
+    getByProduct: async (params) => {
+      const res = await axiosInstance.get(
+        `${BAO_CAO_BASE}/doanh-thu/theo-san-pham`,
+        { params }
+      );
+      return res.data;
+    },
+    getSummary: async (params) => {
+      const res = await axiosInstance.get(
+        `${BAO_CAO_BASE}/doanh-thu/tong-hop`,
+        { params }
+      );
+      return res.data;
+    },
   },
 
-  // ===== FINANCIAL REPORTS (BÁO CÁO TÀI CHÍNH) =====
-  financial: {
-    // Báo cáo thu chi
-    getCashFlow: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.FINANCIAL}/cash-flow`, { params });
-    },
-    
-    // Báo cáo công nợ
-    getDebt: async (params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.FINANCIAL}/debt`, { params });
-    },
-    
-    // Báo cáo công nợ theo kho
-    getDebtByWarehouse: async (ma_kho, params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.FINANCIAL}/debt/warehouse/${ma_kho}`, { params });
-    },
-    
-    // Báo cáo dòng tiền theo thời gian
-    getCashFlowByPeriod: async (startDate, endDate, params) => {
-      return axiosInstance.get(`${REPORT_ENDPOINTS.FINANCIAL}/cash-flow/period`, {
-        params: { startDate, endDate, ...params }
+  // ===== BÁO CÁO NHẬP XUẤT =====
+  logistics: {
+    getVehicleInOutput: async (params) => {
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/nhap-xuat/xe`, {
+        params,
       });
-    }
+      return res.data;
+    },
+    getPartInOutput: async (params) => {
+      const res = await axiosInstance.get(
+        `${BAO_CAO_BASE}/nhap-xuat/phu-tung`,
+        { params }
+      );
+      return res.data;
+    },
+    getPartCard: async (params) => {
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/nhap-xuat/the-kho`, {
+        params,
+      });
+      return res.data;
+    },
   },
 
-  // ===== DASHBOARD STATISTICS =====
-  dashboard: {
-    // Get dashboard overview
-    getOverview: async (ma_kho) => {
-      return axiosInstance.get('/reports/dashboard/overview', {
-        params: { ma_kho }
-      });
+  // ===== BÁO CÁO CHUYỂN KHO =====
+  transfer: {
+    getSummary: async (params) => {
+      const res = await axiosInstance.get(
+        `${BAO_CAO_BASE}/chuyen-kho/tong-hop`,
+        { params }
+      );
+      return res.data;
     },
-    
-    // Get sales statistics
-    getSalesStats: async (period, ma_kho) => {
-      return axiosInstance.get('/reports/dashboard/sales-stats', {
-        params: { period, ma_kho }
-      });
+    getDetail: async (params) => {
+      const res = await axiosInstance.get(
+        `${BAO_CAO_BASE}/chuyen-kho/chi-tiet`,
+        { params }
+      );
+      return res.data;
     },
-    
-    // Get inventory statistics
-    getInventoryStats: async (ma_kho) => {
-      return axiosInstance.get('/reports/dashboard/inventory-stats', {
-        params: { ma_kho }
-      });
-    },
-    
-    // Get recent activities
-    getRecentActivities: async (limit, ma_kho) => {
-      return axiosInstance.get('/reports/dashboard/recent-activities', {
-        params: { limit, ma_kho }
-      });
-    }
   },
 
-  // ===== EXPORT REPORTS =====
+  // ===== BÁO CÁO CÔNG NỢ =====
+  debt: {
+    getInternal: async (params) => {
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/cong-no/noi-bo`, {
+        params,
+      });
+      return res.data;
+    },
+    getCustomer: async (params) => {
+      const res = await axiosInstance.get(
+        `${BAO_CAO_BASE}/cong-no/khach-hang`,
+        { params }
+      );
+      return res.data;
+    },
+  },
+
+  // ===== BÁO CÁO THU CHI =====
+  finance: {
+    getByDay: async (params) => {
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/thu-chi/theo-ngay`, {
+        params,
+      });
+      return res.data;
+    },
+    getSummary: async (params) => {
+      const res = await axiosInstance.get(`${BAO_CAO_BASE}/thu-chi/tong-hop`, {
+        params,
+      });
+      return res.data;
+    },
+  },
+
+  // ===== BÁO CÁO KHÁCH HÀNG =====
+  customer: {
+    getTopSelling: async (params) => {
+      const res = await axiosInstance.get(
+        `${BAO_CAO_BASE}/khach-hang/top-mua-hang`,
+        { params }
+      );
+      return res.data;
+    },
+    getHistory: async (params) => {
+      const res = await axiosInstance.get(
+        `${BAO_CAO_BASE}/khach-hang/lich-su-mua-hang`,
+        { params }
+      );
+      return res.data;
+    },
+  },
+
+  // ===== EXPORT =====
   export: {
-    // Export to Excel
-    exportExcel: async (reportType, params) => {
-      return axiosInstance.get(`/reports/export/excel/${reportType}`, {
-        params,
-        responseType: 'blob'
+    excel: async (data) => {
+      return axiosInstance.post(`${BAO_CAO_BASE}/xuat-excel`, data, {
+        responseType: "blob",
       });
     },
-    
-    // Export to PDF
-    exportPdf: async (reportType, params) => {
-      return axiosInstance.get(`/reports/export/pdf/${reportType}`, {
-        params,
-        responseType: 'blob'
+    pdf: async (data) => {
+      return axiosInstance.post(`${BAO_CAO_BASE}/xuat-pdf`, data, {
+        responseType: "blob",
       });
-    }
-  }
+    },
+  },
 };

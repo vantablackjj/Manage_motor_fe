@@ -1,6 +1,18 @@
-// src/pages/dashboard/DashboardPage.jsx
+// src/components/pages/DashboardPage/DashboardPage.jsx
 import React, { useState, useEffect } from "react";
-import { Row, Col, Card, Statistic, Table, Tag, Space, Spin } from "antd";
+import {
+  Row,
+  Col,
+  Card,
+  Statistic,
+  Table,
+  Tag,
+  Space,
+  Spin,
+  DatePicker,
+  Button,
+  Typography,
+} from "antd";
 import {
   CarOutlined,
   ToolOutlined,
@@ -8,370 +20,346 @@ import {
   DollarOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
+  ReloadOutlined,
+  FilterOutlined,
+  SwapOutlined,
+  TeamOutlined,
+  UserOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../../../contexts/AuthContext";
 import { reportAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
+import dayjs from "dayjs";
+
+const { RangePicker } = DatePicker;
+const { Title, Text } = Typography;
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const { isMobile, isTablet } = useResponsive();
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState([
+    dayjs().startOf("month"),
+    dayjs(),
+  ]);
+
   const [stats, setStats] = useState({
-    totalVehicles: 0,
-    totalParts: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    vehicleChange: 0,
-    partsChange: 0,
-    ordersChange: 0,
-    revenueChange: 0,
+    revenue_today: 0,
+    revenue_month: 0,
+    stock_xe: 0,
+    low_stock_pt: 0,
+    internal_debt: 0,
+    customer_debt: 0,
   });
+
   const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [dateRange]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Fetch dashboard overview
-      const overview = await reportAPI.dashboard.getOverview(user?.ma_kho);
+      const params = {
+        ma_kho: user?.ma_kho,
+        tu_ngay: dateRange[0].format("YYYY-MM-DD"),
+        den_ngay: dateRange[1].format("YYYY-MM-DD"),
+      };
 
-      setStats({
-        totalVehicles: overview.totalVehicles || 0,
-        totalParts: overview.totalParts || 0,
-        totalOrders: overview.totalOrders || 0,
-        totalRevenue: overview.totalRevenue || 0,
-        vehicleChange: overview.vehicleChange || 0,
-        partsChange: overview.partsChange || 0,
-        ordersChange: overview.ordersChange || 0,
-        revenueChange: overview.revenueChange || 0,
-      });
+      // Gọi API dashboard tổng quan
+      const overview = await reportAPI.dashboard.getOverview(params);
+      console.log("Dashboard overview data:", overview);
 
-      // Fetch recent activities
-      const activities = await reportAPI.dashboard.getRecentActivities(
-        10,
-        user?.ma_kho
-      );
-      setRecentActivities(activities || []);
+      if (overview) {
+        setStats((prev) => ({
+          ...prev,
+          ...overview,
+        }));
+        setRecentActivities(overview.giao_dich_gan_day || []);
+      }
     } catch (error) {
+      console.error(error);
       notificationService.error("Không thể tải dữ liệu dashboard");
     } finally {
       setLoading(false);
     }
   };
 
-  const StatCard = ({ title, value, prefix, suffix, trend, color, icon }) => (
-    <Card hoverable size="small" style={{ height: "100%" }}>
-      <Statistic
-        title={
-          <span style={{ fontSize: isMobile ? "12px" : "14px" }}>{title}</span>
-        }
-        value={value}
-        prefix={icon}
-        suffix={suffix}
-        valueStyle={{
-          color: color || "#3f8600",
-          fontSize: isMobile ? "18px" : "24px",
-        }}
-      />
-      {trend !== undefined && (
-        <div style={{ marginTop: "4px", fontSize: isMobile ? "11px" : "13px" }}>
-          {trend >= 0 ? (
-            <span style={{ color: "#3f8600" }}>
-              <ArrowUpOutlined /> {trend}%
-            </span>
-          ) : (
-            <span style={{ color: "#cf1322" }}>
-              <ArrowDownOutlined /> {Math.abs(trend)}%
-            </span>
-          )}
-          <span style={{ marginLeft: "4px", color: "#8c8c8c" }}>
-            so với trước
-          </span>
-        </div>
-      )}
+  const StatCard = ({ title, value, icon, growth, color, isCurrency }) => (
+    <Card
+      hoverable
+      size="small"
+      className="stat-card"
+      style={{ borderLeft: `4px solid ${color}` }}
+    >
+      <Row align="middle" gutter={16}>
+        <Col span={18}>
+          <Text type="secondary" size="small">
+            {title}
+          </Text>
+          <div
+            style={{
+              fontSize: isMobile ? "20px" : "24px",
+              fontWeight: "bold",
+              margin: "4px 0",
+            }}
+          >
+            {isCurrency
+              ? formatService.formatCurrency(value)
+              : formatService.formatNumber(value)}
+          </div>
+          <div style={{ fontSize: "12px" }}>
+            {growth !== undefined &&
+              (growth >= 0 ? (
+                <Text type="success">
+                  <ArrowUpOutlined /> {growth}%{" "}
+                  <Text type="secondary">so với trước</Text>
+                </Text>
+              ) : (
+                <Text type="danger">
+                  <ArrowDownOutlined /> {Math.abs(growth)}%{" "}
+                  <Text type="secondary">so với trước</Text>
+                </Text>
+              ))}
+          </div>
+        </Col>
+        <Col span={6} style={{ textAlign: "right" }}>
+          <div
+            style={{
+              background: `${color}15`,
+              padding: "12px",
+              borderRadius: "12px",
+              display: "inline-block",
+            }}
+          >
+            {React.cloneElement(icon, { style: { fontSize: "24px", color } })}
+          </div>
+        </Col>
+      </Row>
     </Card>
   );
 
   const activityColumns = [
     {
-      title: "Thời gian",
-      dataIndex: "ngay_giao_dich",
-      key: "ngay_giao_dich",
+      title: "Mã phiếu",
+      dataIndex: "so_phieu",
+      key: "so_phieu",
       width: 120,
-      render: (text) => formatService.formatRelativeTime(text),
+      render: (text) => <strong>{text}</strong>,
     },
     {
       title: "Loại",
       dataIndex: "loai_giao_dich",
       key: "loai_giao_dich",
-      width: 100,
+      width: 120,
       render: (text) => (
         <Tag
-          size="small"
           color={
-            text === "NHAP_KHO"
-              ? "green"
-              : text === "XUAT_KHO"
-              ? "red"
-              : text === "CHUYEN_KHO"
-              ? "blue"
-              : text === "BAN_HANG"
+            text === "BAN_HANG"
               ? "purple"
-              : "default"
+              : text === "NHAP_KHO"
+              ? "green"
+              : text === "CHUYEN_KHO"
+              ? "orange"
+              : "blue"
           }
         >
-          {formatService.formatLoaiGiaoDich(text)}
+          {text}
         </Tag>
       ),
     },
     {
-      title: "Mô tả",
-      dataIndex: "mo_ta",
-      key: "mo_ta",
-      ellipsis: true,
-    },
-    {
       title: "Giá trị",
-      dataIndex: "gia_tri",
-      key: "gia_tri",
-      width: 110,
+      dataIndex: "tong_tien",
+      key: "tong_tien",
       align: "right",
-      render: (text) => formatService.formatCurrency(text),
+      render: (val) => formatService.formatCurrency(val),
     },
     {
-      title: "Người làm",
-      dataIndex: "nguoi_thuc_hien",
-      key: "nguoi_thuc_hien",
-      width: 110,
+      title: "Ngày",
+      dataIndex: "ngay_lap",
+      key: "ngay_lap",
+      render: (date) => formatService.formatDate(date),
     },
   ];
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "400px",
-        }}
-      >
-        <Spin size="large" tip="Đang tải..." />
-      </div>
-    );
-  }
-
   return (
-    <div
-      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
-    >
-      {/* Page Header */}
-      <div style={{ marginBottom: 16 }}>
-        <h1 style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.5rem" }}>
-          Dashboard
-        </h1>
-        <p
-          style={{
-            color: "#8c8c8c",
-            margin: 0,
-            fontSize: isMobile ? "13px" : "14px",
-          }}
-        >
-          Xin chào, {user?.ho_ten || user?.username}!
-        </p>
-      </div>
+    <div style={{ padding: "16px", background: "#f5f7fa", minHeight: "100vh" }}>
+      {/* Header & Filter */}
+      <Row
+        justify="space-between"
+        align="middle"
+        gutter={[16, 16]}
+        style={{ marginBottom: 24 }}
+      >
+        <Col xs={24} md={12}>
+          <Title level={isMobile ? 4 : 3} style={{ margin: 0 }}>
+            Hệ thống quản lý Motor
+          </Title>
+          <Text type="secondary">
+            Chào mừng trở lại, {user?.ho_ten || user?.username}
+          </Text>
+        </Col>
+        <Col xs={24} md={12} style={{ textAlign: isMobile ? "left" : "right" }}>
+          <Space wrap>
+            <RangePicker
+              size="small"
+              value={dateRange}
+              onChange={(dates) => dates && setDateRange(dates)}
+              allowClear={false}
+            />
+            <Button
+              icon={<ReloadOutlined />}
+              size="small"
+              onClick={fetchDashboardData}
+              loading={loading}
+            >
+              Làm mới
+            </Button>
+          </Space>
+        </Col>
+      </Row>
 
-      {/* Statistics Cards */}
-      <Row gutter={[8, 8]} style={{ marginBottom: "16px" }}>
-        <Col xs={12} sm={12} lg={6}>
+      {/* Main Stats */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} lg={8}>
           <StatCard
-            title="Xe tồn kho"
-            value={stats.totalVehicles}
+            title="Doanh thu hôm nay"
+            value={stats.revenue_today}
+            icon={<DollarOutlined />}
+            color="#722ed1"
+            isCurrency
+          />
+        </Col>
+        <Col xs={24} sm={12} lg={8}>
+          <StatCard
+            title="Doanh thu tháng"
+            value={stats.revenue_month}
+            icon={<DollarOutlined />}
+            color="#eb2f96"
+            isCurrency
+          />
+        </Col>
+        <Col xs={24} sm={12} lg={8}>
+          <StatCard
+            title="Xe trong kho"
+            value={stats.stock_xe}
             icon={<CarOutlined />}
-            trend={stats.vehicleChange}
             color="#1890ff"
           />
         </Col>
-        <Col xs={12} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={8}>
           <StatCard
-            title="Phụ tùng tồn"
-            value={stats.totalParts}
+            title="Phụ tùng sắp hết"
+            value={stats.low_stock_pt}
             icon={<ToolOutlined />}
-            trend={stats.partsChange}
-            color="#52c41a"
+            color="#faad14"
           />
         </Col>
-        <Col xs={12} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={8}>
           <StatCard
-            title="Đơn hàng"
-            value={stats.totalOrders}
-            icon={<ShoppingCartOutlined />}
-            trend={stats.ordersChange}
+            title="Công nợ nội bộ"
+            value={stats.internal_debt}
+            icon={<SwapOutlined />}
             color="#fa8c16"
+            isCurrency
           />
         </Col>
-        <Col xs={12} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={8}>
           <StatCard
-            title="Doanh thu"
-            value={formatService.formatCompactNumber(stats.totalRevenue)}
-            icon={<DollarOutlined />}
-            suffix="₫"
-            trend={stats.revenueChange}
-            color="#722ed1"
+            title="Công nợ khách hàng"
+            value={stats.customer_debt}
+            icon={<TeamOutlined />}
+            color="#13c2c2"
+            isCurrency
           />
         </Col>
       </Row>
 
-      {/* Charts Section */}
-      <Row gutter={[8, 8]} style={{ marginBottom: "16px" }}>
+      {/* Charts & Recent Activities */}
+      <Row gutter={[16, 16]}>
         <Col xs={24} lg={16}>
           <Card
-            size="small"
             title="Biểu đồ doanh thu"
+            size="small"
             extra={
-              <span style={{ color: "#8c8c8c", fontSize: "12px" }}>
-                Năm 2025
-              </span>
+              <Button type="link" size="small">
+                Xem chi tiết
+              </Button>
             }
           >
             <div
               style={{
-                height: isMobile ? "200px" : "300px",
+                height: 350,
+                background: "#fcfcfc",
+                borderRadius: 8,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "#fafafa",
-                borderRadius: "8px",
-                color: "#8c8c8c",
-                fontSize: "12px",
+                border: "1px dashed #d9d9d9",
               }}
             >
-              (Biểu đồ chưa sẵn sàng)
+              <div style={{ textAlign: "center" }}>
+                <Text type="secondary">Biểu đồ đang được thiết kế...</Text>
+                <br />
+                <Text type="secondary" size="small">
+                  Gợi ý: Cài đặt "recharts" để hiển thị biểu đồ
+                </Text>
+              </div>
             </div>
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card size="small" title="Cơ cấu hàng hóa">
-            <div
-              style={{
-                height: isMobile ? "200px" : "300px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#fafafa",
-                borderRadius: "8px",
-                color: "#8c8c8c",
-                fontSize: "12px",
-              }}
-            >
-              (Phân bố)
-            </div>
+          <Card
+            title="Giao dịch mới nhất"
+            size="small"
+            extra={
+              <Button type="link" size="small">
+                Tất cả
+              </Button>
+            }
+          >
+            <Table
+              dataSource={recentActivities}
+              columns={activityColumns}
+              rowKey="id"
+              pagination={false}
+              size="small"
+              loading={loading}
+              scroll={{ x: 300 }}
+            />
           </Card>
         </Col>
       </Row>
 
-      {/* Recent Activities */}
-      <Card
-        size="small"
-        title="Giao dịch mới"
-        extra={
-          <a
-            onClick={() => (window.location.href = "/reports/activities")}
-            style={{ fontSize: "12px" }}
-          >
-            Chi tiết
-          </a>
-        }
-      >
-        <Table
-          dataSource={recentActivities}
-          columns={activityColumns}
-          rowKey="id"
-          pagination={false}
-          scroll={{ x: 600 }}
-          size="small"
-          locale={{
-            emptyText: "Chưa có dữ liệu",
-          }}
-        />
-      </Card>
-
-      {/* Quick Actions */}
-      <Row gutter={[8, 8]} style={{ marginTop: "16px" }}>
-        <Col xs={12} sm={6}>
-          <Card
-            hoverable
-            size="small"
-            onClick={() => (window.location.href = "/don-hang/create")}
-            style={{ textAlign: "center", cursor: "pointer", height: "100%" }}
-          >
-            <ShoppingCartOutlined
-              style={{ fontSize: isMobile ? "24px" : "32px", color: "#1890ff" }}
-            />
-            <h4
-              style={{ marginTop: "8px", fontSize: isMobile ? "12px" : "14px" }}
-            >
-              Đơn hàng
-            </h4>
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card
-            hoverable
-            size="small"
-            onClick={() => (window.location.href = "/hoa-don/create")}
-            style={{ textAlign: "center", cursor: "pointer", height: "100%" }}
-          >
-            <DollarOutlined
-              style={{ fontSize: isMobile ? "24px" : "32px", color: "#52c41a" }}
-            />
-            <h4
-              style={{ marginTop: "8px", fontSize: isMobile ? "12px" : "14px" }}
-            >
-              Hóa đơn
-            </h4>
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card
-            hoverable
-            size="small"
-            onClick={() => (window.location.href = "/chuyen-kho/create")}
-            style={{ textAlign: "center", cursor: "pointer", height: "100%" }}
-          >
-            <CarOutlined
-              style={{ fontSize: isMobile ? "24px" : "32px", color: "#fa8c16" }}
-            />
-            <h4
-              style={{ marginTop: "8px", fontSize: isMobile ? "12px" : "14px" }}
-            >
-              Chuyển kho
-            </h4>
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card
-            hoverable
-            size="small"
-            onClick={() => (window.location.href = "/xe/ton-kho")}
-            style={{ textAlign: "center", cursor: "pointer", height: "100%" }}
-          >
-            <ToolOutlined
-              style={{ fontSize: isMobile ? "24px" : "32px", color: "#722ed1" }}
-            />
-            <h4
-              style={{ marginTop: "8px", fontSize: isMobile ? "12px" : "14px" }}
-            >
-              Tồn kho
-            </h4>
-          </Card>
-        </Col>
-      </Row>
+      {/* Quick Actions at bottom for mobile */}
+      {isMobile && (
+        <Card size="small" title="Thao tác nhanh" style={{ marginTop: 16 }}>
+          <Row gutter={[8, 8]}>
+            <Col span={12}>
+              <Button
+                block
+                icon={<ShoppingCartOutlined />}
+                onClick={() => (window.location.href = "/sales/orders/create")}
+              >
+                Bán hàng
+              </Button>
+            </Col>
+            <Col span={12}>
+              <Button
+                block
+                icon={<CarOutlined />}
+                onClick={() => (window.location.href = "/xe/danh-sach")}
+              >
+                Khai kho
+              </Button>
+            </Col>
+          </Row>
+        </Card>
+      )}
     </div>
   );
 };

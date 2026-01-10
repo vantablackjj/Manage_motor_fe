@@ -67,7 +67,7 @@ const UserManagePage = () => {
     setLoading(true);
     try {
       const response = await userAPI.getAll();
-      setData(response?.data || []);
+      setData(response || []);
     } catch (error) {
       notificationService.error("Không thể tải danh sách người dùng");
     } finally {
@@ -78,7 +78,7 @@ const UserManagePage = () => {
   const fetchKhoList = async () => {
     try {
       const response = await khoAPI.getAll();
-      setKhoList(response?.data || []);
+      setKhoList(response || []);
     } catch (error) {
       console.error("Error fetching kho list", error);
     }
@@ -98,7 +98,7 @@ const UserManagePage = () => {
 
   const handleToggleStatus = async (record) => {
     try {
-      await userAPI.toggleStatus(record.id);
+      await userAPI.toggleStatus(record.id, record.trang_thai);
       notificationService.success("Cập nhật trạng thái thành công");
       fetchData();
     } catch (error) {
@@ -145,7 +145,7 @@ const UserManagePage = () => {
     setLoading(true);
     try {
       const response = await userAPI.getPermissions(record.id);
-      setUserPermissions(response?.data || []);
+      setUserPermissions(response || []);
       setPermissionModalVisible(true);
     } catch (error) {
       notificationService.error("Không thể lấy quyền kho");

@@ -6,12 +6,14 @@ import { authService } from "../../../services";
 import { notificationService, storageService } from "../../../services";
 import { authAPI } from "../../../api";
 import { useResponsive } from "../../../hooks/useResponsive";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const LoginPage = () => {
   const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // ... rest of the component
 
@@ -42,11 +44,12 @@ const LoginPage = () => {
         } else {
           storageService.remove("savedCredentials");
         }
-        authService.setTokens(
+
+        login(
+          result.data.user,
           result.data.access_token,
           result.data.refresh_token
         );
-        authService.setUser(result.data.user);
         navigate("/", { replace: true });
         notificationService.loginSuccess();
       } else {
