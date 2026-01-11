@@ -1,10 +1,23 @@
-// src/components/features/Export/ExportButton.jsx
-import React, { useState } from "react";
+import dayjs from "dayjs";
 import { Button, Tooltip } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { exportApi } from "../../../api/export.api";
 import { downloadFile } from "../../../utils/helpers";
 import { notificationService } from "../../../services";
+import { useState } from "react";
+/**
+ * Sanitize parameters by formatting date objects
+ */
+const sanitizeParams = (params) => {
+  const sanitized = { ...params };
+  Object.keys(sanitized).forEach((key) => {
+    const value = sanitized[key];
+    if (value && (value._isAMomentObject || dayjs.isDayjs(value))) {
+      sanitized[key] = value.format("YYYY-MM-DD");
+    }
+  });
+  return sanitized;
+};
 
 /**
  * Reusable Export Button component
@@ -19,8 +32,9 @@ const ExportButton = ({ module, title, params = {}, fileName, ...props }) => {
   const handleExport = async () => {
     setExporting(true);
     try {
+      const sanitizedParams = sanitizeParams(params);
       // result is the Blob because the axios interceptor returns response.data
-      const result = await exportApi.exportData(module, params);
+      const result = await exportApi.exportData(module, sanitizedParams);
 
       let blob = result;
       if (!(blob instanceof Blob)) {

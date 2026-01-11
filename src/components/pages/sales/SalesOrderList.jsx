@@ -16,6 +16,9 @@ import {
   EyeOutlined,
   ImportOutlined,
   ExportOutlined,
+  ShoppingOutlined,
+  ReloadOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
