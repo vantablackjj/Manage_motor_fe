@@ -444,19 +444,11 @@ const PhuTungManagement = () => {
                   Tải lại
                 </Button>
 
-                {activeTab !== "bi-khoa" && (
+                {activeTab === "danh-sach" && (
                   <ExportButton
-                    module={activeTab === "ton-kho" ? "inventory-pt" : "part"}
-                    title={
-                      activeTab === "ton-kho"
-                        ? "Tồn kho phụ tùng"
-                        : "Danh sách phụ tùng"
-                    }
-                    params={
-                      activeTab === "ton-kho"
-                        ? { search: searchText }
-                        : { nhom_pt: nhomPT, search: searchText }
-                    }
+                    module="part"
+                    title="Danh sách phụ tùng"
+                    params={{ nhom_pt: nhomPT, search: searchText }}
                     size="small"
                   />
                 )}

@@ -9,7 +9,6 @@ export const MASTER_DATA_CONFIG = {
   loaiHinh: {
     title: "Loại hình xe",
     resource: "loai-hinh",
-    exportModule: "loai-hinh",
     permission: permission,
     columns: [
       { key: "id", label: "id", required: true },

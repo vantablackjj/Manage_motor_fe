@@ -42,7 +42,7 @@ import { useResponsive } from "../../../hooks/useResponsive";
 import XeForm from "./XeForm";
 import DanhSachXeBiKhoa from "./DanhSachXeBiKhoa";
 import TonKhoXe from "./TonKhoXe";
-import ExportButton from "../../../features/Export/ExportButton";
+import ExportButton from "../../../components/features/Export/ExportButton";
 
 const { Option } = Select;
 const { Search } = Input;
