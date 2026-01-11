@@ -18,7 +18,11 @@ import {
   ReloadOutlined,
   SearchOutlined,
   ShoppingCartOutlined,
+  ImportOutlined,
+  ExportOutlined,
 } from "@ant-design/icons";
+import ImportButton from "../../../features/Import/ImportButton";
+import ExportButton from "../../../features/Export/ExportButton";
 import { useNavigate } from "react-router-dom";
 import { donHangAPI, khoAPI } from "../../../../api";
 import { formatService, notificationService } from "../../../../services";
@@ -150,6 +154,16 @@ const PartPurchaseList = () => {
           </Col>
           <Col xs={24} md={12} style={{ textAlign: "right" }}>
             <Space wrap>
+              <ImportButton
+                module="nhap-kho"
+                title="Đơn Nhập Kho"
+                onSuccess={fetchData}
+              />
+              <ExportButton
+                module="nhap-kho"
+                title="Đơn Nhập Kho"
+                params={filters}
+              />
               <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
                 Làm mới
               </Button>

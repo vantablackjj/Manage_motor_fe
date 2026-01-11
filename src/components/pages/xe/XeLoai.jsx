@@ -21,7 +21,11 @@ import {
   ReloadOutlined,
   CarOutlined,
   StopOutlined,
+  ImportOutlined,
+  ExportOutlined,
 } from "@ant-design/icons";
+import ImportButton from "../../features/Import/ImportButton";
+import ExportButton from "../../features/Export/ExportButton";
 
 import { danhMucAPI } from "../../../api";
 import { notificationService, authService } from "../../../services";
@@ -232,7 +236,17 @@ const XeLoaiPage = () => {
           </h1>
           <p style={{ color: "#8c8c8c" }}>Quản lý các dòng xe trong hệ thống</p>
         </div>
-        <Space>
+        <Space wrap>
+          <ImportButton
+            module="model-car"
+            title="Loại xe"
+            onSuccess={fetchData}
+          />
+          <ExportButton
+            module="vehicle-type"
+            title="Loại xe"
+            params={filters}
+          />
           <Button icon={<ReloadOutlined />} onClick={fetchData}>
             Làm mới
           </Button>

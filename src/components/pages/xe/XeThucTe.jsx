@@ -639,9 +639,11 @@ const XeThucTe = () => {
                     <Button icon={<ReloadOutlined />} onClick={fetchData}>
                       Làm mới
                     </Button>
-                    <Button icon={<ExportOutlined />} onClick={handleExport}>
-                      Xuất Excel
-                    </Button>
+                    <ExportButton
+                      module="xe-ton-kho"
+                      title="Danh sách xe"
+                      params={filters}
+                    />
                     {authService.canCreate() && (
                       <Button
                         type="primary"

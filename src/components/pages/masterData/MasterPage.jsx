@@ -11,7 +11,13 @@ import {
   Tag,
   Select,
 } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  ImportOutlined,
+  ExportOutlined,
+} from "@ant-design/icons";
+import ImportButton from "../../features/Import/ImportButton";
+import ExportButton from "../../features/Export/ExportButton";
 
 import { useAuth } from "../../../contexts/AuthContext";
 import { MASTER_DATA_CONFIG } from "../../../utils/masterDataConfig";
@@ -150,13 +156,26 @@ const MasterDataPage = () => {
       >
         <h2>{config.title}</h2>
         {canCreate && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={openCreateModal}
-          >
-            Thêm mới
-          </Button>
+          <Space>
+            <ImportButton
+              module={config.resource}
+              title={config.title}
+              onSuccess={fetchData}
+              ghost
+            />
+            <ExportButton
+              module={config.exportModule || config.resource}
+              title={config.title}
+              ghost
+            />
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={openCreateModal}
+            >
+              Thêm mới
+            </Button>
+          </Space>
         )}
       </Space>
 

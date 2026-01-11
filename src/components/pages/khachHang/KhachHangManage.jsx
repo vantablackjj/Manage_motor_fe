@@ -24,8 +24,12 @@ import {
   UserOutlined,
   ShopOutlined,
   SearchOutlined,
+  ImportOutlined,
+  ExportOutlined,
 } from "@ant-design/icons";
 import { khachHangAPI } from "../../../api";
+import ImportButton from "../../features/Import/ImportButton";
+import ExportButton from "../../features/Export/ExportButton";
 import { notificationService, authService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -270,6 +274,22 @@ const KhachHangManage = () => {
               style={{ textAlign: isMobile ? "left" : "right" }}
             >
               <Space wrap>
+                <ImportButton
+                  module="customer"
+                  title={
+                    activeTab === "khach-hang" ? "Khách hàng" : "Nhà cung cấp"
+                  }
+                  onSuccess={fetchData}
+                  size="small"
+                />
+                <ExportButton
+                  module="customer"
+                  title={
+                    activeTab === "khach-hang" ? "Khách hàng" : "Nhà cung cấp"
+                  }
+                  params={{ la_ncc: activeTab === "nha-cung-cap" }}
+                  size="small"
+                />
                 <Button
                   icon={<ReloadOutlined />}
                   onClick={fetchData}

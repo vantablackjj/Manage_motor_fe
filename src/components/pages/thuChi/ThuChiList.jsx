@@ -23,7 +23,11 @@ import {
   ArrowUpOutlined,
   ArrowDownOutlined,
   FileExcelOutlined,
+  ImportOutlined,
+  ExportOutlined,
 } from "@ant-design/icons";
+import ImportButton from "../../features/Import/ImportButton";
+import ExportButton from "../../features/Export/ExportButton";
 import { useNavigate } from "react-router-dom";
 import { thuChiAPI, khoAPI, khachHangAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
@@ -278,6 +282,16 @@ const ThuChiList = () => {
           </Col>
           <Col xs={24} md={12} style={{ textAlign: "right" }}>
             <Space wrap>
+              <ImportButton
+                module="thu-chi"
+                title="Phiếu Thu Chi"
+                onSuccess={fetchData}
+              />
+              <ExportButton
+                module="thu-chi"
+                title="Phiếu Thu Chi"
+                params={filters}
+              />
               <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
                 Làm mới
               </Button>

@@ -17,7 +17,11 @@ import {
   ReloadOutlined,
   SearchOutlined,
   EyeOutlined,
+  ImportOutlined,
+  ExportOutlined,
 } from "@ant-design/icons";
+import ImportButton from "../../features/Import/ImportButton";
+import ExportButton from "../../features/Export/ExportButton";
 import { useNavigate } from "react-router-dom";
 import { chuyenKhoAPI, khoAPI } from "../../../api";
 import {
@@ -189,6 +193,21 @@ const ChuyenKhoList = () => {
             </Col>
             <Col xs={24} md={12} style={{ textAlign: "right" }}>
               <Space wrap>
+                <ImportButton
+                  module="transfer-pt"
+                  title="Phiếu Chuyển Kho"
+                  onSuccess={fetchData}
+                />
+                <ExportButton
+                  module="transfer-xe"
+                  title="Phiếu Chuyển Xe"
+                  params={filters}
+                />
+                <ExportButton
+                  module="transfer-pt"
+                  title="Phiếu Chuyển PT"
+                  params={filters}
+                />
                 <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
                   Làm mới
                 </Button>

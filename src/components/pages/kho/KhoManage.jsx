@@ -22,7 +22,11 @@ import {
   ReloadOutlined,
   HomeOutlined,
   ShopOutlined,
+  ImportOutlined,
+  ExportOutlined,
 } from "@ant-design/icons";
+import ImportButton from "../../features/Import/ImportButton";
+import ExportButton from "../../features/Export/ExportButton";
 import { khoAPI } from "../../../api";
 import { notificationService, authService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
@@ -222,6 +226,13 @@ const KhoManage = () => {
               style={{ textAlign: isMobile ? "left" : "right" }}
             >
               <Space wrap>
+                <ImportButton
+                  module="warehouse"
+                  title="Kho"
+                  onSuccess={fetchData}
+                  size="small"
+                />
+                <ExportButton module="warehouse" title="Kho" size="small" />
                 <Button
                   icon={<ReloadOutlined />}
                   onClick={fetchData}

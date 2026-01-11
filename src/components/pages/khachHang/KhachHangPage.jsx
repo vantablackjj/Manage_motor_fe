@@ -22,7 +22,9 @@ import {
   SearchOutlined,
   UserOutlined,
   TeamOutlined,
+  ImportOutlined,
 } from "@ant-design/icons";
+import ImportButton from "../../features/Import/ImportButton";
 import dayjs from "dayjs";
 import { khachHangAPI } from "../../../api";
 import {
@@ -276,17 +278,25 @@ const KhachHangListPage = () => {
             sm={8}
             style={{ textAlign: isMobile ? "left" : "right" }}
           >
-            {authService.canCreate() && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAdd}
-                block={isMobile}
+            <Space>
+              <ImportButton
+                module="customer"
+                title="Khách hàng/NCC"
+                onSuccess={fetchData}
                 size="small"
-              >
-                Thêm đối tác
-              </Button>
-            )}
+              />
+              {authService.canCreate() && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleAdd}
+                  block={isMobile}
+                  size="small"
+                >
+                  Thêm đối tác
+                </Button>
+              )}
+            </Space>
           </Col>
         </Row>
       </div>

@@ -22,8 +22,12 @@ import {
   DeleteOutlined,
   ReloadOutlined,
   SettingOutlined,
+  ImportOutlined,
+  ExportOutlined,
 } from "@ant-design/icons";
 import { danhMucAPI } from "../../../api";
+import ImportButton from "../../features/Import/ImportButton";
+import ExportButton from "../../features/Export/ExportButton";
 import {
   formatService,
   notificationService,
@@ -578,6 +582,41 @@ const DanhMucPage = () => {
             style={{ textAlign: isMobile ? "left" : "right" }}
           >
             <Space wrap>
+              <ImportButton
+                module={
+                  activeTab === "brand"
+                    ? "brand"
+                    : activeTab === "color"
+                    ? "color"
+                    : activeTab === "loaiHinh"
+                    ? "loai-hinh"
+                    : activeTab === "noiSX"
+                    ? "noi-sx"
+                    : activeTab === "model"
+                    ? "model-car"
+                    : ""
+                }
+                title={getTitle()}
+                onSuccess={() => fetchTabData(activeTab)}
+                size="small"
+              />
+              <ExportButton
+                module={
+                  activeTab === "brand"
+                    ? "brand"
+                    : activeTab === "color"
+                    ? "color"
+                    : activeTab === "loaiHinh"
+                    ? "loai-hinh"
+                    : activeTab === "noiSX"
+                    ? "noi-sx"
+                    : activeTab === "model"
+                    ? "model-car"
+                    : ""
+                }
+                title={getTitle()}
+                size="small"
+              />
               <Button
                 icon={<ReloadOutlined />}
                 onClick={() => fetchTabData(activeTab)}

@@ -27,7 +27,10 @@ import {
   DeleteOutlined,
   WarningOutlined,
   HistoryOutlined,
+  ImportOutlined,
 } from "@ant-design/icons";
+import ImportButton from "../../features/Import/ImportButton";
+import ExportButton from "../../features/Export/ExportButton";
 import { phuTungAPI, tonKhoAPI } from "../../../api";
 import authService from "../../../services/auth.service";
 import PhuTungForm from "./PhuTungForm";
@@ -325,16 +328,32 @@ const PhuTungManagement = () => {
               sm={12}
               style={{ textAlign: isMobile ? "left" : "right" }}
             >
-              {activeTab === "danh-sach" && authService.canCreate() && (
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleCreate}
-                  block={isMobile}
-                >
-                  Thêm phụ tùng
-                </Button>
-              )}
+              <Space>
+                {activeTab === "danh-sach" && (
+                  <Space wrap>
+                    <ImportButton
+                      module="part"
+                      title="Phụ tùng"
+                      onSuccess={loadDanhSach}
+                    />
+                    <ExportButton
+                      module="part"
+                      title="Phụ tùng"
+                      params={{ nhom_pt: nhomPT, search: searchText }}
+                    />
+                  </Space>
+                )}
+                {activeTab === "danh-sach" && authService.canCreate() && (
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleCreate}
+                    block={isMobile}
+                  >
+                    Thêm phụ tùng
+                  </Button>
+                )}
+              </Space>
             </Col>
           </Row>
 
@@ -426,9 +445,20 @@ const PhuTungManagement = () => {
                 </Button>
 
                 {activeTab !== "bi-khoa" && (
-                  <Button size="small" icon={<ExportOutlined />}>
-                    Xuất
-                  </Button>
+                  <ExportButton
+                    module={activeTab === "ton-kho" ? "inventory-pt" : "part"}
+                    title={
+                      activeTab === "ton-kho"
+                        ? "Tồn kho phụ tùng"
+                        : "Danh sách phụ tùng"
+                    }
+                    params={
+                      activeTab === "ton-kho"
+                        ? { search: searchText }
+                        : { nhom_pt: nhomPT, search: searchText }
+                    }
+                    size="small"
+                  />
                 )}
               </Space>
             </Col>
