@@ -42,6 +42,8 @@ const XeForm = ({
     if (initialData) {
       form.setFieldsValue({
         ...initialData,
+        ma_loai: initialData.ma_loai || initialData.ma_loai_xe,
+        ma_kho: initialData.ma_kho || initialData.ma_kho_hien_tai || currentKho,
         ngay_nhap: initialData.ngay_nhap ? dayjs(initialData.ngay_nhap) : null,
       });
     } else if (isCreate && currentKho) {
@@ -79,7 +81,7 @@ const XeForm = ({
       onSuccess?.();
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Lưu xe thất bại"
+        error?.response?.data?.message || "Lưu xe thất bại",
       );
     } finally {
       setLoading(false);
@@ -94,17 +96,11 @@ const XeForm = ({
           <Form.Item
             name="xe_key"
             label="Mã xe"
-            rules={[
-              { required: true, message: "Vui lòng nhập mã xe" },
-              {
-                pattern: /^[A-Z0-9-]+$/,
-                message: "Mã xe chỉ chứa chữ in hoa, số và dấu gạch ngang",
-              },
-            ]}
+            tooltip="Mã xe sẽ được tự động tạo bởi hệ thống"
           >
             <Input
-              placeholder="VD: HONDA-VISION-001"
-              disabled={isView}
+              placeholder="Tự động tạo"
+              disabled={true}
               style={{ textTransform: "uppercase" }}
             />
           </Form.Item>
@@ -304,8 +300,8 @@ const XeForm = ({
                     initialData.trang_thai === "TON_KHO"
                       ? "green"
                       : initialData.trang_thai === "DA_BAN"
-                      ? "red"
-                      : "blue"
+                        ? "red"
+                        : "blue"
                   }
                 >
                   {formatService.formatXeTrangThai(initialData.trang_thai)}

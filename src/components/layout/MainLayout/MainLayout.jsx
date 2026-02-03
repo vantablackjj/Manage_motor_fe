@@ -87,7 +87,10 @@ const MainLayout = ({ children }) => {
       key: "/sales",
       icon: <ShoppingCartOutlined />,
       label: "Bán hàng",
-      children: [{ key: "/sales/orders", label: "Bán hàng" }],
+      children: [
+        { key: "/sales/orders", label: "Đơn hàng bán" },
+        { key: "/sales/invoices", label: "Hóa đơn bán" },
+      ],
     },
 
     // 2. QUẢN LÝ PHỤ TÙNG
@@ -119,12 +122,12 @@ const MainLayout = ({ children }) => {
         { key: "/cong-no/quan-ly", label: "Công nợ" },
       ],
     },
-    // 5. BÁO CÁO
     {
       key: "/bao-cao",
       icon: <BarChartOutlined />,
       label: "Báo cáo",
       children: [
+        { key: "/bao-cao/dashboard", label: "Dashboard Báo cáo" },
         { key: "/bao-cao/ton-kho", label: "Báo cáo Tồn kho" },
         { key: "/bao-cao/doanh-thu", label: "Báo cáo Doanh thu" },
         { key: "/bao-cao/nhap-xuat", label: "Báo cáo Nhập xuất" },

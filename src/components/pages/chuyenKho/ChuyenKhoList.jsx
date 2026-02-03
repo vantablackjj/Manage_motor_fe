@@ -46,8 +46,9 @@ const ChuyenKhoList = () => {
   const [khoList, setKhoList] = useState([]);
 
   const [filters, setFilters] = useState({
-    ma_kho_xuat: null,
-    ma_kho_nhap: null,
+    ma_ben_xuat: null,
+    ma_ben_nhap: null,
+    status: true, // Chỉ lấy bản ghi đang hoạt động (Soft delete)
     trang_thai: null,
     tu_ngay: null,
     den_ngay: null,
@@ -73,13 +74,14 @@ const ChuyenKhoList = () => {
       const params = {
         ...currentFilters,
       };
+
       // Format dates if present
       if (params.tu_ngay) params.tu_ngay = params.tu_ngay.format("YYYY-MM-DD");
       if (params.den_ngay)
         params.den_ngay = params.den_ngay.format("YYYY-MM-DD");
 
       const response = await chuyenKhoAPI.getAll(params);
-      setData(response.data || []);
+      setData(response || []);
     } catch (error) {
       notificationService.error("Không thể tải danh sách phiếu chuyển kho");
       setData([]);
@@ -129,7 +131,7 @@ const ChuyenKhoList = () => {
     },
     {
       title: "Kho xuất",
-      dataIndex: "ma_kho_xuat",
+      dataIndex: "ma_kho_xuat", // Cấu trúc đa hình
       key: "ma_kho_xuat",
       render: (ma_kho) => {
         const kho = khoList.find((k) => k.ma_kho === ma_kho);
@@ -138,7 +140,7 @@ const ChuyenKhoList = () => {
     },
     {
       title: "Kho nhập",
-      dataIndex: "ma_kho_nhap",
+      dataIndex: "ma_kho_nhap", // Cấu trúc đa hình
       key: "ma_kho_nhap",
       render: (ma_kho) => {
         const kho = khoList.find((k) => k.ma_kho === ma_kho);
@@ -158,8 +160,8 @@ const ChuyenKhoList = () => {
     },
     {
       title: "Người tạo",
-      dataIndex: "nguoi_tao",
-      key: "nguoi_tao",
+      dataIndex: "created_by", // Chuẩn hóa Audit
+      key: "created_by",
     },
     {
       title: "Thao tác",
@@ -232,7 +234,7 @@ const ChuyenKhoList = () => {
                 placeholder="Chọn kho xuất"
                 style={{ width: "100%" }}
                 allowClear
-                onChange={(val) => handleFilterChange("ma_kho_xuat", val)}
+                onChange={(val) => handleFilterChange("ma_ben_xuat", val)}
               >
                 {khoList.map((kho) => (
                   <Option key={kho.ma_kho} value={kho.ma_kho}>
@@ -246,7 +248,7 @@ const ChuyenKhoList = () => {
                 placeholder="Chọn kho nhập"
                 style={{ width: "100%" }}
                 allowClear
-                onChange={(val) => handleFilterChange("ma_kho_nhap", val)}
+                onChange={(val) => handleFilterChange("ma_ben_nhap", val)}
               >
                 {khoList.map((kho) => (
                   <Option key={kho.ma_kho} value={kho.ma_kho}>
@@ -283,7 +285,7 @@ const ChuyenKhoList = () => {
         <Table
           dataSource={data}
           columns={columns}
-          rowKey="so_phieu"
+          rowKey="ma_phieu"
           loading={loading}
           size="small"
           scroll={{ x: 800 }}

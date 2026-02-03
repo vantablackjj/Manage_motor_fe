@@ -14,6 +14,7 @@ import {
   Table,
   Divider,
   Modal,
+  InputNumber,
 } from "antd";
 import {
   SaveOutlined,
@@ -22,8 +23,8 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { chuyenKhoAPI, khoAPI, xeAPI, tonKhoAPI } from "../../../api";
-import { notificationService, authService } from "../../../services";
+import { chuyenKhoAPI, khoAPI, xeAPI, phuTungAPI } from "../../../api";
+import { notificationService } from "../../../services";
 import moment from "moment";
 
 const { Option } = Select;
@@ -60,6 +61,14 @@ const ChuyenKhoCreate = () => {
     }
   };
 
+  // Reset selected items when source warehouse changes
+  const handleKhoXuatChange = () => {
+    setSelectedXe([]);
+    setSelectedPhuTung([]);
+    setAvailableXe([]);
+    setAvailablePhuTung([]);
+  };
+
   const handleNext = async () => {
     if (currentStep === 0) {
       try {
@@ -83,12 +92,12 @@ const ChuyenKhoCreate = () => {
   const loadAvailableItems = async (ma_kho) => {
     setLoading(true);
     try {
-      // 1. Load Xe tồn kho
+      // 1. Load Xe tồn kho (Dùng route mới /xe/ton-kho/:ma_kho)
       const xeRes = await xeAPI.getTonKho(ma_kho, { trang_thai: "TON_KHO" });
-      setAvailableXe(xeRes.data || []);
+      setAvailableXe((xeRes.data || []).filter((xe) => !xe.locked));
 
       // 2. Load Phụ tùng tồn kho
-      const ptRes = await tonKhoAPI.getAll({ ma_kho });
+      const ptRes = await phuTungAPI.getTonKho(ma_kho);
       setAvailablePhuTung(ptRes.data || []);
     } catch (error) {
       notificationService.error("Không thể tải danh sách hàng hóa từ kho xuất");
@@ -100,44 +109,46 @@ const ChuyenKhoCreate = () => {
   const handleCreate = async () => {
     setLoading(true);
     try {
-      // 1. Tạo phiếu
-      const payload = {
-        ma_phieu: `CK-${moment().format("YYYYMMDDHHmmss")}`,
-        ngay_chuyen_kho: transferInfo.ngay_chuyen_kho.toISOString(),
+      // Step 1: Create transfer ticket header
+      const headerPayload = {
+        ma_phieu: `CK${moment().format("YYYYMMDD")}-${Math.floor(
+          Math.random() * 1000,
+        )
+          .toString()
+          .padStart(3, "0")}`,
+        ngay_chuyen_kho: transferInfo.ngay_chuyen_kho.format("YYYY-MM-DD"),
         ma_kho_xuat: transferInfo.ma_kho_xuat,
         ma_kho_nhap: transferInfo.ma_kho_nhap,
-        dien_giai: transferInfo.dien_giai || null,
+        dien_giai: transferInfo.dien_giai || "",
       };
 
-      const res = await chuyenKhoAPI.create(payload);
-      const ma_phieu = res.data?.so_phieu || payload.so_phieu;
+      const createRes = await chuyenKhoAPI.create(headerPayload);
+      const ma_phieu = createRes.ma_phieu || headerPayload.ma_phieu;
 
-      // 2. Thêm xe (song song)
-      const xePromises = selectedXe.map((xe) =>
-        chuyenKhoAPI.addXe(ma_phieu, {
+      // Step 2: Add vehicles to the ticket
+      for (const xe of selectedXe) {
+        await chuyenKhoAPI.addXe(ma_phieu, {
           xe_key: xe.xe_key,
           ma_kho_hien_tai: transferInfo.ma_kho_xuat,
-        })
-      );
+        });
+      }
 
-      // 3. Thêm phụ tùng (song song)
-      const ptPromises = selectedPhuTung.map((pt) =>
-        chuyenKhoAPI.addPhuTung(ma_phieu, {
+      // Step 3: Add parts to the ticket
+      for (const pt of selectedPhuTung) {
+        await chuyenKhoAPI.addPhuTung(ma_phieu, {
           ma_pt: pt.ma_pt,
           ten_pt: pt.ten_pt,
           don_vi_tinh: pt.don_vi_tinh,
           so_luong: pt.so_luong_chuyen,
           don_gia: pt.gia_nhap || 0,
-        })
-      );
-
-      await Promise.all([...xePromises, ...ptPromises]);
+        });
+      }
 
       notificationService.success("Tạo phiếu chuyển kho thành công");
       navigate("/chuyen-kho");
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Lỗi tạo phiếu chuyển kho"
+        error?.response?.data?.message || "Lỗi tạo phiếu chuyển kho",
       );
     } finally {
       setLoading(false);
@@ -159,7 +170,7 @@ const ChuyenKhoCreate = () => {
             label="Kho xuất"
             rules={[{ required: true, message: "Chọn kho xuất" }]}
           >
-            <Select placeholder="Chọn kho xuất">
+            <Select placeholder="Chọn kho xuất" onChange={handleKhoXuatChange}>
               {khoList.map((k) => (
                 <Option key={k.ma_kho} value={k.ma_kho}>
                   {k.ten_kho}
@@ -181,7 +192,7 @@ const ChuyenKhoCreate = () => {
                     return Promise.resolve();
                   }
                   return Promise.reject(
-                    new Error("Kho nhập không được trùng kho xuất")
+                    new Error("Kho nhập không được trùng kho xuất"),
                   );
                 },
               }),
@@ -237,7 +248,7 @@ const ChuyenKhoCreate = () => {
 
   const handleConfirmAddXe = () => {
     const selected = availableXe.filter((x) =>
-      tempSelectedXeKeys.includes(x.xe_key)
+      tempSelectedXeKeys.includes(x.xe_key),
     );
     setSelectedXe(selected);
     setShowXeModal(false);
@@ -289,10 +300,10 @@ const ChuyenKhoCreate = () => {
           columns={[
             { title: "#", render: (_, __, i) => i + 1, width: 50 },
             { title: "Mã loại xe", dataIndex: "ma_loai_xe" },
-            { title: "Tên xe", dataIndex: "ten_loai_xe" },
+            { title: "Tên xe", dataIndex: "ten_loai" },
             { title: "Số khung", dataIndex: "so_khung" },
             { title: "Số máy", dataIndex: "so_may" },
-            { title: "Màu sắc", dataIndex: "mau_sac" },
+            { title: "Màu sắc", dataIndex: "ten_mau" },
             {
               title: "",
               key: "action",
@@ -304,7 +315,7 @@ const ChuyenKhoCreate = () => {
                   icon={<DeleteOutlined />}
                   onClick={() => {
                     setSelectedXe(
-                      selectedXe.filter((x) => x.xe_key !== record.xe_key)
+                      selectedXe.filter((x) => x.xe_key !== record.xe_key),
                     );
                   }}
                 />
@@ -361,24 +372,19 @@ const ChuyenKhoCreate = () => {
               key: "sl",
               width: 150,
               render: (_, record) => (
-                <Input
-                  type="number"
+                <InputNumber
                   min={1}
                   max={record.so_luong_kha_dung}
                   value={record.so_luong_chuyen}
-                  onChange={(e) => {
-                    let val = parseInt(e.target.value) || 0;
-                    if (val < 1) val = 1;
-                    if (val > record.so_luong_kha_dung)
-                      val = record.so_luong_kha_dung;
-
+                  onChange={(val) => {
                     const newData = selectedPhuTung.map((item) =>
                       item.ma_pt === record.ma_pt
-                        ? { ...item, so_luong_chuyen: val }
-                        : item
+                        ? { ...item, so_luong_chuyen: val || 1 }
+                        : item,
                     );
                     setSelectedPhuTung(newData);
                   }}
+                  style={{ width: "100%" }}
                 />
               ),
             },
@@ -393,7 +399,7 @@ const ChuyenKhoCreate = () => {
                   icon={<DeleteOutlined />}
                   onClick={() => {
                     setSelectedPhuTung(
-                      selectedPhuTung.filter((pt) => pt.ma_pt !== record.ma_pt)
+                      selectedPhuTung.filter((pt) => pt.ma_pt !== record.ma_pt),
                     );
                   }}
                 />
@@ -423,10 +429,10 @@ const ChuyenKhoCreate = () => {
           scroll={{ x: 600 }}
           columns={[
             { title: "Mã loại", dataIndex: "ma_loai_xe" },
-            { title: "Tên xe", dataIndex: "ten_loai_xe" },
+            { title: "Tên xe", dataIndex: "ten_loai" },
             { title: "Số khung", dataIndex: "so_khung" },
             { title: "Số máy", dataIndex: "so_may" },
-            { title: "Màu", dataIndex: "mau_sac" },
+            { title: "Màu", dataIndex: "ten_mau" },
           ]}
           rowSelection={{
             selectedRowKeys: tempSelectedXeKeys,
@@ -462,7 +468,7 @@ const ChuyenKhoCreate = () => {
             {
               title: "Giá nhập",
               dataIndex: "gia_nhap",
-              render: (val) => val?.toLocaleString("vi-VN") + " đ",
+              render: (val) => Number(val || 0).toLocaleString("vi-VN") + " đ",
             },
           ]}
           rowSelection={{
@@ -517,7 +523,7 @@ const ChuyenKhoCreate = () => {
             <ul style={{ paddingLeft: 20, margin: 0 }}>
               {selectedXe.map((xe) => (
                 <li key={xe.xe_key}>
-                  {xe.ten_loai_xe} - {xe.so_khung}
+                  {xe.ten_loai} - {xe.so_khung}
                 </li>
               ))}
               {selectedXe.length === 0 && <li>Không có</li>}

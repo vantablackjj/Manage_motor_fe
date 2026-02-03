@@ -4,50 +4,51 @@ import axiosInstance from "./axios.config";
 const KHACH_HANG_ENDPOINTS = {
   BASE: "/khach-hang",
   DETAIL: (ma_kh) => `/khach-hang/${ma_kh}`,
-  NCC: "/khach-hang/nha-cung-cap",
-  CUSTOMERS: "/khach-hang",
 };
 
 export const khachHangAPI = {
-  // Get all khach hang
+  // Get all partners (Đối tác)
   getAll: async (params) => {
     return axiosInstance.get(KHACH_HANG_ENDPOINTS.BASE, { params });
   },
 
-  // Get khach hang by ma_kh
+  // Get partner by ma_kh
   getById: async (ma_kh) => {
     return axiosInstance.get(KHACH_HANG_ENDPOINTS.DETAIL(ma_kh));
   },
 
-  // Create khach hang
+  // Create partner
   create: async (data) => {
     return axiosInstance.post(KHACH_HANG_ENDPOINTS.BASE, data);
   },
 
-  // Update khach hang
+  // Update partner
   update: async (ma_kh, data) => {
     return axiosInstance.put(KHACH_HANG_ENDPOINTS.DETAIL(ma_kh), data);
   },
 
-  // Delete khach hang
+  // Delete partner (Soft delete supported by backend)
   delete: async (ma_kh) => {
     return axiosInstance.delete(KHACH_HANG_ENDPOINTS.DETAIL(ma_kh));
   },
 
-  // Get nha cung cap (la_ncc = true)
+  // For compatibility and specifically requested dropdown filters
   getNhaCungCap: async (params) => {
-    return axiosInstance.get(KHACH_HANG_ENDPOINTS.NCC, { params });
+    return axiosInstance.get(KHACH_HANG_ENDPOINTS.BASE, {
+      params: { ...params, la_ncc: true },
+    });
   },
 
-  // Get khach hang (la_ncc = false)
   getKhachHang: async (params) => {
-    return axiosInstance.get(KHACH_HANG_ENDPOINTS.CUSTOMERS, { params });
+    return axiosInstance.get(KHACH_HANG_ENDPOINTS.BASE, {
+      params: { ...params, la_ncc: false },
+    });
   },
 
-  // Search khach hang by name or phone
-  search: async (keyword) => {
+  // Search partners
+  search: async (keyword, params) => {
     return axiosInstance.get(`${KHACH_HANG_ENDPOINTS.BASE}/search`, {
-      params: { keyword },
+      params: { ...params, keyword },
     });
   },
 
@@ -55,7 +56,7 @@ export const khachHangAPI = {
   getPurchaseHistory: async (ma_kh, params) => {
     return axiosInstance.get(
       `${KHACH_HANG_ENDPOINTS.DETAIL(ma_kh)}/lich-su-mua`,
-      { params }
+      { params },
     );
   },
 

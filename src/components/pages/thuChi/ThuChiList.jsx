@@ -86,7 +86,7 @@ const ThuChiList = () => {
   const fetchData = async (
     page = pagination.current,
     limit = pagination.pageSize,
-    currentFilters = filters
+    currentFilters = filters,
   ) => {
     setLoading(true);
     try {
@@ -217,7 +217,13 @@ const ThuChiList = () => {
         <Button
           icon={<EyeOutlined />}
           size="small"
-          onClick={() => navigate(`/thu-chi/${record.so_phieu}`)}
+          onClick={() => {
+            if (record.so_phieu) {
+              navigate(`/thu-chi/${record.so_phieu}`);
+            } else {
+              notificationService.error("Số phiếu không hợp lệ");
+            }
+          }}
         >
           Chi tiết
         </Button>

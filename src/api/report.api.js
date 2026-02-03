@@ -8,172 +8,119 @@ export const reportAPI = {
   dashboard: {
     // Get dashboard overview (doanh thu, tồn kho, công nợ...)
     getOverview: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/dashboard`, {
-        params,
-      });
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/dashboard`, { params });
     },
 
     // Dữ liệu biểu đồ doanh thu
     getRevenueChart: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/bieu-do/doanh-thu`, {
-        params,
-      });
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/bieu-do/doanh-thu`, { params });
     },
 
     // Dữ liệu biểu đồ tồn kho
     getInventoryChart: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/bieu-do/ton-kho`, {
-        params,
-      });
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/bieu-do/ton-kho`, { params });
     },
   },
 
   // ===== BÁO CÁO TỒN KHO =====
   inventory: {
     getVehicles: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/ton-kho/xe`, {
-        params,
-      });
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/ton-kho/xe`, { params });
     },
     getParts: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/ton-kho/phu-tung`, {
-        params,
-      });
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/ton-kho/phu-tung`, { params });
     },
     getSummary: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/ton-kho/tong-hop`, {
-        params,
-      });
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/ton-kho/tong-hop`, { params });
     },
   },
 
   // ===== BÁO CÁO DOANH THU =====
   sales: {
     getByMonth: async (params) => {
-      const res = await axiosInstance.get(
-        `${BAO_CAO_BASE}/doanh-thu/theo-thang`,
-        { params }
-      );
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/doanh-thu/theo-thang`, {
+        params,
+      });
     },
     getByWarehouse: async (params) => {
-      const res = await axiosInstance.get(
-        `${BAO_CAO_BASE}/doanh-thu/theo-kho`,
-        { params }
-      );
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/doanh-thu/theo-kho`, {
+        params,
+      });
     },
     getByProduct: async (params) => {
-      const res = await axiosInstance.get(
-        `${BAO_CAO_BASE}/doanh-thu/theo-san-pham`,
-        { params }
-      );
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/doanh-thu/theo-san-pham`, {
+        params,
+      });
     },
     getSummary: async (params) => {
-      const res = await axiosInstance.get(
-        `${BAO_CAO_BASE}/doanh-thu/tong-hop`,
-        { params }
-      );
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/doanh-thu/tong-hop`, {
+        params,
+      });
     },
   },
 
   // ===== BÁO CÁO NHẬP XUẤT =====
   logistics: {
     getVehicleInOutput: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/nhap-xuat/xe`, {
-        params,
-      });
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/nhap-xuat/xe`, { params });
     },
     getPartInOutput: async (params) => {
-      const res = await axiosInstance.get(
-        `${BAO_CAO_BASE}/nhap-xuat/phu-tung`,
-        { params }
-      );
-      return res.data;
-    },
-    getPartCard: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/nhap-xuat/the-kho`, {
+      return axiosInstance.get(`${BAO_CAO_BASE}/nhap-xuat/phu-tung`, {
         params,
       });
-      return res.data;
+    },
+    getPartCard: async (params) => {
+      return axiosInstance.get(`${BAO_CAO_BASE}/nhap-xuat/the-kho`, { params });
     },
   },
 
   // ===== BÁO CÁO CHUYỂN KHO =====
   transfer: {
     getSummary: async (params) => {
-      const res = await axiosInstance.get(
-        `${BAO_CAO_BASE}/chuyen-kho/tong-hop`,
-        { params }
-      );
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/chuyen-kho/tong-hop`, {
+        params,
+      });
     },
     getDetail: async (params) => {
-      const res = await axiosInstance.get(
-        `${BAO_CAO_BASE}/chuyen-kho/chi-tiet`,
-        { params }
-      );
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/chuyen-kho/chi-tiet`, {
+        params,
+      });
     },
   },
 
   // ===== BÁO CÁO CÔNG NỢ =====
   debt: {
     getInternal: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/cong-no/noi-bo`, {
-        params,
-      });
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/cong-no/noi-bo`, { params });
     },
     getCustomer: async (params) => {
-      const res = await axiosInstance.get(
-        `${BAO_CAO_BASE}/cong-no/khach-hang`,
-        { params }
-      );
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/cong-no/khach-hang`, {
+        params,
+      });
     },
   },
 
   // ===== BÁO CÁO THU CHI =====
   finance: {
     getByDay: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/thu-chi/theo-ngay`, {
-        params,
-      });
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/thu-chi/theo-ngay`, { params });
     },
     getSummary: async (params) => {
-      const res = await axiosInstance.get(`${BAO_CAO_BASE}/thu-chi/tong-hop`, {
-        params,
-      });
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/thu-chi/tong-hop`, { params });
     },
   },
 
   // ===== BÁO CÁO KHÁCH HÀNG =====
   customer: {
     getTopSelling: async (params) => {
-      const res = await axiosInstance.get(
-        `${BAO_CAO_BASE}/khach-hang/top-mua-hang`,
-        { params }
-      );
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/khach-hang/top-mua-hang`, {
+        params,
+      });
     },
     getHistory: async (params) => {
-      const res = await axiosInstance.get(
-        `${BAO_CAO_BASE}/khach-hang/lich-su-mua-hang`,
-        { params }
-      );
-      return res.data;
+      return axiosInstance.get(`${BAO_CAO_BASE}/khach-hang/lich-su-mua-hang`, {
+        params,
+      });
     },
   },
 

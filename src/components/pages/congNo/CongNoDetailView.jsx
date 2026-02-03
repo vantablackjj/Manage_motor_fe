@@ -28,7 +28,15 @@ const CongNoDetailView = () => {
     setLoading(true);
     try {
       const res = await congNoAPI.getChiTiet({ ma_kho_no, ma_kho_co });
-      setData(res.data || []);
+      const rawData = res.data || [];
+      // Sắp xếp: Mới nhất lên đầu (theo created_at, nếu trùng thì theo id)
+      const sortedData = [...rawData].sort((a, b) => {
+        const tA = new Date(a.created_at || 0).getTime();
+        const tB = new Date(b.created_at || 0).getTime();
+        if (tB !== tA) return tB - tA;
+        return (b.id || 0) - (a.id || 0);
+      });
+      setData(sortedData);
     } catch (error) {
       console.error("Error fetching details", error);
     } finally {
@@ -44,29 +52,29 @@ const CongNoDetailView = () => {
   const columns = [
     {
       title: "Ngày phát sinh",
-      dataIndex: "created_at", // or ngay_chung_tu
-      render: (val) => formatService.formatDateTime(val),
+      dataIndex: "ngay_phat_sinh",
+      render: (val) => formatService.formatDate(val), // Usually debt date is just date, not time, but keeping formatDateTime if needed. formatService.formatDate might be better for "ngay_phat_sinh"
     },
     {
       title: "Nguồn (Số phiếu)",
-      dataIndex: "so_chung_tu",
+      dataIndex: "so_phieu_chuyen_kho",
       render: (text) => <b>{text}</b>,
     },
     {
       title: "Số tiền",
-      dataIndex: "so_tien_phat_sinh",
+      dataIndex: "so_tien",
       align: "right",
       render: (val) => formatService.formatCurrency(val),
     },
     {
       title: "Đã trả",
-      dataIndex: "so_tien_da_tra",
+      dataIndex: "da_thanh_toan",
       align: "right",
       render: (val) => formatService.formatCurrency(val),
     },
     {
       title: "Còn lại",
-      dataIndex: "so_tien_con_lai",
+      dataIndex: "con_lai",
       align: "right",
       render: (val) => (
         <b style={{ color: "red" }}>{formatService.formatCurrency(val)}</b>

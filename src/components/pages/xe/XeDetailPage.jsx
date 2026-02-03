@@ -116,12 +116,12 @@ const XeDetailPage = () => {
             text === "NHAP_KHO"
               ? "green"
               : text === "XUAT_KHO"
-              ? "red"
-              : text === "CHUYEN_KHO"
-              ? "blue"
-              : text === "BAN_HANG"
-              ? "purple"
-              : "default"
+                ? "red"
+                : text === "CHUYEN_KHO"
+                  ? "blue"
+                  : text === "BAN_HANG"
+                    ? "purple"
+                    : "default"
           }
         >
           {formatService.formatLoaiGiaoDich(text)}
@@ -263,6 +263,18 @@ const XeDetailPage = () => {
 
               <Descriptions.Item label="Ngày nhập">
                 {formatService.formatDate(xe.ngay_nhap)}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Nơi sản xuất">
+                {xe.thong_so_ky_thuat?.noi_sx || xe.ten_noi_sx || "-"}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Loại hình">
+                {xe.thong_so_ky_thuat?.loai_hinh || xe.ten_lh || "-"}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Phân khối">
+                {xe.thong_so_ky_thuat?.phan_khoi || "-"}
               </Descriptions.Item>
             </Descriptions>
 

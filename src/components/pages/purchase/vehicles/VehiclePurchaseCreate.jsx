@@ -46,10 +46,6 @@ const VehiclePurchaseCreate = () => {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    console.log(khoList, supplierList, vehicleTypes, colors);
-  }, [khoList, supplierList, vehicleTypes, colors]);
-
-  useEffect(() => {
     loadMasterData();
   }, []);
 
@@ -57,17 +53,27 @@ const VehiclePurchaseCreate = () => {
     try {
       const [khoRes, supRes, typeRes, colorRes] = await Promise.all([
         khoAPI.getAll(),
-        khachHangAPI.getAll({ la_ncc: true }), // Assuming API supports filtering
+        khachHangAPI.getNhaCungCap(), // Use specific method
         danhMucAPI.modelCar.getAll(), // Changed from loaiHinh to modelCar
         danhMucAPI.color.getAll(),
       ]);
-      setKhoList(khoRes || []);
-      // Filter suppliers manually to ensure correctness
-      const allCustomers = supRes.data || [];
-      const suppliers = allCustomers.filter((c) => c.la_ncc === true);
+      setKhoList(Array.isArray(khoRes) ? khoRes : khoRes?.data || []);
+
+      // Handle both { data: [...] } and [...] response formats
+      const allCustomers = Array.isArray(supRes) ? supRes : supRes?.data || [];
+      const suppliers = allCustomers.filter(
+        (c) =>
+          (c.loai_doi_tac === "NHA_CUNG_CAP" ||
+            c.la_ncc === true ||
+            c.la_ncc === "true") &&
+          c.status !== false &&
+          c.status !== "false",
+      );
       setSupplierList(suppliers);
-      setVehicleTypes(typeRes || []);
-      setColors(colorRes || []);
+
+      // Robust loading for vehicles and colors
+      setVehicleTypes(Array.isArray(typeRes) ? typeRes : typeRes?.data || []);
+      setColors(Array.isArray(colorRes) ? colorRes : colorRes?.data || []);
     } catch (error) {
       console.error("Error loading master data", error);
     }
@@ -93,8 +99,22 @@ const VehiclePurchaseCreate = () => {
     const newItems = items.map((item) => {
       if (item.key === key) {
         const updatedItem = { ...item, [field]: value };
-        if (field === "so_luong" || field === "don_gia") {
-          updatedItem.thanh_tien = updatedItem.so_luong * updatedItem.don_gia;
+
+        // Auto-fill price when selecting vehicle type
+        if (field === "ma_loai_xe") {
+          const type = vehicleTypes.find((t) => t.ma_loai === value);
+          if (type?.gia_nhap) {
+            updatedItem.don_gia = Number(type.gia_nhap);
+          }
+        }
+
+        if (
+          field === "so_luong" ||
+          field === "don_gia" ||
+          field === "ma_loai_xe"
+        ) {
+          updatedItem.thanh_tien =
+            (updatedItem.so_luong || 0) * (updatedItem.don_gia || 0);
         }
         return updatedItem;
       }
@@ -113,7 +133,7 @@ const VehiclePurchaseCreate = () => {
     for (let item of items) {
       if (!item.ma_loai_xe || !item.mau_sac || item.so_luong <= 0) {
         notificationService.error(
-          "Vui lòng điền đầy đủ thông tin chi tiết (Loại xe, Màu, Số lượng > 0)"
+          "Vui lòng điền đầy đủ thông tin chi tiết (Loại xe, Màu, Số lượng > 0)",
         );
         return;
       }
@@ -157,7 +177,7 @@ const VehiclePurchaseCreate = () => {
       navigate("/purchase/vehicles");
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Lỗi tạo đơn hàng"
+        error?.response?.data?.message || "Lỗi tạo đơn hàng",
       );
     } finally {
       setLoading(false);
@@ -194,9 +214,11 @@ const VehiclePurchaseCreate = () => {
           placeholder="Màu"
           value={text}
           onChange={(val) => handleRowChange(record.key, "mau_sac", val)}
+          showSearch
+          optionFilterProp="children"
         >
           {colors.map((c) => (
-            <Option key={c.ma_mau} value={c.ten_mau}>
+            <Option key={c.ma_mau} value={c.ma_mau}>
               {c.ten_mau}
             </Option>
           ))}
@@ -283,8 +305,11 @@ const VehiclePurchaseCreate = () => {
                   style={{ width: "100%" }}
                 >
                   {supplierList.map((s) => (
-                    <Option key={s.ma_kh} value={s.ma_kh}>
-                      {s.ho_ten}
+                    <Option
+                      key={s.ma_doi_tac || s.ma_kh}
+                      value={s.ma_doi_tac || s.ma_kh}
+                    >
+                      {s.ten_doi_tac || s.ho_ten}
                     </Option>
                   ))}
                 </Select>

@@ -19,13 +19,19 @@ import {
   CarOutlined,
   PlusOutlined,
   EyeOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import ImportButton from "../../../features/Import/ImportButton";
 import ExportButton from "../../../features/Export/ExportButton";
 import { useNavigate } from "react-router-dom";
 import { donHangMuaXeAPI, khoAPI, khachHangAPI } from "../../../../api";
 import { formatService, notificationService } from "../../../../services";
-import { TRANG_THAI_COLORS } from "../../../../utils/constant";
+import {
+  TRANG_THAI_COLORS,
+  TRANG_THAI_LABELS,
+  TRANG_THAI,
+} from "../../../../utils/constant";
+import OrderReceiveModal from "../OrderReceiveModal";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -36,6 +42,11 @@ const VehiclePurchaseList = () => {
   const [data, setData] = useState([]);
   const [khoList, setKhoList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
+
+  // Modal State
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+
   const [filters, setFilters] = useState({
     ma_kho: null,
     trang_thai: null,
@@ -84,6 +95,11 @@ const VehiclePurchaseList = () => {
     setFilters(newFilters);
   };
 
+  const handleOpenReceiveModal = (id) => {
+    setSelectedOrderId(id);
+    setModalVisible(true);
+  };
+
   const getSupplierName = (id) => {
     const sup = supplierList.find((s) => s.id === id || s.ma_kh === id);
     return sup ? sup.ho_ten : id;
@@ -129,7 +145,9 @@ const VehiclePurchaseList = () => {
       dataIndex: "trang_thai",
       align: "center",
       render: (status) => (
-        <Tag color={TRANG_THAI_COLORS[status] || "default"}>{status}</Tag>
+        <Tag color={TRANG_THAI_COLORS[status] || "default"}>
+          {TRANG_THAI_LABELS[status] || status}
+        </Tag>
       ),
     },
     {
@@ -137,13 +155,26 @@ const VehiclePurchaseList = () => {
       key: "action",
       align: "center",
       render: (_, record) => (
-        <Button
-          icon={<EyeOutlined />}
-          size="small"
-          onClick={() => navigate(`/purchase/vehicles/${record.so_phieu}`)}
-        >
-          Chi tiết
-        </Button>
+        <Space>
+          <Button
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => navigate(`/purchase/vehicles/${record.so_phieu}`)}
+          >
+            Chi tiết
+          </Button>
+          {(record.trang_thai === "DA_DUYET" ||
+            record.trang_thai === "DANG_NHAP_KHO") && (
+            <Button
+              icon={<DownloadOutlined />}
+              size="small"
+              type="primary"
+              onClick={() => handleOpenReceiveModal(record.so_phieu)}
+            >
+              Nhập kho
+            </Button>
+          )}
+        </Space>
       ),
     },
   ];
@@ -210,9 +241,24 @@ const VehiclePurchaseList = () => {
                   allowClear
                   onChange={(v) => handleFilterChange("trang_thai", v)}
                 >
-                  <Option value="NHAP">Nháp</Option>
-                  <Option value="GUI_DUYET">Chờ duyệt</Option>
-                  <Option value="DA_DUYET">Đã duyệt</Option>
+                  <Option value={TRANG_THAI.NHAP}>
+                    {TRANG_THAI_LABELS.NHAP}
+                  </Option>
+                  <Option value={TRANG_THAI.GUI_DUYET}>
+                    {TRANG_THAI_LABELS.GUI_DUYET}
+                  </Option>
+                  <Option value={TRANG_THAI.DA_DUYET}>
+                    {TRANG_THAI_LABELS.DA_DUYET}
+                  </Option>
+                  <Option value={TRANG_THAI.DANG_NHAP_KHO}>
+                    {TRANG_THAI_LABELS.DANG_NHAP_KHO}
+                  </Option>
+                  <Option value={TRANG_THAI.HOAN_THANH}>
+                    {TRANG_THAI_LABELS.HOAN_THANH}
+                  </Option>
+                  <Option value={TRANG_THAI.DA_HUY}>
+                    {TRANG_THAI_LABELS.DA_HUY}
+                  </Option>
                 </Select>
               </Col>
               <Col xs={24} sm={12} md={8}>
@@ -251,6 +297,16 @@ const VehiclePurchaseList = () => {
           }}
         />
       </Card>
+
+      <OrderReceiveModal
+        visible={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        onSuccess={() => {
+          fetchData();
+          setModalVisible(false);
+        }}
+        orderId={selectedOrderId}
+      />
     </div>
   );
 };

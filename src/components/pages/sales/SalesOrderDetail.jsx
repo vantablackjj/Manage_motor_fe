@@ -15,6 +15,8 @@ import {
   Popconfirm,
   Row,
   Col,
+  Input,
+  Typography,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -24,7 +26,13 @@ import {
   DeleteOutlined,
   CloseCircleOutlined,
 } from "@ant-design/icons";
-import { hoaDonBanAPI, xeAPI, phuTungAPI } from "../../../api";
+import {
+  orderAPI,
+  xeAPI,
+  phuTungAPI,
+  khachHangAPI,
+  khoAPI,
+} from "../../../api";
 import {
   formatService,
   notificationService,
@@ -33,88 +41,102 @@ import {
 import { TRANG_THAI_COLORS } from "../../../utils/constant";
 
 const { Option } = Select;
+const { Text } = Typography;
 
 const SalesOrderDetail = () => {
-  const { so_hd } = useParams();
+  const { id } = useParams(); // URL param changed from so_hd to id
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
+  const [khoList, setKhoList] = useState([]);
+  const [customerList, setCustomerList] = useState([]);
 
   // Modal states
   const [vehicleModalVisible, setVehicleModalVisible] = useState(false);
   const [partModalVisible, setPartModalVisible] = useState(false);
+  const [deliveryModalVisible, setDeliveryModalVisible] = useState(false);
   const [availableVehicles, setAvailableVehicles] = useState([]);
   const [availableParts, setAvailableParts] = useState([]);
 
   const [vehicleForm] = Form.useForm();
   const [partForm] = Form.useForm();
+  const [deliveryForm] = Form.useForm();
 
   useEffect(() => {
+    fetchMasterData();
     fetchData();
-  }, [so_hd]);
+  }, [id]);
+
+  const fetchMasterData = async () => {
+    try {
+      const [khoRes, khRes] = await Promise.all([
+        khoAPI.getAll(),
+        khachHangAPI.getAll(),
+      ]);
+      setKhoList(khoRes || []);
+      setCustomerList(khRes.data || khRes || []);
+    } catch (error) {}
+  };
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await hoaDonBanAPI.getById(so_hd);
-      const rawData = res?.data || res || {};
+      const res = await orderAPI.getById(id);
+      const rawOrder = res?.data || res || {};
 
-      // Enrich chi_tiet_xe with vehicle details
-      if (rawData.chi_tiet_xe && rawData.chi_tiet_xe.length > 0) {
+      // Unified items
+      const details = rawOrder.items || rawOrder.details || [];
+      // Phân loại Xe và Phụ tùng dựa trên loai_hang hoặc ma_serial_du_kien
+      rawOrder.chi_tiet_xe = details
+        .filter(
+          (d) => d.loai_hang === "XE" || d.yeu_cau_dac_biet?.ma_serial_du_kien,
+        )
+        .map((d) => ({ ...d, loai_hang: "XE" }));
+      rawOrder.chi_tiet_pt = details
+        .filter(
+          (d) =>
+            d.loai_hang === "PHU_TUNG" ||
+            (!d.yeu_cau_dac_biet?.ma_serial_du_kien && d.loai_hang !== "XE"),
+        )
+        .map((d) => ({ ...d, loai_hang: "PHU_TUNG" }));
+
+      // Enrich chi_tiet_xe với thông tin spec (Số khung, số máy)
+      if (rawOrder.chi_tiet_xe.length > 0) {
         const enrichedXe = await Promise.all(
-          rawData.chi_tiet_xe.map(async (item) => {
+          rawOrder.chi_tiet_xe.map(async (item) => {
+            const serial = item.yeu_cau_dac_biet?.ma_serial_du_kien;
+            if (!serial) return item;
             try {
-              const xeDetail = await xeAPI.getDetail(item.xe_key);
+              const xeDetail = await xeAPI.getDetail(serial);
               const xeData = xeDetail?.data || xeDetail || {};
               return {
                 ...item,
-                ten_loai_xe: xeData.ten_loai || xeData.ten_loai_xe,
+                ten_loai_xe:
+                  item.ten_hang_hoa || xeData.ten_loai || xeData.ten_loai_xe,
                 ten_mau: xeData.ten_mau,
                 so_khung: xeData.so_khung,
+                so_may: xeData.so_may,
               };
             } catch (err) {
-              console.error(`Error fetching detail for ${item.xe_key}`, err);
-              return item; // Return original if fetch fails
+              return item;
             }
-          })
+          }),
         );
-        rawData.chi_tiet_xe = enrichedXe;
+        rawOrder.chi_tiet_xe = enrichedXe;
       }
 
-      // Enrich chi_tiet_pt with part details
-      if (rawData.chi_tiet_pt && rawData.chi_tiet_pt.length > 0) {
-        const enrichedPt = await Promise.all(
-          rawData.chi_tiet_pt.map(async (item) => {
-            try {
-              const ptDetail = await phuTungAPI.getDetail(item.ma_pt);
-              const ptData = ptDetail?.data || ptDetail || {};
-              return {
-                ...item,
-                ten_pt: ptData.ten_phu_tung || ptData.ten_pt,
-                don_vi_tinh: ptData.don_vi_tinh,
-              };
-            } catch (err) {
-              console.error(`Error fetching detail for ${item.ma_pt}`, err);
-              return item; // Return original if fetch fails
-            }
-          })
-        );
-        rawData.chi_tiet_pt = enrichedPt;
-      }
-
-      setData(rawData);
+      setData(rawOrder);
     } catch (error) {
-      notificationService.error("Lỗi tải chi tiết hóa đơn");
+      notificationService.error("Lỗi tải chi tiết đơn hàng");
     } finally {
       setLoading(false);
     }
   };
 
   const fetchAvailableVehicles = async () => {
-    if (!data?.ma_kho_xuat) return;
+    if (!data?.ma_ben_xuat) return;
     try {
-      // Fetch vehicles from the warehouse specified in the order
-      const res = await xeAPI.getTonKho(data.ma_kho_xuat, {
+      const res = await xeAPI.getTonKho(data.ma_ben_xuat, {
         trang_thai: "TON_KHO",
       });
       setAvailableVehicles(res.data || res || []);
@@ -125,18 +147,51 @@ const SalesOrderDetail = () => {
 
   const fetchAvailableParts = async () => {
     try {
-      const res = await phuTungAPI.getAll();
-      setAvailableParts(res.data || res || []);
+      const [tonKhoRes, allPartsRes] = await Promise.all([
+        data?.ma_ben_xuat
+          ? phuTungAPI.getTonKho(data.ma_ben_xuat)
+          : Promise.resolve({ data: [] }),
+        phuTungAPI.getAll(),
+      ]);
+
+      const tonKhoData = tonKhoRes.data || tonKhoRes || [];
+      const allPartsData = allPartsRes.data || allPartsRes || [];
+
+      const enrichedParts = tonKhoData.map((item) => {
+        const partDetail = allPartsData.find((p) => p.ma_pt === item.ma_pt);
+        return {
+          ...item,
+          ten_phu_tung: partDetail?.ten_phu_tung || partDetail?.ten_pt,
+          ten_pt: partDetail?.ten_phu_tung || partDetail?.ten_pt,
+          don_vi_tinh: partDetail?.don_vi_tinh,
+          don_gia: partDetail?.gia_ban,
+          gia_ban: partDetail?.gia_ban,
+        };
+      });
+
+      setAvailableParts(enrichedParts);
     } catch (error) {
+      console.error(error);
       notificationService.error("Lỗi tải danh sách phụ tùng");
     }
   };
 
   const handleAddVehicle = async (values) => {
     try {
-      await hoaDonBanAPI.addXe(so_hd, {
-        xe_key: values.xe_key,
+      const vehicle = availableVehicles.find((v) => v.xe_key === values.xe_key);
+      if (!vehicle) {
+        notificationService.error("Không tìm thấy thông tin xe");
+        return;
+      }
+
+      await orderAPI.addDetail(id, {
+        ma_hang_hoa: vehicle.ma_loai || vehicle.ma_loai_xe || vehicle.xe_key,
         don_gia: values.don_gia,
+        so_luong_dat: 1,
+        loai_hang: "XE",
+        yeu_cau_dac_biet: {
+          ma_serial_du_kien: values.xe_key,
+        },
       });
       notificationService.success("Thêm xe thành công");
       setVehicleModalVisible(false);
@@ -144,17 +199,19 @@ const SalesOrderDetail = () => {
       fetchData();
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Lỗi thêm xe"
+        error?.response?.data?.message || "Lỗi thêm xe",
       );
     }
   };
 
   const handleAddPart = async (values) => {
     try {
-      await hoaDonBanAPI.addPhuTung(so_hd, {
-        ma_pt: values.ma_pt,
-        so_luong: values.so_luong,
+      await orderAPI.addDetail(id, {
+        ma_hang_hoa: values.ma_pt,
+        so_luong_dat: values.so_luong,
         don_gia: values.don_gia,
+        loai_hang: "PHU_TUNG",
+        yeu_cau_dac_biet: {},
       });
       notificationService.success("Thêm phụ tùng thành công");
       setPartModalVisible(false);
@@ -162,14 +219,14 @@ const SalesOrderDetail = () => {
       fetchData();
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Lỗi thêm phụ tùng"
+        error?.response?.data?.message || "Lỗi thêm phụ tùng",
       );
     }
   };
 
   const handleDeleteDetail = async (stt) => {
     try {
-      await hoaDonBanAPI.deleteDetail(so_hd, stt);
+      await orderAPI.deleteDetail(id, stt);
       notificationService.success("Xóa chi tiết thành công");
       fetchData();
     } catch (error) {
@@ -177,77 +234,128 @@ const SalesOrderDetail = () => {
     }
   };
 
-  const handleSendApproval = async () => {
-    try {
-      await hoaDonBanAPI.guiDuyet(so_hd);
-      notificationService.success("Đã gửi duyệt");
-      fetchData();
-    } catch (error) {
-      notificationService.error("Lỗi gửi duyệt");
-    }
-  };
-
-  const handleApprove = async () => {
-    try {
-      await hoaDonBanAPI.pheDuyet(so_hd);
-      notificationService.success("Đã phê duyệt (Kho đã được cập nhật)");
-      fetchData();
-    } catch (error) {
-      notificationService.error("Lỗi phê duyệt");
-    }
-  };
-
-  const handleReject = async () => {
-    try {
-      await hoaDonBanAPI.tuChoi(so_hd);
-      notificationService.success("Đã từ chối");
-      fetchData();
-    } catch (error) {
-      notificationService.error("Lỗi từ chối");
-    }
-  };
-
-  const handleCancel = async () => {
+  const handleUpdateStatus = async (newStatus, title, content) => {
     Modal.confirm({
-      title: "Hủy hóa đơn",
-      content: "Bạn có chắc muốn hủy hóa đơn này?",
+      title: title || "Xác nhận cập nhật trạng thái",
+      content:
+        content ||
+        `Bạn có chắc chắn muốn chuyển đơn hàng sang trạng thái ${newStatus}?`,
       onOk: async () => {
         try {
-          await hoaDonBanAPI.huy(so_hd, "Hủy bởi người dùng");
-          notificationService.success("Đã hủy hóa đơn");
+          await orderAPI.updateStatus(id, newStatus);
+          notificationService.success("Cập nhật trạng thái thành công");
           fetchData();
         } catch (error) {
-          notificationService.error("Lỗi hủy hóa đơn");
+          notificationService.error(
+            error?.response?.data?.message || "Lỗi cập nhật trạng thái",
+          );
         }
       },
     });
   };
 
+  const handleDeliver = async (values) => {
+    try {
+      const itemsToDeliver = data.chi_tiet_xe
+        .concat(data.chi_tiet_pt)
+        .map((item) => ({
+          ma_hang_hoa: item.ma_hang_hoa,
+          so_luong: values[`qty_${item.ma_hang_hoa}`] || 0,
+          don_gia: Number(item.don_gia),
+          serials:
+            item.loai_hang === "XE"
+              ? [item.yeu_cau_dac_biet?.ma_serial_du_kien || item.ma_hang_hoa]
+              : [],
+        }))
+        .filter((i) => i.so_luong > 0);
+
+      if (itemsToDeliver.length === 0) {
+        notificationService.warning(
+          "Vui lòng chọn ít nhất một mặt hàng để giao",
+        );
+        return;
+      }
+
+      await orderAPI.deliver(id, {
+        ghi_chu: values.ghi_chu_giao,
+        items: itemsToDeliver,
+      });
+
+      notificationService.success("Giao hàng thành công");
+      setDeliveryModalVisible(false);
+      deliveryForm.resetFields();
+      fetchData();
+    } catch (error) {
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi giao hàng",
+      );
+    }
+  };
+
   if (!data) return null;
 
   const {
-    ngay_ban,
-    ten_kh,
-    ten_kho,
-    tong_tien,
+    created_at,
+    ma_ben_nhap,
+    ma_ben_xuat,
+    tong_gia_tri,
     chiet_khau,
-    vat,
-    thanh_toan,
+    vat_percentage,
+    thanh_tien,
     ghi_chu,
     trang_thai,
+    ten_ben_xuat,
+    ten_ben_nhap,
     chi_tiet_xe = [],
     chi_tiet_pt = [],
   } = data;
 
   const isEditable = trang_thai === "NHAP";
-  const canApprove = trang_thai === "GUI_DUYET" && authService.canApprove();
+  const canDeliver = ["DA_DUYET", "DANG_GIAO"].includes(trang_thai);
   const hasItems = chi_tiet_xe.length > 0 || chi_tiet_pt.length > 0;
 
+  const getCustomerName = (ma_kh) => {
+    return (
+      ten_ben_nhap ||
+      customerList.find((c) => c.ma_kh === ma_kh)?.ho_ten ||
+      ma_kh
+    );
+  };
+
+  const getKhoName = (ma_kho) => {
+    return (
+      ten_ben_xuat ||
+      khoList.find((item) => item.ma_kho === ma_kho)?.ten_kho ||
+      ma_kho
+    );
+  };
+
   const vehicleColumns = [
-    { title: "Xe Key", dataIndex: "xe_key" },
+    { title: "Mã xe/Serial", dataIndex: "ma_hang_hoa", width: 140 },
     { title: "Loại xe", dataIndex: "ten_loai_xe" },
-    { title: "Màu sắc", dataIndex: "ten_mau" },
-    { title: "VIN", dataIndex: "so_khung" },
+    { title: "Màu sắc", dataIndex: "ten_mau", width: 100 },
+    { title: "Số khung", dataIndex: "so_khung" },
+    { title: "Số máy", dataIndex: "so_may" },
+    {
+      title: "Giao/Đặt",
+      key: "progress",
+      align: "center",
+      render: (_, record) => (
+        <Space>
+          <b
+            style={{
+              color:
+                (record.so_luong_da_giao || 0) >= (record.so_luong_dat || 1)
+                  ? "green"
+                  : "orange",
+            }}
+          >
+            {record.so_luong_da_giao || 0}
+          </b>
+          / {record.so_luong_dat || 1}
+        </Space>
+      ),
+    },
     {
       title: "Đơn giá",
       dataIndex: "don_gia",
@@ -276,10 +384,23 @@ const SalesOrderDetail = () => {
   ];
 
   const partColumns = [
-    { title: "Mã PT", dataIndex: "ma_pt" },
-    { title: "Tên phụ tùng", dataIndex: "ten_pt" },
+    { title: "Mã hàng", dataIndex: "ma_hang_hoa" },
+    { title: "Tên sản phẩm", dataIndex: "ten_hang_hoa" },
     { title: "ĐVT", dataIndex: "don_vi_tinh" },
-    { title: "Số lượng", dataIndex: "so_luong" },
+    {
+      title: "Số lượng Đặt",
+      dataIndex: "so_luong_dat",
+      align: "center",
+      render: (val) => <b>{val}</b>,
+    },
+    {
+      title: "Đã giao",
+      dataIndex: "so_luong_da_giao",
+      align: "center",
+      render: (val) => (
+        <Text type={val > 0 ? "success" : "secondary"}>{val || 0}</Text>
+      ),
+    },
     {
       title: "Đơn giá",
       dataIndex: "don_gia",
@@ -316,7 +437,7 @@ const SalesOrderDetail = () => {
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate("/sales/orders")}
             />
-            <span>Bán hàng: {so_hd}</span>
+            <span>Bán hàng: {data.so_don_hang || data.id}</span>
             <Tag color={TRANG_THAI_COLORS[trang_thai]} style={{ margin: 0 }}>
               {trang_thai}
             </Tag>
@@ -324,51 +445,120 @@ const SalesOrderDetail = () => {
         }
         extra={
           <Space wrap>
-            {isEditable && hasItems && (
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                onClick={handleSendApproval}
-              >
-                Gửi duyệt
-              </Button>
+            {/* Luồng Nháp (NHAP) */}
+            {trang_thai === "NHAP" && (
+              <>
+                {hasItems && (
+                  <Button
+                    type="primary"
+                    icon={<SendOutlined />}
+                    onClick={() =>
+                      handleUpdateStatus(
+                        "GUI_DUYET",
+                        "Gửi duyệt đơn hàng",
+                        "Bạn có chắc muốn gửi duyệt đơn hàng này?",
+                      )
+                    }
+                  >
+                    Gửi duyệt
+                  </Button>
+                )}
+                <Button
+                  danger
+                  onClick={() => handleUpdateStatus("HUY", "Hủy đơn hàng")}
+                >
+                  Hủy đơn
+                </Button>
+              </>
             )}
-            {canApprove && (
+
+            {/* Luồng Chờ duyệt (GUI_DUYET) */}
+            {trang_thai === "GUI_DUYET" && (
               <>
                 <Button
                   type="primary"
                   icon={<CheckCircleOutlined />}
-                  onClick={handleApprove}
+                  onClick={() =>
+                    handleUpdateStatus(
+                      "DA_DUYET",
+                      "Duyệt đơn hàng",
+                      "Đơn hàng sẽ chuyển sang trạng thái sẵn sàng giao.",
+                    )
+                  }
                 >
-                  Duyệt
+                  Phê duyệt
                 </Button>
                 <Button
                   danger
-                  icon={<CloseCircleOutlined />}
-                  onClick={handleReject}
+                  onClick={() =>
+                    handleUpdateStatus("TU_CHOI", "Từ chối đơn hàng")
+                  }
                 >
                   Từ chối
                 </Button>
+                <Button
+                  onClick={() => handleUpdateStatus("NHAP", "Trả về soạn thảo")}
+                >
+                  Trả về
+                </Button>
               </>
             )}
-            {(trang_thai === "NHAP" || trang_thai === "GUI_DUYET") && (
-              <Button danger onClick={handleCancel}>
-                Hủy
-              </Button>
+
+            {/* Luồng Đã duyệt / Đang giao (DA_DUYET, DANG_GIAO) */}
+            {canDeliver && (
+              <>
+                {trang_thai === "DA_DUYET" && (
+                  <Button
+                    onClick={() =>
+                      handleUpdateStatus(
+                        "GUI_DUYET",
+                        "Hủy duyệt",
+                        "Bạn muốn đưa đơn hàng về trạng thái chờ duyệt?",
+                      )
+                    }
+                  >
+                    Hủy duyệt
+                  </Button>
+                )}
+                <Button
+                  type="primary"
+                  icon={<SendOutlined />}
+                  onClick={() => {
+                    deliveryForm.setFieldsValue({
+                      ghi_chu_giao: `Giao hàng cho đơn ${data.so_don_hang}`,
+                    });
+                    data.chi_tiet_xe
+                      .concat(data.chi_tiet_pt)
+                      .forEach((item) => {
+                        const remaining =
+                          (item.so_luong_dat || 1) -
+                          (item.so_luong_da_giao || 0);
+                        deliveryForm.setFieldValue(
+                          `qty_${item.ma_hang_hoa}`,
+                          remaining > 0 ? remaining : 0,
+                        );
+                      });
+                    setDeliveryModalVisible(true);
+                  }}
+                  style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                >
+                  Giao hàng (Deliver)
+                </Button>
+              </>
             )}
           </Space>
         }
         size="small"
       >
         <Descriptions bordered column={{ xs: 1, sm: 2 }} size="small">
-          <Descriptions.Item label="Ngày bán">
-            {formatService.formatDate(ngay_ban)}
+          <Descriptions.Item label="Ngày lập">
+            {formatService.formatDateTime(created_at)}
           </Descriptions.Item>
           <Descriptions.Item label="Khách hàng">
-            {ten_kh || data.ma_kh}
+            {getCustomerName(ma_ben_nhap)}
           </Descriptions.Item>
           <Descriptions.Item label="Kho xuất">
-            {ten_kho || data.ma_kho_xuat}
+            {getKhoName(ma_ben_xuat)}
           </Descriptions.Item>
           <Descriptions.Item label="Ghi chú">
             {ghi_chu || "-"}
@@ -385,7 +575,7 @@ const SalesOrderDetail = () => {
               <span style={{ color: "rgba(0,0,0,0.45)" }}>Tổng tiền:</span>
               <br />
               <b style={{ fontSize: 16 }}>
-                {formatService.formatCurrency(Number(tong_tien || 0))}
+                {formatService.formatCurrency(Number(tong_gia_tri || 0))}
               </b>
             </Col>
             <Col xs={12} sm={8} style={{ textAlign: "right" }}>
@@ -398,7 +588,7 @@ const SalesOrderDetail = () => {
             <Col xs={12} sm={4} style={{ textAlign: "right" }}>
               <span style={{ color: "rgba(0,0,0,0.45)" }}>VAT:</span>
               <br />
-              <b style={{ fontSize: 16 }}>{vat || 0}%</b>
+              <b style={{ fontSize: 16 }}>{vat_percentage || 0}%</b>
             </Col>
             <Col
               xs={24}
@@ -415,7 +605,7 @@ const SalesOrderDetail = () => {
               <span
                 style={{ fontSize: 20, fontWeight: "bold", color: "#1890ff" }}
               >
-                {formatService.formatCurrency(Number(thanh_toan || 0))}
+                {formatService.formatCurrency(Number(thanh_tien || 0))}
               </span>
             </Col>
           </Row>
@@ -505,11 +695,28 @@ const SalesOrderDetail = () => {
             <Select
               placeholder="Chọn xe"
               showSearch
-              optionFilterProp="children"
+              filterOption={(input, option) => {
+                const vehicle = availableVehicles.find(
+                  (v) => v.xe_key === option.key,
+                );
+                if (!vehicle) return false;
+                const searchStr =
+                  `${vehicle.ten_loai} ${vehicle.ten_mau} ${vehicle.so_khung} ${vehicle.so_may}`.toLowerCase();
+                return searchStr.includes(input.toLowerCase());
+              }}
             >
               {availableVehicles.map((v) => (
                 <Option key={v.xe_key} value={v.xe_key}>
-                  {v.xe_key} -{v.ten_loai} - {v.ten_mau} ({v.so_khung})
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span>
+                      <b>{v.ten_loai}</b> - {v.ten_mau}
+                    </span>
+                    <span style={{ color: "#8c8c8c", fontSize: "12px" }}>
+                      SK: {v.so_khung} | SM: {v.so_may}
+                    </span>
+                  </div>
                 </Option>
               ))}
             </Select>
@@ -559,7 +766,20 @@ const SalesOrderDetail = () => {
             >
               {availableParts.map((p) => (
                 <Option key={p.ma_pt} value={p.ma_pt}>
-                  {p.ten_phu_tung} ({p.ma_pt})
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span>
+                      {p.ten_phu_tung} ({p.ma_pt})
+                    </span>
+                    <span
+                      style={{
+                        color: p.so_luong_ton > 0 ? "#52c41a" : "#ff4d4f",
+                      }}
+                    >
+                      Tồn: {p.so_luong_ton} {p.don_vi_tinh}
+                    </span>
+                  </div>
                 </Option>
               ))}
             </Select>
@@ -567,9 +787,27 @@ const SalesOrderDetail = () => {
           <Form.Item
             name="so_luong"
             label="Số lượng"
-            rules={[{ required: true, message: "Nhập số lượng" }]}
+            rules={[
+              { required: true, message: "Nhập số lượng" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const ma_pt = getFieldValue("ma_pt");
+                  const part = availableParts.find((p) => p.ma_pt === ma_pt);
+                  if (part && value > part.so_luong_ton) {
+                    return Promise.reject(
+                      new Error(`Vượt quá tồn kho (${part.so_luong_ton})`),
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              }),
+            ]}
           >
-            <InputNumber style={{ width: "100%" }} min={1} />
+            <InputNumber
+              style={{ width: "100%" }}
+              min={1}
+              placeholder="Nhập số lượng bán"
+            />
           </Form.Item>
           <Form.Item
             name="don_gia"
@@ -590,6 +828,83 @@ const SalesOrderDetail = () => {
               <Button onClick={() => setPartModalVisible(false)}>Hủy</Button>
               <Button type="primary" htmlType="submit">
                 Thêm
+              </Button>
+            </Space>
+          </div>
+        </Form>
+      </Modal>
+
+      {/* Delivery Modal */}
+      <Modal
+        title="Giao hàng (Lập hóa đơn)"
+        open={deliveryModalVisible}
+        onCancel={() => setDeliveryModalVisible(false)}
+        width={700}
+        footer={null}
+      >
+        <Form form={deliveryForm} layout="vertical" onFinish={handleDeliver}>
+          <Form.Item name="ghi_chu_giao" label="Ghi chú giao hàng">
+            <Input.TextArea rows={2} />
+          </Form.Item>
+
+          <Table
+            size="small"
+            pagination={false}
+            dataSource={(data.chi_tiet_xe || []).concat(data.chi_tiet_pt || [])}
+            rowKey="ma_hang_hoa"
+            columns={[
+              {
+                title: "Sản phẩm",
+                dataIndex: "ma_hang_hoa",
+                render: (val, r) => (
+                  <div>
+                    <b>{val}</b>
+                    <br />
+                    <small>{r.ten_loai_xe || r.ten_pt}</small>
+                  </div>
+                ),
+              },
+              {
+                title: "Đặt/Đã giao",
+                key: "ordered",
+                align: "center",
+                render: (_, r) =>
+                  `${r.so_luong_dat || 1}/${r.so_luong_da_giao || 0}`,
+              },
+              {
+                title: "Giao đợt này",
+                key: "deliver_qty",
+                width: 150,
+                render: (_, record) => {
+                  const remaining =
+                    (record.so_luong_dat || 1) - (record.so_luong_da_giao || 0);
+                  if (remaining <= 0)
+                    return <Tag color="success">Đã giao đủ</Tag>;
+                  return (
+                    <Form.Item
+                      name={`qty_${record.ma_hang_hoa}`}
+                      style={{ margin: 0 }}
+                    >
+                      <InputNumber
+                        min={0}
+                        max={remaining}
+                        style={{ width: "100%" }}
+                        placeholder="SL"
+                      />
+                    </Form.Item>
+                  );
+                },
+              },
+            ]}
+          />
+
+          <div style={{ textAlign: "right", marginTop: 24 }}>
+            <Space>
+              <Button onClick={() => setDeliveryModalVisible(false)}>
+                Hủy
+              </Button>
+              <Button type="primary" htmlType="submit" icon={<SendOutlined />}>
+                Xác nhận giao hàng
               </Button>
             </Space>
           </div>

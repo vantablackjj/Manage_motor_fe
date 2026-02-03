@@ -10,11 +10,18 @@ import {
   Space,
   Input,
 } from "antd";
-import { SaveOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import {
+  PlusOutlined,
+  SaveOutlined,
+  ArrowLeftOutlined,
+} from "@ant-design/icons";
 import moment from "moment";
-import { hoaDonBanAPI, khoAPI, khachHangAPI } from "../../../api";
+import { orderAPI, khoAPI, khachHangAPI } from "../../../api";
 import { notificationService } from "../../../services";
+import { LOAI_DON_HANG, LOAI_BEN } from "../../../utils/constant";
+import QuickAddCustomerModal from "../khachHang/QuickAddCustomerModal";
+import { Divider } from "antd";
 
 const { Option } = Select;
 
@@ -24,6 +31,7 @@ const SalesOrderCreate = () => {
   const [loading, setLoading] = useState(false);
   const [khoList, setKhoList] = useState([]);
   const [customerList, setCustomerList] = useState([]);
+  const [customerModalVisible, setCustomerModalVisible] = useState(false);
 
   useEffect(() => {
     loadMasterData();
@@ -33,12 +41,10 @@ const SalesOrderCreate = () => {
     try {
       const [khoRes, khRes] = await Promise.all([
         khoAPI.getAll(),
-        khachHangAPI.getAll(),
+        khachHangAPI.getKhachHang(),
       ]);
       setKhoList(khoRes || []);
-
-      const allCustomers = khRes.data || [];
-      const customers = allCustomers.filter((c) => !c.la_ncc);
+      const customers = (khRes.data || khRes || []).filter((c) => c.status);
       setCustomerList(customers);
     } catch (error) {
       console.error("Error loading master data", error);
@@ -48,19 +54,31 @@ const SalesOrderCreate = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
+      // 1. Chuẩn bị payload theo cấu trúc Unified ERP
       const payload = {
-        ...values,
-        ngay_ban: values.ngay_ban.format("YYYY-MM-DD"),
+        loai_don_hang: LOAI_DON_HANG.BAN_HANG,
+        ngay_dat_hang: values.ngay_ban.toISOString(),
+
+        // Cấu trúc Đối thể đa hình (Polymorphic Entities)
+        ma_ben_xuat: values.ma_kho_xuat,
+        loai_ben_xuat: LOAI_BEN.KHO, // Kho xuất hàng
+
+        ma_ben_nhap: values.ma_kh,
+        loai_ben_nhap: LOAI_BEN.DOI_TAC, // Khách hàng nhận hàng
+
+        ghi_chu: values.ghi_chu || null,
+        status: true,
       };
 
-      const res = await hoaDonBanAPI.create(payload);
-      const so_hd = res.data?.so_hd;
+      const res = await orderAPI.create(payload);
+      const orderId = res.data?.id;
 
-      notificationService.success("Tạo hóa đơn thành công");
-      navigate(`/sales/orders/${so_hd}`);
+      notificationService.success("Tạo đơn hàng bán thành công");
+      // Chuyển sang trang chi tiết để thêm Xe/Phụ tùng
+      navigate(`/sales/orders/${orderId}`);
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Lỗi tạo hóa đơn"
+        error?.response?.data?.message || "Lỗi tạo đơn hàng bán",
       );
     } finally {
       setLoading(false);
@@ -99,10 +117,30 @@ const SalesOrderCreate = () => {
                   showSearch
                   optionFilterProp="children"
                   style={{ width: "100%" }}
+                  dropdownRender={(menu) => (
+                    <>
+                      {menu}
+                      <Divider style={{ margin: "8px 0" }} />
+                      <div style={{ padding: "0 8px 4px" }}>
+                        <Button
+                          type="text"
+                          block
+                          icon={<PlusOutlined />}
+                          onClick={() => setCustomerModalVisible(true)}
+                          style={{ textAlign: "left" }}
+                        >
+                          Thêm khách hàng mới
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 >
                   {customerList.map((c) => (
-                    <Option key={c.ma_kh} value={c.ma_kh}>
-                      {c.ho_ten}
+                    <Option
+                      key={c.ma_doi_tac || c.ma_kh}
+                      value={c.ma_doi_tac || c.ma_kh}
+                    >
+                      {c.ten_doi_tac || c.ho_ten} - {c.dien_thoai}
                     </Option>
                   ))}
                 </Select>
@@ -153,6 +191,16 @@ const SalesOrderCreate = () => {
           </div>
         </Form>
       </Card>
+
+      <QuickAddCustomerModal
+        visible={customerModalVisible}
+        onCancel={() => setCustomerModalVisible(false)}
+        onSuccess={(newCustomer) => {
+          setCustomerModalVisible(false);
+          loadMasterData();
+          form.setFieldsValue({ ma_kh: newCustomer.ma_kh });
+        }}
+      />
     </div>
   );
 };

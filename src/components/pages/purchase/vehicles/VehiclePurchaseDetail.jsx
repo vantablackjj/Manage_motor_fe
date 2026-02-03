@@ -10,16 +10,20 @@ import {
   Modal,
   Form,
   Input,
-  Row,
-  Col,
+  Select,
+  InputNumber,
 } from "antd";
 import {
   ArrowLeftOutlined,
   CheckCircleOutlined,
   SendOutlined,
   ImportOutlined,
+  CloseCircleOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
-import { donHangMuaXeAPI, xeAPI } from "../../../../api"; // Assuming xeAPI exists for inbound
+import { donHangMuaXeAPI } from "../../../../api";
 import {
   formatService,
   notificationService,
@@ -29,20 +33,16 @@ import {
   TRANG_THAI_COLORS,
   TRANG_THAI_LABELS,
 } from "../../../../utils/constant";
+import OrderReceiveModal from "../OrderReceiveModal";
 
 const VehiclePurchaseDetail = () => {
-  const { ma_phieu } = useParams(); // ma_phieu (so_phieu)
+  const { ma_phieu } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null); // { header, items }
 
   // Receipt Modal State
   const [showReceiptModal, setShowReceiptModal] = useState(false);
-  const [receiptItems, setReceiptItems] = useState([]); // List of individual vehicles to enter VIN/Engine
-
-  useEffect(() => {
-    fetchData();
-  }, [ma_phieu]);
 
   // Master Data
   const [vehicleTypes, setVehicleTypes] = useState([]);
@@ -60,8 +60,8 @@ const VehiclePurchaseDetail = () => {
         api.danhMucAPI.modelCar.getAll(),
         api.danhMucAPI.color.getAll(),
       ]);
-      setVehicleTypes(typeRes || []);
-      setColors(colorRes || []);
+      setVehicleTypes(Array.isArray(typeRes) ? typeRes : typeRes?.data || []);
+      setColors(Array.isArray(colorRes) ? colorRes : colorRes?.data || []);
     } catch (error) {
       console.error("Lỗi tải danh mục", error);
     }
@@ -71,10 +71,6 @@ const VehiclePurchaseDetail = () => {
     setLoading(true);
     try {
       const res = await donHangMuaXeAPI.getById(ma_phieu);
-      console.log("Fetched Order Detail:", res.data);
-      if (res.data?.chi_tiet) {
-        console.log("Detail Lines:", res.data.chi_tiet);
-      }
       setData(res.data);
     } catch (error) {
       notificationService.error("Lỗi tải chi tiết đơn hàng");
@@ -94,133 +90,130 @@ const VehiclePurchaseDetail = () => {
   };
 
   const handleApprove = async () => {
+    Modal.confirm({
+      title: "Xác nhận duyệt đơn hàng",
+      content: "Bạn có chắc chắn muốn duyệt đơn hàng này?",
+      onOk: async () => {
+        try {
+          await donHangMuaXeAPI.pheDuyet(ma_phieu);
+          notificationService.success("Đã phê duyệt đơn hàng");
+          fetchData();
+        } catch (error) {
+          notificationService.error(
+            "Lỗi phê duyệt: " + (error?.response?.data?.message || ""),
+          );
+        }
+      },
+    });
+  };
+
+  const handleReject = async () => {
+    let reason = "";
+    Modal.confirm({
+      title: "Từ chối đơn hàng",
+      content: (
+        <div style={{ marginTop: 16 }}>
+          <p>Nhập lý do từ chối:</p>
+          <Input.TextArea
+            rows={4}
+            placeholder="Lý do từ chối..."
+            onChange={(e) => (reason = e.target.value)}
+          />
+        </div>
+      ),
+      onOk: async () => {
+        if (!reason.trim()) {
+          notificationService.error("Vui lòng nhập lý do từ chối");
+          return Promise.reject();
+        }
+        try {
+          await donHangMuaXeAPI.huy(ma_phieu, { ghi_chu: reason });
+          notificationService.warning("Đơn hàng đã bị từ chối");
+          fetchData();
+        } catch (error) {
+          notificationService.error(
+            "Lỗi khi từ chối đơn: " + (error?.response?.data?.message || ""),
+          );
+        }
+      },
+    });
+  };
+
+  const handlePrint = async () => {
     try {
-      await donHangMuaXeAPI.pheDuyet(ma_phieu);
-      notificationService.success("Đã phê duyệt");
-      fetchData();
+      const response = await donHangMuaXeAPI.inDonHang(ma_phieu);
+      const url = window.URL.createObjectURL(new Blob([response]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `purchase-order-${header.so_phieu}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
     } catch (error) {
-      notificationService.error("Lỗi phê duyệt");
+      notificationService.error("Lỗi in đơn hàng");
     }
   };
 
   // ----- RECEIPT LOGIC -----
   const handleOpenReceipt = () => {
-    const detailItems = data?.chi_tiet || data?.items || [];
-
-    // [SAFEGUARD] Check for Legacy Orders (Qty > 1)
-    // The new backend requires 1 Detail Row = 1 Vehicle.
-    // Old orders with Qty > 1 will cause duplicate IDs in the payload, failing validation.
-    const isLegacyOrder = detailItems.some((i) => i.so_luong > 1);
-    if (isLegacyOrder) {
-      notificationService.error(
-        "Đơn hàng này thuộc phiên bản cũ (Số lượng > 1/dòng). Vui lòng tạo đơn hàng mới để nhập kho."
-      );
-      return;
-    }
-
-    // Expand items based on Quantity. E.g. Qty 2 -> 2 rows
-    const expanded = [];
-    detailItems.forEach((item) => {
-      // Find name from master data if API doesn't return it
-      const typeName =
-        item.ten_loai_xe ||
-        vehicleTypes.find((t) => t.ma_loai === item.ma_loai_xe)?.ten_loai ||
-        item.ma_loai_xe;
-
-      for (let i = 0; i < item.so_luong; i++) {
-        expanded.push({
-          key: `${item.id}_${i}`,
-          detailId: item.id, // KEEP DETAIL ID
-          ma_loai_xe: item.ma_loai_xe,
-          ten_loai_xe: typeName,
-          mau_sac: item.mau_sac || item.ma_mau, // Handle different casing if any
-          so_khung: "",
-          so_may: "",
-        });
-      }
-    });
-    setReceiptItems(expanded);
     setShowReceiptModal(true);
   };
 
-  const handleReceiptUpdate = (key, field, val) => {
-    const newItems = receiptItems.map((item) =>
-      item.key === key ? { ...item, [field]: val } : item
-    );
-    setReceiptItems(newItems);
+  const handleReceiptSuccess = () => {
+    fetchData();
+    setShowReceiptModal(false);
   };
 
-  const handleSubmitReceipt = async () => {
-    // Validate
-    for (let item of receiptItems) {
-      if (!item.so_khung || !item.so_may) {
-        notificationService.error(
-          "Vui lòng nhập đủ Số khung & Số máy cho tất cả xe"
-        );
-        return;
-      }
-    }
-
-    try {
-      // Call API to create actual vehicles
-      const res = await donHangMuaXeAPI.nhapKho(ma_phieu, {
-        vehicles: receiptItems.map((item) => ({
-          id: item.detailId, // REQUIRED by Backend
-          so_khung: item.so_khung,
-          so_may: item.so_may,
-          ma_loai_xe: item.ma_loai_xe, // ID
-          // Map Color Name to Color ID if needed.
-          // The table shows Name (mau_sac), but backend needs ID (ma_mau) for FK.
-          // Try to find ID from colors list if available, or use existing ID.
-          ma_mau:
-            colors.find((c) => c.ten_mau === item.mau_sac)?.ma_mau ||
-            item.mau_sac ||
-            null,
-        })),
-      });
-
-      const { success, errors } = res.data;
-
-      if (errors && errors.length > 0) {
-        const errorMsg = errors
-          .map((e) => `Xe (ID: ${e.id}): ${e.message}`)
-          .join("\n");
-        notificationService.warning({
-          message: "Nhập kho hoàn tất với một số lỗi",
-          description: errorMsg,
-          duration: 10,
-        });
-
-        // Optional: Remove successful items from receiptItems or refresh
-        // For now, refresh entire data
-        fetchData();
-        if (success.length > 0) {
-          // Close modal if at least some succeeded, or keep open?
-          // Usually keep open if errors so user can fix.
-          // But here we'll close and let user see updated status on reload.
-          // Better: Keep modal open if 100% failure, close if partial?
-          // Let's stick to simple behavior: close and refresh.
-          setShowReceiptModal(false);
+  const handleDeleteDetail = async (chiTietId) => {
+    Modal.confirm({
+      title: "Xác nhận xóa",
+      content: "Bạn có chắc chắn muốn xóa dòng chi tiết này?",
+      onOk: async () => {
+        try {
+          await donHangMuaXeAPI.deleteChiTiet(ma_phieu, chiTietId);
+          notificationService.success("Đã xóa chi tiết");
+          fetchData();
+        } catch (error) {
+          notificationService.error(
+            "Lỗi xóa chi tiết: " + (error?.response?.data?.message || ""),
+          );
         }
-      } else {
-        notificationService.success(
-          `Nhập kho thành công ${success.length} xe!`
-        );
-        setShowReceiptModal(false);
-        fetchData();
-      }
+      },
+    });
+  };
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm] = Form.useForm();
+
+  const handleAddDetail = async (values) => {
+    try {
+      await donHangMuaXeAPI.addChiTiet(ma_phieu, {
+        ...values,
+        so_luong: 1,
+      });
+      notificationService.success("Đã thêm chi tiết");
+      setShowAddModal(false);
+      addForm.resetFields();
+      fetchData();
     } catch (error) {
       notificationService.error(
-        "Lỗi nhập kho: " + (error?.response?.data?.message || "")
+        "Lỗi thêm chi tiết: " + (error?.response?.data?.message || ""),
       );
     }
   };
-  // -------------------------
 
-  if (!data) return null;
   if (!data) return null;
   const header = data;
   const items = data.chi_tiet || data.items || [];
+
+  // Check if order is fully received
+  const isFullyReceived =
+    items.length > 0 &&
+    items.every((item) => {
+      const ordered = item.so_luong || 0;
+      const delivered = item.so_luong_da_giao || 0;
+      return delivered >= ordered;
+    });
 
   return (
     <div style={{ padding: "16px 8px" }}>
@@ -232,36 +225,61 @@ const VehiclePurchaseDetail = () => {
               onClick={() => navigate("/purchase/vehicles")}
             />
             <span>Đơn mua: {header.so_phieu}</span>
-            <Tag
-              color={TRANG_THAI_COLORS[header.trang_thai]}
-              style={{ margin: 0 }}
-            >
-              {header.trang_thai}
-            </Tag>
+            {/* Status Tag Logic */}
+            {isFullyReceived && header.trang_thai === "DA_DUYET" ? (
+              <Tag color="success" style={{ margin: 0 }}>
+                HOÀN THÀNH
+              </Tag>
+            ) : (
+              <Tag
+                color={TRANG_THAI_COLORS[header.trang_thai]}
+                style={{ margin: 0 }}
+              >
+                {TRANG_THAI_LABELS[header.trang_thai] || header.trang_thai}
+              </Tag>
+            )}
           </Space>
         }
         extra={
           <Space wrap>
             {header.trang_thai === "NHAP" && (
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                onClick={handleSendApproval}
-              >
-                Gửi duyệt
-              </Button>
+              <Space>
+                <Button
+                  type="dashed"
+                  icon={<PlusOutlined />}
+                  onClick={() => setShowAddModal(true)}
+                >
+                  Thêm xe
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<SendOutlined />}
+                  onClick={handleSendApproval}
+                >
+                  Gửi duyệt
+                </Button>
+              </Space>
             )}
             {header.trang_thai === "GUI_DUYET" && authService.canApprove() && (
-              <Button
-                type="primary"
-                icon={<CheckCircleOutlined />}
-                onClick={handleApprove}
-              >
-                Duyệt
-              </Button>
+              <Space>
+                <Button
+                  type="primary"
+                  icon={<CheckCircleOutlined />}
+                  onClick={handleApprove}
+                >
+                  Duyệt
+                </Button>
+                <Button
+                  danger
+                  icon={<CloseCircleOutlined />}
+                  onClick={handleReject}
+                >
+                  Từ chối
+                </Button>
+              </Space>
             )}
-            {/* Show Receipt Button if Approved */}
-            {header.trang_thai === "DA_DUYET" && (
+            {/* Show Receipt Button if Approved AND Not Fully Received */}
+            {header.trang_thai === "DA_DUYET" && !isFullyReceived && (
               <Button
                 type="primary"
                 icon={<ImportOutlined />}
@@ -270,11 +288,14 @@ const VehiclePurchaseDetail = () => {
                 Nhập kho
               </Button>
             )}
+            <Button icon={<PrinterOutlined />} onClick={handlePrint}>
+              In đơn hàng
+            </Button>
           </Space>
         }
         size="small"
       >
-        <Descriptions bordered column={{ xs: 1, sm: 2 }} size="small">
+        <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
           <Descriptions.Item label="Ngày đặt">
             {formatService.formatDate(header.ngay_dat_hang)}
           </Descriptions.Item>
@@ -287,22 +308,60 @@ const VehiclePurchaseDetail = () => {
           <Descriptions.Item label="Tổng tiền">
             {formatService.formatCurrency(Number(header.tong_tien))}
           </Descriptions.Item>
-          <Descriptions.Item label="Ghi chú" span={{ xs: 1, sm: 2 }}>
-            {header.dien_giai || header.ghi_chu}
+          <Descriptions.Item label="Ngày tạo">
+            {formatService.formatDateTime(header.ngay_tao)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Người tạo">
+            {header.nguoi_tao || "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày gửi duyệt">
+            {header.ngay_gui
+              ? formatService.formatDateTime(header.ngay_gui)
+              : "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Người gửi">
+            {header.nguoi_gui || "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày duyệt">
+            {header.ngay_duyet
+              ? formatService.formatDateTime(header.ngay_duyet)
+              : "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Người duyệt">
+            {header.nguoi_duyet || "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Diễn giải" span={{ xs: 1, sm: 2, md: 3 }}>
+            {header.dien_giai || "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Ghi chú" span={{ xs: 1, sm: 2, md: 3 }}>
+            {header.ghi_chu || "-"}
           </Descriptions.Item>
         </Descriptions>
 
         <Table
           style={{ marginTop: 24 }}
           dataSource={items}
-          rowKey="id" // item ID
+          rowKey="id"
           pagination={false}
           size="small"
-          scroll={{ x: 800 }}
+          scroll={{ x: 1200 }}
           columns={[
+            {
+              title: "STT",
+              dataIndex: "stt",
+              width: 60,
+              align: "center",
+            },
+            {
+              title: "Mã xe",
+              dataIndex: "xe_key",
+              width: 160,
+              render: (text) => text || "-",
+            },
             {
               title: "Loại xe",
               key: "ten_loai_xe",
+              width: 150,
               render: (_, record) =>
                 record.ten_loai_xe ||
                 vehicleTypes.find((t) => t.ma_loai === record.ma_loai_xe)
@@ -312,67 +371,159 @@ const VehiclePurchaseDetail = () => {
             {
               title: "Màu sắc",
               dataIndex: "ma_mau",
-              render: (text) => text,
+              width: 80,
             },
-            { title: "Số lượng", dataIndex: "so_luong" },
+            {
+              title: "Số khung",
+              dataIndex: "so_khung",
+              width: 120,
+              render: (text) => text || "-",
+            },
+            {
+              title: "Số máy",
+              dataIndex: "so_may",
+              width: 100,
+              render: (text) => text || "-",
+            },
+            {
+              title: "SL Đặt",
+              dataIndex: "so_luong",
+              width: 60,
+              align: "center",
+            },
+            {
+              title: "Đã nhập",
+              key: "delivered",
+              width: 80,
+              align: "center",
+              render: (_, record) => (
+                <span style={{ color: "blue" }}>
+                  {record.so_luong_da_giao || 0}
+                </span>
+              ),
+            },
+            {
+              title: "Còn lại",
+              key: "remaining",
+              width: 80,
+              align: "center",
+              render: (_, record) => {
+                const remaining =
+                  record.so_luong_con_lai !== undefined
+                    ? record.so_luong_con_lai
+                    : record.so_luong - (record.so_luong_da_giao || 0);
+                return <span style={{ color: "red" }}>{remaining}</span>;
+              },
+            },
             {
               title: "Đơn giá",
               dataIndex: "don_gia",
+              width: 120,
+              align: "right",
               render: (v) => formatService.formatCurrency(Number(v)),
             },
             {
               title: "Thành tiền",
               dataIndex: "thanh_tien",
+              width: 120,
+              align: "right",
               render: (v) => formatService.formatCurrency(Number(v)),
             },
+            {
+              title: "Trạng thái",
+              key: "status_nhap",
+              width: 100,
+              align: "center",
+              render: (_, record) => {
+                const ordered = record.so_luong || 0;
+                const delivered = record.so_luong_da_giao || 0;
+                if (delivered >= ordered && ordered > 0)
+                  return <Tag color="success">Đủ hàng</Tag>;
+                if (delivered > 0)
+                  return <Tag color="processing">Đang nhập</Tag>;
+                return <Tag color="default">Chưa nhập</Tag>;
+              },
+            },
+            ...(header.trang_thai === "NHAP"
+              ? [
+                  {
+                    title: "Thao tác",
+                    key: "action",
+                    width: 80,
+                    align: "center",
+                    fixed: "right",
+                    render: (_, record) => (
+                      <Button
+                        danger
+                        size="small"
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDeleteDetail(record.id)}
+                      />
+                    ),
+                  },
+                ]
+              : []),
           ]}
         />
       </Card>
 
       {/* RECEIPT MODAL */}
-      <Modal
-        title="Nhập kho xe thực tế"
-        open={showReceiptModal}
+      <OrderReceiveModal
+        visible={showReceiptModal}
         onCancel={() => setShowReceiptModal(false)}
-        onOk={handleSubmitReceipt}
-        width={800}
-        okText="Xác nhận nhập kho"
+        orderId={ma_phieu}
+        onSuccess={handleReceiptSuccess}
+      />
+
+      {/* ADD DETAIL MODAL */}
+      <Modal
+        title="Thêm chi tiết xe"
+        open={showAddModal}
+        onCancel={() => setShowAddModal(false)}
+        onOk={() => addForm.submit()}
+        okText="Thêm"
       >
-        <p>Vui lòng nhập Số khung và Số máy cho từng xe trong đơn hàng.</p>
-        <Table
-          dataSource={receiptItems}
-          rowKey="key"
-          pagination={false}
-          scroll={{ y: 400 }}
-          columns={[
-            { title: "Loại xe", dataIndex: "ten_loai_xe" },
-            { title: "Màu", dataIndex: "mau_sac", width: 80 },
-            {
-              title: "Số khung",
-              key: "so_khung",
-              render: (_, record) => (
-                <Input
-                  value={record.so_khung}
-                  onChange={(e) =>
-                    handleReceiptUpdate(record.key, "so_khung", e.target.value)
-                  }
-                />
-              ),
-            },
-            {
-              title: "Số máy",
-              key: "so_may",
-              render: (_, record) => (
-                <Input
-                  value={record.so_may}
-                  onChange={(e) =>
-                    handleReceiptUpdate(record.key, "so_may", e.target.value)
-                  }
-                />
-              ),
-            },
-          ]}
-        />
+        <Form form={addForm} layout="vertical" onFinish={handleAddDetail}>
+          <Form.Item
+            name="ma_loai_xe"
+            label="Loại xe"
+            rules={[{ required: true, message: "Vui lòng chọn loại xe" }]}
+          >
+            <Select showSearch optionFilterProp="children">
+              {vehicleTypes.map((t) => (
+                <Select.Option key={t.ma_loai} value={t.ma_loai}>
+                  {t.ten_loai}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="ma_mau"
+            label="Màu sắc"
+            rules={[{ required: true, message: "Vui lòng chọn màu" }]}
+          >
+            <Select showSearch optionFilterProp="children">
+              {colors.map((c) => (
+                <Select.Option key={c.ma_mau} value={c.ma_mau}>
+                  {c.ten_mau}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="don_gia"
+            label="Đơn giá"
+            rules={[{ required: true, message: "Vui lòng nhập đơn giá" }]}
+          >
+            <InputNumber
+              style={{ width: "100%" }}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+            />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

@@ -86,10 +86,7 @@ const KhoManage = () => {
     try {
       const payload = {
         ...values,
-        chinh: values.loai_kho === "CHINH",
-        daily: values.loai_kho === "DAILY",
       };
-      delete payload.loai_kho;
 
       if (editingRecord) {
         await khoAPI.update(editingRecord.ma_kho, payload);
@@ -104,7 +101,7 @@ const KhoManage = () => {
       fetchData();
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Không thể lưu kho"
+        error?.response?.data?.message || "Không thể lưu kho",
       );
     }
   };
@@ -289,16 +286,11 @@ const KhoManage = () => {
           onFinish={handleSubmit}
           size="small"
         >
-          <Form.Item
-            name="ma_kho"
-            label="Mã kho"
-            rules={[
-              { required: true, message: "Vui lòng nhập mã kho" },
-              { max: 50, message: "Mã kho tối đa 50 ký tự" },
-            ]}
-          >
-            <Input placeholder="VD: KHO01..." disabled={!!editingRecord} />
-          </Form.Item>
+          {!!editingRecord && (
+            <Form.Item name="ma_kho" label="Mã kho">
+              <Input disabled />
+            </Form.Item>
+          )}
 
           <Form.Item
             name="ten_kho"

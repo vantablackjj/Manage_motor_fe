@@ -9,7 +9,7 @@ import DanhMucPage from "../components/pages/danhMuc/DanhMucPage";
 import MainLayout from "../components/layout/MainLayout/MainLayout";
 import XeLoai from "../components/pages/xe/XeLoai";
 import XeLichSu from "../components/pages/xe/XeLichSu";
-import PhuTungManagement from "../components/pages/phuTung/PhuTungManage";
+import PhuTungManage from "../components/pages/phuTung/PhuTungManage";
 import KhoManage from "../components/pages/kho/KhoManage";
 import KhachHangManage from "../components/pages/khachHang/KhachHangManage";
 import ChuyenKhoList from "../components/pages/chuyenKho/ChuyenKhoList";
@@ -33,13 +33,21 @@ import SalesOrderList from "../components/pages/sales/SalesOrderList";
 import SalesOrderCreate from "../components/pages/sales/SalesOrderCreate";
 import SalesOrderDetail from "../components/pages/sales/SalesOrderDetail";
 
+// Hoa Don Ban (Sales Invoices)
+import HoaDonBanListPage from "../components/pages/hoaDon/HoaDonBanListPage";
+import HoaDonBanDetail from "../components/pages/hoaDon/HoaDonBanDetail";
+
 // Thu Chi
 import ThuChiList from "../components/pages/thuChi/ThuChiList";
 import ThuChiCreate from "../components/pages/thuChi/ThuChiCreate";
 import ThuChiDetail from "../components/pages/thuChi/ThuChiDetail";
 
 // Reports
-import ReportPlaceholder from "../components/pages/reports/ReportPlaceholder";
+import InventoryReportPage from "../components/pages/reports/InventoryReportPage";
+import SalesReportPage from "../components/pages/reports/SalesReportPage";
+import LogisticsReportPage from "../components/pages/reports/LogisticsReportPage";
+import FinancialReportPage from "../components/pages/reports/FinancialReportPage";
+import DashboardReportPage from "../components/pages/reports/DashboardReportPage";
 
 export const publicRoutes = [
   {
@@ -105,8 +113,18 @@ export const privateRoutes = [
     layout: MainLayout,
   },
   {
-    path: "/sales/orders/:so_hd",
+    path: "/sales/orders/:id",
     component: SalesOrderDetail,
+    layout: MainLayout,
+  },
+  {
+    path: "/sales/invoices",
+    component: HoaDonBanListPage,
+    layout: MainLayout,
+  },
+  {
+    path: "/sales/invoices/:so_hd",
+    component: HoaDonBanDetail,
     layout: MainLayout,
   },
   // ===================================
@@ -144,7 +162,7 @@ export const privateRoutes = [
   // Quản lý phụ tùng
   {
     path: "/phu-tung/danh-sach",
-    component: PhuTungManagement,
+    component: PhuTungManage,
     layout: MainLayout,
   },
 
@@ -198,6 +216,16 @@ export const privateRoutes = [
     component: KhachHangManage,
     layout: MainLayout,
   },
+  {
+    path: "/danh-muc/doi-tac",
+    component: KhachHangManage,
+    layout: MainLayout,
+  },
+  {
+    path: "/danh-muc/ca-hai",
+    component: KhachHangManage,
+    layout: MainLayout,
+  },
 
   // Chuyển kho
   {
@@ -231,28 +259,33 @@ export const privateRoutes = [
 
   // === BÁO CÁO (REPORTS) ===
   {
+    path: "/bao-cao/dashboard",
+    component: DashboardReportPage,
+    layout: MainLayout,
+  },
+  {
     path: "/bao-cao/ton-kho",
-    component: () => <ReportPlaceholder title="Tồn kho" />,
+    component: InventoryReportPage,
     layout: MainLayout,
   },
   {
     path: "/bao-cao/doanh-thu",
-    component: () => <ReportPlaceholder title="Doanh thu" />,
+    component: SalesReportPage,
     layout: MainLayout,
   },
   {
     path: "/bao-cao/nhap-xuat",
-    component: () => <ReportPlaceholder title="Nhập xuất (Thẻ kho)" />,
+    component: LogisticsReportPage,
     layout: MainLayout,
   },
   {
     path: "/bao-cao/thu-chi",
-    component: () => <ReportPlaceholder title="Thu chi" />,
+    component: FinancialReportPage,
     layout: MainLayout,
   },
   {
     path: "/bao-cao/cong-no",
-    component: () => <ReportPlaceholder title="Công nợ" />,
+    component: FinancialReportPage,
     layout: MainLayout,
   },
 
@@ -272,7 +305,7 @@ export const privateRoutes = [
   },
   {
     path: "/phu-tung/danh-muc",
-    component: PhuTungManagement,
+    component: PhuTungManage,
     layout: MainLayout,
   },
   {

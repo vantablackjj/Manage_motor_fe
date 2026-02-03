@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import { donHangAPI, khoAPI, khachHangAPI, phuTungAPI } from "../../../../api";
 import { notificationService } from "../../../../services";
+// import { LOAI_DON_HANG, LOAI_BEN } from "../../../../utils/constant";
 
 const { Option } = Select;
 
@@ -46,16 +47,13 @@ const PartPurchaseCreate = () => {
     try {
       const [khoRes, supRes, partRes] = await Promise.all([
         khoAPI.getAll(),
-        khachHangAPI.getAll(), // Fetch all, filter manually
-        phuTungAPI.getAll(), // Fetch parts
+        khachHangAPI.getNhaCungCap(),
+        phuTungAPI.getAll(),
       ]);
       setKhoList(khoRes || []);
-
-      const allCustomers = supRes.data || [];
-      const suppliers = allCustomers.filter((c) => c.la_ncc === true);
+      const suppliers = (supRes.data || supRes || []).filter((s) => s.status);
       setSupplierList(suppliers);
-
-      setPartList(partRes.data || []);
+      setPartList(partRes.data || partRes || []);
     } catch (error) {
       console.error("Error loading master data", error);
     }
@@ -83,7 +81,8 @@ const PartPurchaseCreate = () => {
       if (item.key === key) {
         const updatedItem = { ...item, [field]: value };
         if (field === "so_luong" || field === "don_gia") {
-          updatedItem.thanh_tien = updatedItem.so_luong * updatedItem.don_gia;
+          updatedItem.thanh_tien =
+            (updatedItem.so_luong || 0) * (updatedItem.don_gia || 0);
         }
         return updatedItem;
       }
@@ -94,15 +93,21 @@ const PartPurchaseCreate = () => {
 
   const handlePartChange = (key, ma_pt) => {
     const part = partList.find((p) => String(p.ma_pt) === String(ma_pt));
+    const techSpecs = part?.thong_so_ky_thuat || {};
+
     const newItems = items.map((item) => {
       if (item.key === key) {
         return {
           ...item,
           ma_pt: ma_pt,
-          ten_pt: part?.ten_phu_tung || "",
+          ten_pt: part?.ten_phu_tung || part?.ten_pt || "",
           don_vi_tinh: part?.don_vi_tinh || "",
-          // Optional: set default price if available
-          // don_gia: part?.don_gia_nhap || 0,
+          don_gia: part?.don_gia_nhap || 0,
+          thanh_tien: (part?.don_gia_nhap || 0) * (item.so_luong || 1),
+          // Conversion fields
+          don_vi_co_ban: part?.don_vi_tinh || "",
+          don_vi_lon: techSpecs.don_vi_lon,
+          ty_le_quy_doi: techSpecs.ty_le_quy_doi,
         };
       }
       return item;
@@ -120,7 +125,7 @@ const PartPurchaseCreate = () => {
     for (let item of items) {
       if (!item.ma_pt || item.so_luong <= 0) {
         notificationService.error(
-          "Vui lòng điền đầy đủ thông tin chi tiết (Phụ tùng, Số lượng > 0)"
+          "Vui lòng điền đầy đủ thông tin chi tiết (Phụ tùng, Số lượng > 0)",
         );
         return;
       }
@@ -128,44 +133,58 @@ const PartPurchaseCreate = () => {
 
     setLoading(true);
     try {
-      // 1. Create Header
-      const payload = {
-        ...values,
-        ngay_dat_hang: values.ngay_dat_hang.toISOString(),
-        tong_tien: items.reduce((acc, curr) => acc + curr.thanh_tien, 0),
+      // Step 1: Create Header
+      const headerPayload = {
+        ngay_dat_hang: values.ngay_dat_hang.format("YYYY-MM-DD"), // API expects YYYY-MM-DD usually? Or ISO? Guide says "2026-02-02"
+        ma_kho_nhap: values.ma_kho_nhap,
+        ma_ncc: values.ma_ncc,
+        dien_giai: values.dien_giai || "",
+        // Add others if needed?
       };
 
-      const res = await donHangAPI.create(payload);
-      const so_phieu = res.data?.so_phieu;
+      const res = await donHangAPI.create(headerPayload);
+      const createdOrder = res.data || res;
+      const ma_phieu = createdOrder.so_phieu || createdOrder.id; // Ensure we get ID/Code
 
-      // 2. Add Details
-      // Note: donHangAPI usually adds detail one by one or in batch.
-      // Based on donHang.api.js: addChiTiet takes (ma_phieu, data)
-      const detailPromises = items.map((item) => {
-        // Fallback lookup to ensure ten_pt and don_vi_tinh are present
-        const part = partList.find(
-          (p) => String(p.ma_pt) === String(item.ma_pt)
-        );
-        const finalName = item.ten_pt || part?.ten_phu_tung || "Unknown";
-        const finalUnit = item.don_vi_tinh || part?.don_vi_tinh || "Cái";
+      if (!ma_phieu) {
+        throw new Error("Không lấy được mã phiếu sau khi tạo");
+      }
 
-        return donHangAPI.addChiTiet(so_phieu, {
+      // Step 2: Add Items
+      // We loop and add one by one (or Promise.all) as per guide "Endpoint: POST .../chi-tiet"
+      // Assuming API handles one item per call or checking if it accepts array.
+      // Guide says "Payload: { ma_pt... }" (Singular). So loop.
+
+      const detailPromises = items.map(async (item) => {
+        let finalQty = item.so_luong;
+        let notes = "";
+        // Simplify conversion logic for creation?
+        // Guide says: "Payload: ... so_luong: 100 ...".
+        // If we want to support inputting "Boxes", we should probably convert here OR send as is if backend supports unit.
+        // Guide payload: "don_vi_tinh": "Cái".
+        // If user selected "Box", we should probably convert to "Cái" here or send "Box" if we want to store PO as Box.
+        // But guide "PartReceiveModal" implies PO has "PO Unit".
+        // Let's send what user selected.
+
+        const detailPayload = {
           ma_pt: item.ma_pt,
-          ten_pt: finalName,
-          don_vi_tinh: finalUnit,
+          ten_pt: item.ten_pt,
+          don_vi_tinh: item.don_vi_tinh, // User selected unit
           so_luong: item.so_luong,
           don_gia: item.don_gia,
-          thanh_tien: item.thanh_tien,
-        });
+        };
+
+        return donHangAPI.addChiTiet(ma_phieu, detailPayload);
       });
 
       await Promise.all(detailPromises);
 
-      notificationService.success("Tạo đơn hàng thành công");
+      notificationService.success("Tạo đơn hàng mua phụ tùng thành công");
       navigate("/purchase/parts");
     } catch (error) {
+      console.error(error);
       notificationService.error(
-        error?.response?.data?.message || "Lỗi tạo đơn hàng"
+        error?.response?.data?.message || "Lỗi tạo đơn hàng",
       );
     } finally {
       setLoading(false);
@@ -176,9 +195,10 @@ const PartPurchaseCreate = () => {
     {
       title: "Phụ tùng",
       dataIndex: "ma_pt",
+      width: 250,
       render: (text, record) => (
         <Select
-          style={{ width: 300 }}
+          style={{ width: "100%" }}
           placeholder="Chọn phụ tùng"
           value={text}
           onChange={(val) => handlePartChange(record.key, val)}
@@ -194,29 +214,59 @@ const PartPurchaseCreate = () => {
       ),
     },
     {
+      title: "ĐVT",
+      dataIndex: "don_vi_tinh",
+      width: 120,
+      render: (val, record) => {
+        if (record.don_vi_lon && record.ty_le_quy_doi) {
+          return (
+            <Select
+              value={val}
+              onChange={(v) => handleRowChange(record.key, "don_vi_tinh", v)}
+              style={{ width: "100%" }}
+            >
+              <Option value={record.don_vi_co_ban}>
+                {record.don_vi_co_ban}
+              </Option>
+              <Option value={record.don_vi_lon}>{record.don_vi_lon}</Option>
+            </Select>
+          );
+        }
+        return val;
+      },
+    },
+    {
       title: "Số lượng",
       dataIndex: "so_luong",
+      width: 120,
       render: (val, record) => (
         <InputNumber
           min={1}
           value={val}
           onChange={(v) => handleRowChange(record.key, "so_luong", v)}
+          style={{ width: "100%" }}
         />
       ),
     },
     {
       title: "Đơn giá",
       dataIndex: "don_gia",
+      width: 150,
       render: (val, record) => (
         <InputNumber
           min={0}
-          style={{ width: 150 }}
+          style={{ width: "100%" }}
           formatter={(value) =>
             `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
           value={val}
           onChange={(v) => handleRowChange(record.key, "don_gia", v)}
+          addonAfter={
+            record.don_vi_tinh === record.don_vi_lon && record.don_vi_lon
+              ? `/${record.don_vi_lon}`
+              : ""
+          }
         />
       ),
     },
@@ -224,11 +274,13 @@ const PartPurchaseCreate = () => {
       title: "Thành tiền",
       dataIndex: "thanh_tien",
       align: "right",
+      width: 150,
       render: (val) => val?.toLocaleString("vi-VN"),
     },
     {
       title: "",
       key: "action",
+      width: 50,
       render: (_, record) => (
         <Button
           danger
@@ -273,8 +325,11 @@ const PartPurchaseCreate = () => {
                   style={{ width: "100%" }}
                 >
                   {supplierList.map((s) => (
-                    <Option key={s.ma_kh} value={s.ma_kh}>
-                      {s.ho_ten}
+                    <Option
+                      key={s.ma_doi_tac || s.ma_kh}
+                      value={s.ma_doi_tac || s.ma_kh}
+                    >
+                      {s.ten_doi_tac || s.ho_ten}
                     </Option>
                   ))}
                 </Select>

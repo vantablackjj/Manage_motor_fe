@@ -16,6 +16,7 @@ import {
   Statistic,
   Tag,
   Modal,
+  Switch,
 } from "antd";
 import {
   PlusOutlined,
@@ -31,7 +32,7 @@ import {
 } from "@ant-design/icons";
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
-import { phuTungAPI, tonKhoAPI } from "../../../api";
+import { phuTungAPI, tonKhoAPI, danhMucAPI } from "../../../api";
 import authService from "../../../services/auth.service";
 import PhuTungForm from "./PhuTungForm";
 import LichSuModal from "./PhuTungLichSu";
@@ -39,7 +40,7 @@ import DanhSachKhoaTab from "./DanhSachKhoa";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { notificationService } from "../../../services";
 
-const PhuTungManagement = () => {
+const PhuTungManage = () => {
   const { isMobile, isTablet } = useResponsive();
 
   const [activeTab, setActiveTab] = useState("danh-sach");
@@ -47,10 +48,12 @@ const PhuTungManagement = () => {
   const [data, setData] = useState([]);
   const [tonKhoData, setTonKhoData] = useState([]);
   const [khoList, setKhoList] = useState([]);
+
   // Filters
   const [searchText, setSearchText] = useState("");
   const [nhomPT, setNhomPT] = useState(undefined);
   const [trangThaiTon, setTrangThaiTon] = useState(undefined);
+  const [nhomPTList, setNhomPTList] = useState([]);
 
   // Modal states
   const [formVisible, setFormVisible] = useState(false);
@@ -68,19 +71,43 @@ const PhuTungManagement = () => {
       loadTonKho();
     }
   }, [activeTab, nhomPT, searchText, trangThaiTon]);
+
   useEffect(() => {
-    console.log(khoList);
-  }, [khoList]);
+    fetchFilters();
+  }, []);
+
+  const fetchFilters = async () => {
+    try {
+      const res = await danhMucAPI.brand.getAll({
+        ma_nhom_cha: "PT",
+        status: "all",
+      });
+      setNhomPTList(res || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const loadDanhSach = async () => {
     setLoading(true);
     try {
       const response = await phuTungAPI.getAll({
-        nhom_pt: nhomPT,
+        ma_nh: nhomPT,
         search: searchText,
+        status: "all",
       });
       if (response.success) {
-        setData(response.data);
+        const mappedData = response.data.map((item) => ({
+          ...item,
+          ma_pt: item.ma_pt,
+          ten_pt: item.ten_pt,
+          nhom_pt: item.nhom_pt,
+          ten_nh: item.ten_nh,
+          gia_nhap: Number(item.gia_nhap),
+          gia_ban: Number(item.gia_ban),
+          vat: Number(item.vat),
+        }));
+        setData(mappedData);
       }
     } catch (error) {
       message.error("Không thể tải danh sách!");
@@ -88,18 +115,17 @@ const PhuTungManagement = () => {
       setLoading(false);
     }
   };
+
   const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearchText(value);
+    setSearchText(e.target.value);
   };
 
   const loadTonKho = async () => {
     setLoading(true);
     try {
       const res = await tonKhoAPI.getAll({
-        ma_pt: searchText || undefined, // nếu backend hỗ trợ
+        ma_pt: searchText || undefined,
       });
-
       if (res.success) {
         setTonKhoData(res.data);
       }
@@ -122,35 +148,69 @@ const PhuTungManagement = () => {
     setFormVisible(true);
   };
 
-  const handleDelete = async (ma_pt) => {
+  const handleDelete = async (record) => {
     try {
-      const response = await phuTungAPI.delete(ma_pt);
-      if (response.success) {
-        message.success("Xóa phụ tùng thành công!");
+      const response = await phuTungAPI.delete(record.ma_pt);
+      if (response) {
+        message.success("Khóa phụ tùng thành công!");
         loadDanhSach();
       }
     } catch (error) {
-      message.error("Không thể xóa phụ tùng!");
+      const errorMsg =
+        error?.response?.data?.message ||
+        "Không thể khóa phụ tùng khi còn tồn kho";
+      message.error(errorMsg);
+    }
+  };
+
+  const handleRestore = async (record) => {
+    try {
+      const response = await phuTungAPI.update(record.ma_pt, {
+        ...record,
+        status: true,
+      });
+      if (response) {
+        message.success("Khôi phục phụ tùng thành công!");
+        loadDanhSach();
+      }
+    } catch (error) {
+      message.error("Không thể khôi phục phụ tùng!");
     }
   };
 
   const handleFormSubmit = async (values) => {
     try {
-      if (formMode === "create") {
-        const response = await phuTungAPI.create(values);
-        if (response.success) {
-          message.success("Tạo phụ tùng thành công!");
-          loadDanhSach();
-        }
-      } else {
-        const response = await phuTungAPI.update(editingRecord.ma_pt, values);
-        if (response.success) {
-          message.success("Cập nhật phụ tùng thành công!");
-          loadDanhSach();
-        }
+      const payload = {
+        ten_pt: values.ten_pt,
+        ma_nh: values.nhom_pt || "PT",
+        loai_quan_ly: "BATCH",
+        gia_nhap: values.gia_nhap,
+        gia_ban: values.gia_ban,
+        don_vi_tinh: values.don_vi_tinh,
+        nhom_pt: values.nhom_pt,
+        thong_so_ky_thuat: {
+          ghi_chu: values.ghi_chu,
+          vat: values.vat,
+          don_vi_lon: values.don_vi_lon,
+          ty_le_quy_doi: values.ty_le_quy_doi,
+        },
+      };
+
+      if (formMode === "edit") {
+        payload.ma_loai = values.ma_pt;
       }
+
+      if (formMode === "create") {
+        await phuTungAPI.create(payload);
+        message.success("Tạo phụ tùng thành công!");
+      } else {
+        await phuTungAPI.update(editingRecord.ma_pt, payload);
+        message.success("Cập nhật phụ tùng thành công!");
+      }
+      setFormVisible(false);
+      loadDanhSach();
     } catch (error) {
-      message.error("Có lỗi xảy ra!");
+      message.error("Có lỗi xảy ra! " + (error?.response?.data?.message || ""));
     }
   };
 
@@ -159,7 +219,6 @@ const PhuTungManagement = () => {
     setLichSuVisible(true);
   };
 
-  // Columns cho danh sách phụ tùng
   const danhSachColumns = [
     {
       title: "Mã PT",
@@ -174,6 +233,16 @@ const PhuTungManagement = () => {
       key: "ten_pt",
       width: 250,
       ellipsis: true,
+      render: (text, record) => (
+        <Space direction="vertical" size={0}>
+          <span>{text}</span>
+          {record.status === false && (
+            <Tag color="red" size="small" style={{ fontSize: "10px" }}>
+              Đã khóa
+            </Tag>
+          )}
+        </Space>
+      ),
     },
     {
       title: "ĐVT",
@@ -186,10 +255,14 @@ const PhuTungManagement = () => {
       title: "Nhóm",
       dataIndex: "nhom_pt",
       key: "nhom_pt",
-      width: 120,
-      render: (nhom) => (nhom ? <Tag color="blue">{nhom}</Tag> : "-"),
+      width: 150,
+      render: (_, record) =>
+        record.ten_nh ? (
+          <Tag color="blue">{record.ten_nh}</Tag>
+        ) : (
+          <Tag color="default">{record.nhom_pt || "-"}</Tag>
+        ),
     },
-
     {
       title: "Giá nhập",
       dataIndex: "gia_nhap",
@@ -227,25 +300,43 @@ const PhuTungManagement = () => {
               onClick={() => handleViewLichSu(record)}
             />
           </Tooltip>
-          {authService.canEdit() && (
-            <Tooltip title="Sửa">
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                onClick={() => handleEdit(record)}
-              />
-            </Tooltip>
-          )}
-          {authService.canDelete() && (
+          {record.status !== false ? (
+            <>
+              {authService.canEdit() && (
+                <Tooltip title="Sửa">
+                  <Button
+                    type="text"
+                    icon={<EditOutlined />}
+                    onClick={() => handleEdit(record)}
+                  />
+                </Tooltip>
+              )}
+              {authService.canDelete() && (
+                <Popconfirm
+                  title="Khóa phụ tùng"
+                  description="Bạn có chắc muốn khóa phụ tùng này không?"
+                  onConfirm={() => handleDelete(record)}
+                  okText="Khóa"
+                  cancelText="Hủy"
+                >
+                  <Tooltip title="Khóa/Xóa">
+                    <Button type="text" danger icon={<DeleteOutlined />} />
+                  </Tooltip>
+                </Popconfirm>
+              )}
+            </>
+          ) : (
             <Popconfirm
-              title="Xóa phụ tùng"
-              description="Bạn có chắc muốn xóa phụ tùng này?"
-              onConfirm={() => handleDelete(record.ma_pt)}
-              okText="Xóa"
-              cancelText="Hủy"
+              title="Khôi phục phụ tùng"
+              description="Bạn có muốn khôi phục phụ tùng này không?"
+              onConfirm={() => handleRestore(record)}
             >
-              <Tooltip title="Xóa">
-                <Button type="text" danger icon={<DeleteOutlined />} />
+              <Tooltip title="Khôi phục">
+                <Button
+                  type="text"
+                  icon={<ReloadOutlined />}
+                  style={{ color: "#52c41a" }}
+                />
               </Tooltip>
             </Popconfirm>
           )}
@@ -254,7 +345,32 @@ const PhuTungManagement = () => {
     },
   ];
 
-  // Columns cho tồn kho
+  const formatStock = (quantity, record) => {
+    const product = data.find((p) => p.ma_pt === record.ma_pt);
+    const unit = product?.don_vi_tinh || "Cái";
+    const techSpecs = product?.thong_so_ky_thuat || {};
+    const bigUnit = techSpecs.don_vi_lon;
+    const rate = techSpecs.ty_le_quy_doi;
+
+    if (quantity > 0 && bigUnit && rate > 1) {
+      const bigQty = Math.floor(quantity / rate);
+      const smallQty = quantity % rate;
+      let text = [];
+      if (bigQty > 0) text.push(`${bigQty} ${bigUnit}`);
+      if (smallQty > 0) text.push(`${smallQty} ${unit}`);
+      return (
+        <Tooltip title={`Tổng: ${quantity} ${unit}`}>
+          <Tag color="green">{text.join(", ")}</Tag>
+        </Tooltip>
+      );
+    }
+    return (
+      <Tag color={quantity === 0 ? "red" : "green"}>
+        {quantity} {unit}
+      </Tag>
+    );
+  };
+
   const tonKhoColumns = [
     {
       title: "Mã kho",
@@ -271,12 +387,22 @@ const PhuTungManagement = () => {
       width: 100,
     },
     {
+      title: "Tên phụ tùng",
+      dataIndex: "ten_pt",
+      key: "ten_pt",
+      width: 200,
+      render: (text, record) => {
+        const product = data.find((p) => p.ma_pt === record.ma_pt);
+        return product ? product.ten_pt : text || record.ma_pt;
+      },
+    },
+    {
       title: "Số lượng tồn",
       dataIndex: "so_luong_ton",
       key: "so_luong_ton",
-      width: 130,
+      width: 180,
       align: "right",
-      render: (num) => <Tag color={num === 0 ? "red" : "green"}>{num}</Tag>,
+      render: (num, record) => formatStock(num, record),
     },
     !isMobile && {
       title: "Cập nhật",
@@ -287,23 +413,15 @@ const PhuTungManagement = () => {
     },
   ].filter(Boolean);
 
-  // Tính toán thống kê
   const tongTonKho = tonKhoData.reduce(
     (sum, item) => sum + item.so_luong_ton,
-    0
-  );
-  const tongKhoa = tonKhoData.reduce(
-    (sum, item) => sum + item.so_luong_khoa,
-    0
-  );
-  const tongKhaDung = tonKhoData.reduce(
-    (sum, item) => sum + item.so_luong_kha_dung,
-    0
+    0,
   );
   const phuTungSapHet = tonKhoData.filter(
-    (item) => item.so_luong_ton < item.so_luong_toi_thieu
+    (item) => item.so_luong_ton < item.so_luong_toi_thieu,
   ).length;
   const khoHetHang = tonKhoData.filter((i) => i.so_luong_ton === 0).length;
+
   return (
     <div
       style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
@@ -362,10 +480,7 @@ const PhuTungManagement = () => {
             activeKey={activeTab}
             onChange={setActiveTab}
             items={[
-              {
-                key: "danh-sach",
-                label: "Danh sách",
-              },
+              { key: "danh-sach", label: "Danh sách" },
               {
                 key: "ton-kho",
                 label: (
@@ -387,77 +502,6 @@ const PhuTungManagement = () => {
           />
         </div>
 
-        {/* Filters */}
-        <div
-          style={{
-            marginBottom: 16,
-            padding: isMobile ? 8 : 16,
-            background: "#fafafa",
-            borderRadius: 8,
-          }}
-        >
-          <Row gutter={[8, 8]}>
-            <Col xs={24} sm={24} md={12} lg={8}>
-              <Input
-                placeholder="Mã, tên phụ tùng..."
-                prefix={<SearchOutlined />}
-                value={searchText}
-                onChange={handleSearch}
-                allowClear
-                size="small"
-              />
-            </Col>
-
-            {activeTab === "danh-sach" && (
-              <Col xs={24} sm={12} md={6} lg={6}>
-                <Select
-                  placeholder="Nhóm phụ tùng"
-                  style={{ width: "100%" }}
-                  value={nhomPT}
-                  onChange={setNhomPT}
-                  allowClear
-                  size="small"
-                >
-                  <Select.Option value="Động cơ">Động cơ</Select.Option>
-                  <Select.Option value="Phanh">Phanh</Select.Option>
-                  <Select.Option value="Điện">Điện</Select.Option>
-                  <Select.Option value="Truyền động">Truyền động</Select.Option>
-                </Select>
-              </Col>
-            )}
-
-            <Col
-              xs={24}
-              sm={activeTab === "danh-sach" ? 12 : 24}
-              md={activeTab === "danh-sach" ? 6 : 12}
-              lg={activeTab === "danh-sach" ? 10 : 16}
-              style={{ textAlign: isMobile ? "left" : "right" }}
-            >
-              <Space wrap>
-                <Button
-                  size="small"
-                  icon={<ReloadOutlined />}
-                  onClick={() =>
-                    activeTab === "danh-sach" ? loadDanhSach() : loadTonKho()
-                  }
-                >
-                  Tải lại
-                </Button>
-
-                {activeTab === "danh-sach" && (
-                  <ExportButton
-                    module="part"
-                    title="Danh sách phụ tùng"
-                    params={{ nhom_pt: nhomPT, search: searchText }}
-                    size="small"
-                  />
-                )}
-              </Space>
-            </Col>
-          </Row>
-        </div>
-
-        {/* Statistics for Ton Kho tab */}
         {activeTab === "ton-kho" && (
           <Row gutter={[8, 8]} style={{ marginBottom: 16 }}>
             <Col xs={12} md={6}>
@@ -484,19 +528,88 @@ const PhuTungManagement = () => {
           </Row>
         )}
 
-        {/* Tables */}
+        <div
+          style={{
+            marginBottom: 16,
+            padding: isMobile ? 8 : 16,
+            background: "#fafafa",
+            borderRadius: 8,
+          }}
+        >
+          <Row gutter={[8, 8]}>
+            <Col xs={24} sm={24} md={12} lg={8}>
+              <Input
+                placeholder="Mã, tên phụ tùng..."
+                prefix={<SearchOutlined />}
+                value={searchText}
+                onChange={handleSearch}
+                allowClear
+                size="small"
+              />
+            </Col>
+            {activeTab === "danh-sach" && (
+              <Col xs={24} sm={12} md={6} lg={6}>
+                <Select
+                  placeholder="Nhóm phụ tùng"
+                  style={{ width: "100%" }}
+                  value={nhomPT}
+                  onChange={setNhomPT}
+                  allowClear
+                  size="small"
+                >
+                  {nhomPTList.map((nhom) => (
+                    <Select.Option key={nhom.ma_nh} value={nhom.ma_nh}>
+                      {nhom.ten_nh}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Col>
+            )}
+            <Col
+              xs={24}
+              sm={activeTab === "danh-sach" ? 12 : 24}
+              md={activeTab === "danh-sach" ? 6 : 12}
+              lg={activeTab === "danh-sach" ? 10 : 16}
+              style={{ textAlign: isMobile ? "left" : "right" }}
+            >
+              <Space wrap>
+                <Button
+                  size="small"
+                  icon={<ReloadOutlined />}
+                  onClick={() =>
+                    activeTab === "danh-sach" ? loadDanhSach() : loadTonKho()
+                  }
+                >
+                  Tải lại
+                </Button>
+                {activeTab === "danh-sach" && (
+                  <ExportButton
+                    module="part"
+                    title="Danh sách phụ tùng"
+                    params={{ nhom_pt: nhomPT, search: searchText }}
+                    size="small"
+                  />
+                )}
+              </Space>
+            </Col>
+          </Row>
+        </div>
+
         {activeTab === "danh-sach" && (
           <Table
             columns={danhSachColumns.filter(
               (col) =>
                 !isMobile ||
-                !["gia_nhap", "gia_ban", "vat"].includes(col.dataIndex)
+                !["gia_nhap", "gia_ban", "vat"].includes(col.dataIndex),
             )}
             dataSource={data}
             rowKey="ma_pt"
             loading={loading}
             scroll={{ x: 800 }}
             size="small"
+            rowClassName={(record) =>
+              record.status === false ? "inactive-row" : ""
+            }
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
@@ -514,24 +627,25 @@ const PhuTungManagement = () => {
             loading={loading}
             scroll={{ x: 800 }}
             size="small"
+            rowClassName={(record) => {
+              let classes = [];
+              if (record.so_luong_ton < record.so_luong_toi_thieu)
+                classes.push("low-stock-row");
+              if (record.status === false) classes.push("inactive-row");
+              return classes.join(" ");
+            }}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
               showTotal: (total) => `Tổng: ${total}`,
               size: "small",
             }}
-            rowClassName={(record) =>
-              record.so_luong_ton < record.so_luong_toi_thieu
-                ? "low-stock-row"
-                : ""
-            }
           />
         )}
 
         {activeTab === "bi-khoa" && <DanhSachKhoaTab ma_kho={ma_kho} />}
       </Card>
 
-      {/* Form Modal */}
       <PhuTungForm
         visible={formVisible}
         onClose={() => setFormVisible(false)}
@@ -541,7 +655,6 @@ const PhuTungManagement = () => {
         khoList={khoList}
       />
 
-      {/* Lich Su Modal */}
       <LichSuModal
         visible={lichSuVisible}
         onClose={() => setLichSuVisible(false)}
@@ -550,15 +663,13 @@ const PhuTungManagement = () => {
       />
 
       <style>{`
-        .low-stock-row {
-          background-color: #fff1f0 !important;
-        }
-        .low-stock-row:hover {
-          background-color: #ffe7e7 !important;
-        }
+        .low-stock-row { background-color: #fff1f0 !important; }
+        .low-stock-row:hover { background-color: #ffe7e7 !important; }
+        .inactive-row { background-color: #fafafa !important; opacity: 0.6; }
+        .inactive-row td { color: #bfbfbf !important; }
       `}</style>
     </div>
   );
 };
 
-export default PhuTungManagement;
+export default PhuTungManage;

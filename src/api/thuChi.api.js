@@ -10,6 +10,9 @@ export const thuChiAPI = {
 
   // Get thu chi detail by so_phieu
   getBySoPhieu: async (so_phieu) => {
+    if (!so_phieu || so_phieu === "undefined" || so_phieu === "null") {
+      return Promise.reject(new Error("Số phiếu không hợp lệ"));
+    }
     return axiosInstance.get(API_ENDPOINTS.THU_CHI_DETAIL(so_phieu));
   },
 
@@ -21,14 +24,14 @@ export const thuChiAPI = {
   // Send for approval (gui duyet)
   guiDuyet: async (so_phieu) => {
     return axiosInstance.post(
-      `${API_ENDPOINTS.THU_CHI_DETAIL(so_phieu)}/gui-duyet`
+      `${API_ENDPOINTS.THU_CHI_DETAIL(so_phieu)}/gui-duyet`,
     );
   },
 
   // Approve (phe duyet)
   pheDuyet: async (so_phieu) => {
     return axiosInstance.post(
-      `${API_ENDPOINTS.THU_CHI_DETAIL(so_phieu)}/phe-duyet`
+      `${API_ENDPOINTS.THU_CHI_DETAIL(so_phieu)}/phe-duyet`,
     );
   },
 
@@ -37,7 +40,7 @@ export const thuChiAPI = {
     // data: { ly_do: string }
     return axiosInstance.post(
       `${API_ENDPOINTS.THU_CHI_DETAIL(so_phieu)}/huy`,
-      data
+      data,
     );
   },
 

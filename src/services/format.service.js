@@ -1,86 +1,90 @@
 // src/services/format.service.js
 // Data formatting service for display
 
-import dayjs from 'dayjs';
-import { 
-  DATE_FORMAT, 
+import dayjs from "dayjs";
+import {
+  DATE_FORMAT,
   DATETIME_FORMAT,
   TRANG_THAI_LABELS,
   XE_TRANG_THAI_LABELS,
   USER_ROLE_LABELS,
   LOAI_GIAO_DICH_LABELS,
   LOAI_THU_CHI_LABELS,
-  HINH_THUC_THANH_TOAN_LABELS
-} from '../utils/constant';
+  HINH_THUC_THANH_TOAN_LABELS,
+} from "../utils/constant";
 
 class FormatService {
   // ===== DATE & TIME FORMATTING =====
 
   formatDate(date, format = DATE_FORMAT) {
-    if (!date) return '-';
+    if (!date) return "-";
     return dayjs(date).format(format);
   }
 
   formatDateTime(date, format = DATETIME_FORMAT) {
-    if (!date) return '-';
+    if (!date) return "-";
     return dayjs(date).format(format);
   }
 
   formatTime(date) {
-    if (!date) return '-';
-    return dayjs(date).format('HH:mm:ss');
+    if (!date) return "-";
+    return dayjs(date).format("HH:mm:ss");
   }
 
   formatRelativeTime(date) {
-    if (!date) return '-';
+    if (!date) return "-";
     const now = dayjs();
     const target = dayjs(date);
-    const diff = now.diff(target, 'minute');
+    const diff = now.diff(target, "minute");
 
-    if (diff < 1) return 'Vừa xong';
+    if (diff < 1) return "Vừa xong";
     if (diff < 60) return `${diff} phút trước`;
     if (diff < 1440) return `${Math.floor(diff / 60)} giờ trước`;
     if (diff < 43200) return `${Math.floor(diff / 1440)} ngày trước`;
-    
+
     return this.formatDate(date);
   }
 
   formatDateRange(startDate, endDate) {
-    if (!startDate || !endDate) return '-';
+    if (!startDate || !endDate) return "-";
     return `${this.formatDate(startDate)} - ${this.formatDate(endDate)}`;
   }
 
   // ===== CURRENCY & NUMBER FORMATTING =====
 
   formatCurrency(amount) {
-    if (amount === null || amount === undefined) return '0 ₫';
-    
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
+    if (amount === null || amount === undefined) return "0 ₫";
+    const numericAmount =
+      typeof amount === "string" ? parseFloat(amount) : amount;
+
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+      maximumFractionDigits: 0,
+    }).format(numericAmount);
   }
 
   formatNumber(number, decimals = 0) {
-    if (number === null || number === undefined) return '0';
-    
-    return new Intl.NumberFormat('vi-VN', {
+    if (number === null || number === undefined) return "0";
+    const numericNumber =
+      typeof number === "string" ? parseFloat(number) : number;
+
+    return new Intl.NumberFormat("vi-VN", {
       minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    }).format(number);
+      maximumFractionDigits: decimals,
+    }).format(numericNumber);
   }
 
   formatPercentage(value, total) {
-    if (!total || total === 0) return '0%';
+    if (!total || total === 0) return "0%";
     const percentage = ((value / total) * 100).toFixed(1);
     return `${percentage}%`;
   }
 
   formatCompactNumber(number) {
-    if (!number) return '0';
-    
+    if (!number) return "0";
+
     if (number >= 1000000000) {
       return `${(number / 1000000000).toFixed(1)}B`;
     }
@@ -122,172 +126,175 @@ class FormatService {
   // ===== STRING FORMATTING =====
 
   formatPhoneNumber(phone) {
-    if (!phone) return '-';
-    
+    if (!phone) return "-";
+
     // Format: 0xxx xxx xxx
-    const cleaned = phone.replace(/\D/g, '');
+    const cleaned = phone.replace(/\D/g, "");
     const match = cleaned.match(/^(\d{4})(\d{3})(\d{3})$/);
-    
+
     if (match) {
       return `${match[1]} ${match[2]} ${match[3]}`;
     }
-    
+
     return phone;
   }
 
   formatCMND(cmnd) {
-    if (!cmnd) return '-';
-    
+    if (!cmnd) return "-";
+
     // Format: xxx xxx xxx
-    const cleaned = cmnd.replace(/\D/g, '');
+    const cleaned = cmnd.replace(/\D/g, "");
     const match = cleaned.match(/^(\d{3})(\d{3})(\d{3})$/);
-    
+
     if (match) {
       return `${match[1]} ${match[2]} ${match[3]}`;
     }
-    
+
     return cmnd;
   }
 
   formatAddress(address) {
-    if (!address) return '-';
+    if (!address) return "-";
     return address.trim();
   }
 
   capitalizeFirst(str) {
-    if (!str) return '';
+    if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   }
 
   capitalizeWords(str) {
-    if (!str) return '';
-    return str.split(' ')
-      .map(word => this.capitalizeFirst(word))
-      .join(' ');
+    if (!str) return "";
+    return str
+      .split(" ")
+      .map((word) => this.capitalizeFirst(word))
+      .join(" ");
   }
 
   truncate(str, maxLength = 50) {
-    if (!str) return '';
+    if (!str) return "";
     if (str.length <= maxLength) return str;
-    return str.slice(0, maxLength) + '...';
+    return str.slice(0, maxLength) + "...";
   }
 
   // ===== VEHICLE FORMATTING =====
 
   formatSoKhung(soKhung) {
-    if (!soKhung) return '-';
+    if (!soKhung) return "-";
     // Format: XXXXX XXXX XXXX XX
-    return soKhung.toUpperCase().replace(/(.{5})(.{4})(.{4})(.{4})/, '$1 $2 $3 $4');
+    return soKhung
+      .toUpperCase()
+      .replace(/(.{5})(.{4})(.{4})(.{4})/, "$1 $2 $3 $4");
   }
 
   formatSoMay(soMay) {
-    if (!soMay) return '-';
+    if (!soMay) return "-";
     return soMay.toUpperCase();
   }
 
   formatBienSo(bienSo) {
-    if (!bienSo) return '-';
+    if (!bienSo) return "-";
     // Format: 59A-12345
-    return bienSo.toUpperCase().replace(/\s+/g, '');
+    return bienSo.toUpperCase().replace(/\s+/g, "");
   }
 
   formatXeInfo(xe) {
-    if (!xe) return '-';
-    
+    if (!xe) return "-";
+
     const parts = [];
     if (xe.ten_loai) parts.push(xe.ten_loai);
     if (xe.ten_mau) parts.push(xe.ten_mau);
     if (xe.so_khung) parts.push(`(${this.formatSoKhung(xe.so_khung)})`);
-    
-    return parts.join(' - ');
+
+    return parts.join(" - ");
   }
 
   // ===== PARTS FORMATTING =====
 
   formatPhuTungInfo(pt) {
-    if (!pt) return '-';
-    
+    if (!pt) return "-";
+
     const parts = [];
     if (pt.ma_pt) parts.push(pt.ma_pt);
     if (pt.ten_pt) parts.push(pt.ten_pt);
     if (pt.don_vi_tinh) parts.push(`(${pt.don_vi_tinh})`);
-    
-    return parts.join(' - ');
+
+    return parts.join(" - ");
   }
 
   // ===== WAREHOUSE FORMATTING =====
 
   formatKhoInfo(kho) {
-    if (!kho) return '-';
+    if (!kho) return "-";
     return `${kho.ma_kho} - ${kho.ten_kho}`;
   }
 
   // ===== CUSTOMER FORMATTING =====
 
   formatKhachHangInfo(kh) {
-    if (!kh) return '-';
-    
+    if (!kh) return "-";
+
     const parts = [];
     if (kh.ma_kh) parts.push(kh.ma_kh);
     if (kh.ho_ten) parts.push(kh.ho_ten);
     if (kh.dien_thoai) parts.push(`(${this.formatPhoneNumber(kh.dien_thoai)})`);
-    
-    return parts.join(' - ');
+
+    return parts.join(" - ");
   }
 
   // ===== FILE SIZE FORMATTING =====
 
   formatFileSize(bytes) {
-    if (!bytes || bytes === 0) return '0 Bytes';
-    
+    if (!bytes || bytes === 0) return "0 Bytes";
+
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   }
 
   // ===== TRANSACTION FORMATTING =====
 
   formatSoPhieu(prefix, number) {
-    if (!number) return '-';
-    return `${prefix}-${String(number).padStart(6, '0')}`;
+    if (!number) return "-";
+    return `${prefix}-${String(number).padStart(6, "0")}`;
   }
 
   formatDonHangMaPhieu(maPhieu) {
-    return this.formatSoPhieu('DH', maPhieu);
+    return this.formatSoPhieu("DH", maPhieu);
   }
 
   formatHoaDonMaPhieu(maHD) {
-    return this.formatSoPhieu('HD', maHD);
+    return this.formatSoPhieu("HD", maHD);
   }
 
   formatChuyenKhoMaPhieu(maPhieu) {
-    return this.formatSoPhieu('CK', maPhieu);
+    return this.formatSoPhieu("CK", maPhieu);
   }
 
   formatThuChiSoPhieu(soPhieu) {
-    return soPhieu || '-';
+    return soPhieu || "-";
   }
 
   // ===== INVENTORY FORMATTING =====
 
   formatTonKho(soLuongTon, soLuongKhoa = 0) {
-    if (soLuongTon === null || soLuongTon === undefined) return '-';
-    
+    if (soLuongTon === null || soLuongTon === undefined) return "-";
+
     if (soLuongKhoa > 0) {
       return `${this.formatNumber(soLuongTon)} (Khóa: ${this.formatNumber(soLuongKhoa)})`;
     }
-    
+
     return this.formatNumber(soLuongTon);
   }
 
   formatTonKhoStatus(soLuongTon, soLuongToiThieu) {
-    if (soLuongTon === null || soLuongTon === undefined) return 'normal';
-    
-    if (soLuongTon === 0) return 'empty';
-    if (soLuongTon <= soLuongToiThieu) return 'low';
-    return 'normal';
+    if (soLuongTon === null || soLuongTon === undefined) return "normal";
+
+    if (soLuongTon === 0) return "empty";
+    if (soLuongTon <= soLuongToiThieu) return "low";
+    return "normal";
   }
 
   // ===== DEBT FORMATTING =====
@@ -298,23 +305,23 @@ class FormatService {
       tongNo: this.formatCurrency(tongNo),
       daTra: this.formatCurrency(daTra),
       conLai: this.formatCurrency(conLai),
-      percentage: this.formatPercentage(daTra, tongNo)
+      percentage: this.formatPercentage(daTra, tongNo),
     };
   }
 
   // ===== ARRAY FORMATTING =====
 
-  formatList(items, key, separator = ', ') {
-    if (!Array.isArray(items) || items.length === 0) return '-';
-    return items.map(item => item[key]).join(separator);
+  formatList(items, key, separator = ", ") {
+    if (!Array.isArray(items) || items.length === 0) return "-";
+    return items.map((item) => item[key]).join(separator);
   }
 
-  formatOptions(items, labelKey = 'label', valueKey = 'value') {
+  formatOptions(items, labelKey = "label", valueKey = "value") {
     if (!Array.isArray(items)) return [];
-    
-    return items.map(item => ({
+
+    return items.map((item) => ({
       label: item[labelKey],
-      value: item[valueKey]
+      value: item[valueKey],
     }));
   }
 
@@ -324,46 +331,46 @@ class FormatService {
     return (page - 1) * pageSize + index + 1;
   }
 
-  formatRowKey(item, keyField = 'id') {
+  formatRowKey(item, keyField = "id") {
     return item[keyField] || `row-${Math.random()}`;
   }
 
   // ===== EXPORT FORMATTING =====
 
-  formatExportFilename(prefix, extension = 'xlsx') {
-    const timestamp = dayjs().format('YYYYMMDD_HHmmss');
+  formatExportFilename(prefix, extension = "xlsx") {
+    const timestamp = dayjs().format("YYYYMMDD_HHmmss");
     return `${prefix}_${timestamp}.${extension}`;
   }
 
   // ===== SEARCH/FILTER FORMATTING =====
 
   formatSearchQuery(query) {
-    if (!query) return '';
+    if (!query) return "";
     return query.trim().toLowerCase();
   }
 
   // ===== ERROR FORMATTING =====
 
   formatErrorMessage(error) {
-    if (typeof error === 'string') return error;
+    if (typeof error === "string") return error;
     if (error?.message) return error.message;
     if (error?.response?.data?.message) return error.response.data.message;
-    return 'Đã xảy ra lỗi, vui lòng thử lại';
+    return "Đã xảy ra lỗi, vui lòng thử lại";
   }
 
   // ===== SUCCESS FORMATTING =====
 
   formatSuccessMessage(action) {
     const messages = {
-      create: 'Tạo mới thành công',
-      update: 'Cập nhật thành công',
-      delete: 'Xóa thành công',
-      approve: 'Phê duyệt thành công',
-      reject: 'Từ chối thành công',
-      cancel: 'Hủy thành công'
+      create: "Tạo mới thành công",
+      update: "Cập nhật thành công",
+      delete: "Xóa thành công",
+      approve: "Phê duyệt thành công",
+      reject: "Từ chối thành công",
+      cancel: "Hủy thành công",
     };
-    
-    return messages[action] || 'Thao tác thành công';
+
+    return messages[action] || "Thao tác thành công";
   }
 }
 

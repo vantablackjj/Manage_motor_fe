@@ -23,6 +23,7 @@ import {
   StopOutlined,
   ImportOutlined,
   ExportOutlined,
+  RollbackOutlined,
 } from "@ant-design/icons";
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
@@ -40,7 +41,7 @@ const XeLoaiPage = () => {
   const [data, setData] = useState([]);
   const [filters, setFilters] = useState({
     ma_nh: null,
-    loai_hinh: null,
+    ma_lh: null,
     search: "",
   });
 
@@ -75,9 +76,6 @@ const XeLoaiPage = () => {
           <p>
             <strong>{record.ten_loai}</strong> ({record.ma_loai})
           </p>
-          <p style={{ color: "#ff4d4f" }}>
-            Loại xe này sẽ không thể chọn khi tạo dữ liệu mới.
-          </p>
         </>
       ),
       okText: "Ngừng sử dụng",
@@ -90,11 +88,26 @@ const XeLoaiPage = () => {
           fetchData();
         } catch (error) {
           notificationService.error(
-            error?.response?.data?.message || "Không thể ngừng sử dụng loại xe"
+            error?.response?.data?.message || "Không thể ngừng sử dụng loại xe",
           );
         }
       },
     });
+  };
+
+  const handleRestore = async (record) => {
+    try {
+      // Backend requires full object or just status?
+      // Based on previous experience, let's send full object + status: true key if needed, or just partial.
+      // User prompt says: Body: { "status": true }.
+      // But for safety based on recent error, maybe simpler payload first?
+      // User prompt: `PUT /api/model-car/:ma_loai` with body `{ "status": true }`.
+      await danhMucAPI.modelCar.update(record.ma_loai, { status: true });
+      notificationService.success("Khôi phục thành công");
+      fetchData();
+    } catch (error) {
+      notificationService.error("Không thể khôi phục loại xe");
+    }
   };
 
   const fetchFilterOptions = async () => {
@@ -105,9 +118,9 @@ const XeLoaiPage = () => {
         danhMucAPI.noiSanXuat.getAll(),
       ]);
 
-      setNhanHieuList(nh || []);
-      setLoaiHinhList(lh || []);
-      setNoiSanXuatList(nsx || []);
+      setNhanHieuList(nh?.data || nh || []);
+      setLoaiHinhList(lh?.data || lh || []);
+      setNoiSanXuatList(nsx?.data || nsx || []);
     } catch {
       notificationService.error("Không thể tải dữ liệu danh mục");
     }
@@ -116,8 +129,11 @@ const XeLoaiPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await danhMucAPI.modelCar.getAll(filters);
-      setData(res || []);
+      const res = await danhMucAPI.modelCar.getAll({
+        ...filters,
+        status: "all",
+      });
+      setData(res?.data || res || []);
     } catch {
       notificationService.error("Không thể tải danh sách loại xe");
     } finally {
@@ -146,13 +162,16 @@ const XeLoaiPage = () => {
     {
       title: "Loại hình",
       dataIndex: "ten_lh",
+      key: "loai_hinh",
       width: 120,
     },
     {
       title: "Nơi SX",
       dataIndex: "ten_noi_sx",
+      key: "noi_sx",
       width: 150,
     },
+
     {
       title: "Giá nhập",
       dataIndex: "gia_nhap",
@@ -209,6 +228,17 @@ const XeLoaiPage = () => {
               />
             </Tooltip>
           )}
+
+          {record.status === false && (
+            <Tooltip title="Khôi phục">
+              <Button
+                type="link"
+                icon={<RollbackOutlined />}
+                style={{ color: "#52c41a" }}
+                onClick={() => handleRestore(record)}
+              />
+            </Tooltip>
+          )}
         </Space>
       ),
     },
@@ -218,10 +248,10 @@ const XeLoaiPage = () => {
       width: 120,
       align: "center",
       render: (v) =>
-        v ? (
-          <Tag color="green">Đang sử dụng</Tag>
-        ) : (
+        v === false ? (
           <Tag color="red">Ngừng sử dụng</Tag>
+        ) : (
+          <Tag color="green">Đang sử dụng</Tag>
         ),
     },
   ];
@@ -287,7 +317,7 @@ const XeLoaiPage = () => {
             allowClear
             size="small"
             style={{ width: isMobile ? "48%" : 160 }}
-            onChange={(v) => setFilters({ ...filters, loai_hinh: v })}
+            onChange={(v) => setFilters({ ...filters, ma_lh: v })}
           >
             {loaiHinhList.map((lh) => (
               <Option key={lh.ma_lh} value={lh.ma_lh}>
@@ -321,7 +351,22 @@ const XeLoaiPage = () => {
             showTotal: (t) => `Tổng: ${t}`,
           }}
           locale={{ emptyText: "Không có dữ liệu" }}
+          rowClassName={(record) =>
+            record.status === false ? "inactive-row" : ""
+          }
         />
+        <style>{`
+          .inactive-row {
+            background-color: #fafafa !important;
+            color: #bfbfbf !important;
+          }
+          .inactive-row td {
+            color: #bfbfbf !important;
+          }
+          .inactive-row .ant-tag {
+            opacity: 0.6;
+          }
+        `}</style>
       </Card>
 
       {/* Modal */}

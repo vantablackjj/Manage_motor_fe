@@ -1,7 +1,7 @@
 // src/utils/constant.js
 
 export const API_BASE_URL =
-  import.meta.env.REACT_APP_API_BASE_URL || "https://motor-manage.onrender.com";
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5000";
 
 // Vai trò người dùng
 export const USER_ROLES = {
@@ -23,24 +23,48 @@ export const TRANG_THAI = {
   NHAP: "NHAP",
   GUI_DUYET: "GUI_DUYET",
   DA_DUYET: "DA_DUYET",
+  DANG_NHAP_KHO: "DANG_NHAP_KHO",
+  HOAN_THANH: "HOAN_THANH",
+  DANG_GIAO: "DANG_GIAO",
+  CHO_DUYET_GIAO: "CHO_DUYET_GIAO",
+  DA_DUYET_GIAO: "DA_DUYET_GIAO",
+  DA_XUAT: "DA_XUAT",
+  DA_GIAO: "DA_GIAO",
+  DA_THANH_TOAN: "DA_THANH_TOAN",
   TU_CHOI: "TU_CHOI",
   DA_HUY: "DA_HUY",
 };
 
 export const TRANG_THAI_LABELS = {
-  NHAP: "Đang nhập",
+  NHAP: "Bản nháp",
   GUI_DUYET: "Chờ duyệt",
   DA_DUYET: "Đã duyệt",
-  TU_CHOI: "Từ chối",
+  DANG_NHAP_KHO: "Đang nhập kho",
+  HOAN_THANH: "Hoàn thành",
+  DANG_GIAO: "Đang giao hàng",
+  DA_XUAT: "Đã xuất kho",
+  CHO_DUYET_GIAO: "Chờ duyệt giao",
+  DA_DUYET_GIAO: "Đã duyệt giao",
+  DA_GIAO: "Đã giao hàng",
+  DA_THANH_TOAN: "Đã thanh toán",
+  TU_CHOI: "Đã từ chối",
   DA_HUY: "Đã hủy",
 };
 
 export const TRANG_THAI_COLORS = {
   NHAP: "default",
-  GUI_DUYET: "warning",
-  DA_DUYET: "success",
+  GUI_DUYET: "blue",
+  DA_DUYET: "cyan",
+  DANG_NHAP_KHO: "geekblue",
+  HOAN_THANH: "green",
+  DANG_GIAO: "orange",
+  DA_XUAT: "processing",
+  CHO_DUYET_GIAO: "gold",
+  DA_DUYET_GIAO: "lime",
+  DA_GIAO: "success",
+  DA_THANH_TOAN: "green",
   TU_CHOI: "error",
-  DA_HUY: "default",
+  DA_HUY: "error",
 };
 
 // Trạng thái xe
@@ -88,6 +112,38 @@ export const LOAI_GIAO_DICH_LABELS = {
   BAN_HANG: "Bán hàng",
   TRA_HANG: "Trả hàng",
   KIEM_KE: "Kiểm kê",
+};
+
+// Loại đơn hàng (Unified ERP)
+export const LOAI_DON_HANG = {
+  MUA_HANG: "MUA_HANG",
+  BAN_HANG: "BAN_HANG",
+  CHUYEN_KHO: "CHUYEN_KHO",
+};
+
+// Loại đối thể (Polymorphic Entities)
+export const LOAI_BEN = {
+  KHO: "KHO",
+  DOI_TAC: "DOI_TAC",
+};
+
+// Loại đối tác
+export const LOAI_DOI_TAC = {
+  KHACH_HANG: "KHACH_HANG",
+  NHA_CUNG_CAP: "NHA_CUNG_CAP",
+  CA_HAI: "CA_HAI",
+};
+
+export const LOAI_DOI_TAC_LABELS = {
+  KHACH_HANG: "Khách hàng",
+  NHA_CUNG_CAP: "Nhà cung cấp",
+  CA_HAI: "Cả hai",
+};
+
+export const LOAI_DOI_TAC_COLORS = {
+  KHACH_HANG: "blue",
+  NHA_CUNG_CAP: "orange",
+  CA_HAI: "purple",
 };
 
 // Loại phiếu xuất
@@ -168,9 +224,15 @@ export const API_ENDPOINTS = {
   KHO: "/kho",
   KHO_DETAIL: (ma_kho) => `/kho/${ma_kho}`,
 
+  // Products (Unified)
+  PRODUCTS: "/products",
+  PRODUCT_DETAIL: (id) => `/products/${id}`,
+  PRODUCTS_FILTERS: (field) => `/products/filters/${field}`,
+  PRODUCT_STOCK: (id) => `/products/${id}/stock`,
+
   // Xe
   XE: "/xe",
-  XE_TON_KHO: (ma_kho) => `/xe/kho/${ma_kho}`,
+  XE_TON_KHO: (ma_kho) => `/xe/ton-kho/${ma_kho}`, // Updated to new route
   XE_DETAIL: (xe_key) => `/xe/${xe_key}`,
   XE_LICH_SU: (xe_key) => `/xe/${xe_key}/lich-su`,
   XE_KHOA: (xe_key) => `/xe/${xe_key}/lock`,
@@ -194,7 +256,13 @@ export const API_ENDPOINTS = {
   DON_HANG_MUA_CHI_TIET: (ma_phieu) => `/don-hang-mua/${ma_phieu}/chi-tiet`,
   DON_HANG_MUA_GUI_DUYET: (ma_phieu) => `/don-hang-mua/${ma_phieu}/gui-duyet`,
   DON_HANG_MUA_PHE_DUYET: (ma_phieu) => `/don-hang-mua/${ma_phieu}/phe-duyet`,
-  DON_HANG_MUA_HUY: (ma_phieu) => `/don-hang-mua/${ma_phieu}/huy-duyet`,
+  DON_HANG_MUA_HUY: (ma_phieu) => `/don-hang-mua/${ma_phieu}/reject`, // Updated to match user context if needed, or keep existing
+  DON_HANG_MUA_NHAP_KHO: (ma_phieu) => `/don-hang-mua/${ma_phieu}/nhap-kho`,
+
+  // Unified Orders (New)
+  ORDERS: "/orders",
+  ORDER_DETAIL: (id) => `/orders/${id}`,
+  ORDER_DELIVER: (id) => `/orders/${id}/deliver`,
 
   // Hóa đơn bán
   HOA_DON_BAN: "/hoa-don-ban",
@@ -203,14 +271,7 @@ export const API_ENDPOINTS = {
   HOA_DON_BAN_PHE_DUYET: (ma_phieu) => `/hoa-don-ban/${ma_phieu}/phe-duyet`,
   HOA_DON_BAN_HUY: (ma_phieu) => `/hoa-don-ban/${ma_phieu}/huy-duyet`,
 
-  // Chuyển kho
-  CHUYEN_KHO: "/chuyen-kho",
-  CHUYEN_KHO_DETAIL: (ma_phieu) => `/chuyen-kho/${ma_phieu}`,
-  CHUYEN_KHO_THEM_XE: (ma_phieu) => `/chuyen-kho/${ma_phieu}/xe`,
-  CHUYEN_KHO_THEM_PT: (ma_phieu) => `/chuyen-kho/${ma_phieu}/phu-tung`,
-  CHUYEN_KHO_GUI_DUYET: (ma_phieu) => `/chuyen-kho/${ma_phieu}/gui-duyet`,
-  CHUYEN_KHO_PHE_DUYET: (ma_phieu) => `/chuyen-kho/${ma_phieu}/phe-duyet`,
-  CHUYEN_KHO_HUY: (so_phieu) => `/chuyen-kho/${so_phieu}/huy`,
+  // Chuyển kho - endpoints now defined in chuyenKho.api.js
 
   // Thu chi
   THU_CHI: "/thu-chi",
@@ -223,6 +284,7 @@ export const API_ENDPOINTS = {
   NOI_SX: "/noi-sx",
   MODEL_CAR: "/model-car",
   CAR_COLOR: "/car-color",
+  NHOM_HANG: "/nhom-hang",
 };
 
 // Messages

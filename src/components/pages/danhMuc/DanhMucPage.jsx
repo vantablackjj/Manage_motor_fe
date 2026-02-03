@@ -1,5 +1,6 @@
 // src/pages/danhMuc/DanhMucPage.jsx
 import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Tabs,
   Table,
@@ -22,8 +23,10 @@ import {
   DeleteOutlined,
   ReloadOutlined,
   SettingOutlined,
+  SearchOutlined,
   ImportOutlined,
   ExportOutlined,
+  RollbackOutlined,
 } from "@ant-design/icons";
 import { danhMucAPI } from "../../../api";
 import ImportButton from "../../features/Import/ImportButton";
@@ -38,7 +41,36 @@ const { TabPane } = Tabs;
 
 const DanhMucPage = () => {
   const { isMobile } = useResponsive();
-  const [activeTab, setActiveTab] = useState("brand");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const getTabFromPath = (path) => {
+    if (path.includes("nhan-hieu")) return "brand";
+    if (path.includes("mau-xe")) return "color";
+    if (path.includes("loai-hinh")) return "loaiHinh";
+    if (path.includes("noi-san-xuat")) return "noiSX";
+    if (path.includes("model")) return "model";
+    return "brand";
+  };
+
+  const getPathFromTab = (tab) => {
+    switch (tab) {
+      case "brand":
+        return "/danh-muc/nhan-hieu";
+      case "color":
+        return "/danh-muc/mau-xe";
+      case "loaiHinh":
+        return "/danh-muc/loai-hinh";
+      case "noiSX":
+        return "/danh-muc/noi-san-xuat";
+      case "model":
+        return "/danh-muc/model";
+      default:
+        return "/danh-muc/nhan-hieu";
+    }
+  };
+
+  const [activeTab, setActiveTab] = useState(getTabFromPath(location.pathname));
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -52,25 +84,30 @@ const DanhMucPage = () => {
   const [modelList, setModelList] = useState([]);
 
   useEffect(() => {
+    const tab = getTabFromPath(location.pathname);
+    setActiveTab(tab);
+    fetchTabData(tab);
+  }, [location.pathname]);
+
+  useEffect(() => {
     fetchAllData();
   }, []);
 
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [brands, colors, loaiHinh, noiSX, models] = await Promise.all([
-        danhMucAPI.brand.getAll(),
-        danhMucAPI.color.getAll(),
-        danhMucAPI.loaiHinh.getAll(),
-        danhMucAPI.noiSanXuat.getAll(),
-        danhMucAPI.modelCar.getAll(),
+      const params = { status: "all" };
+      const [brands, colors, loaiHinh, noiSX] = await Promise.all([
+        danhMucAPI.brand.getAll(params),
+        danhMucAPI.color.getAll(params),
+        danhMucAPI.loaiHinh.getAll(params),
+        danhMucAPI.noiSanXuat.getAll(params),
       ]);
 
-      setBrandList(brands || []);
-      setColorList(colors || []);
-      setLoaiHinhList(loaiHinh || []);
-      setNoiSXList(noiSX || []);
-      setModelList(models || []);
+      setBrandList(brands?.data || brands || []);
+      setColorList(colors?.data || colors || []);
+      setLoaiHinhList(loaiHinh?.data || loaiHinh || []);
+      setNoiSXList(noiSX?.data || noiSX || []);
     } catch (error) {
       notificationService.error("Không thể tải danh mục");
     } finally {
@@ -81,27 +118,25 @@ const DanhMucPage = () => {
   const fetchTabData = async (tab) => {
     setLoading(true);
     try {
-      let data;
+      let res;
+      // Fetch all data (active & inactive) for Management Screen
+      const params = { status: "all" };
       switch (tab) {
         case "brand":
-          data = await danhMucAPI.brand.getAll();
-          setBrandList(data || []);
+          res = await danhMucAPI.brand.getAll(params);
+          setBrandList(res?.data || res || []);
           break;
         case "color":
-          data = await danhMucAPI.color.getAll();
-          setColorList(data || []);
+          res = await danhMucAPI.color.getAll(params);
+          setColorList(res?.data || res || []);
           break;
         case "loaiHinh":
-          data = await danhMucAPI.loaiHinh.getAll();
-          setLoaiHinhList(data || []);
+          res = await danhMucAPI.loaiHinh.getAll(params);
+          setLoaiHinhList(res?.data || res || []);
           break;
         case "noiSX":
-          data = await danhMucAPI.noiSanXuat.getAll();
-          setNoiSXList(data || []);
-          break;
-        case "model":
-          data = await danhMucAPI.modelCar.getAll();
-          setModelList(data || []);
+          res = await danhMucAPI.noiSanXuat.getAll(params);
+          setNoiSXList(res?.data || res || []);
           break;
       }
     } catch (error) {
@@ -142,10 +177,37 @@ const DanhMucPage = () => {
           await danhMucAPI.modelCar.delete(record.ma_loai);
           break;
       }
-      notificationService.deleteSuccess("danh mục");
+      notificationService.success("Đã ngừng sử dụng");
       fetchTabData(activeTab);
     } catch (error) {
-      notificationService.deleteError("danh mục", error);
+      notificationService.error("Có lỗi xảy ra");
+    }
+  };
+
+  const handleRestore = async (record) => {
+    try {
+      const payload = { ...record, status: true };
+      switch (activeTab) {
+        case "brand":
+          await danhMucAPI.brand.update(record.ma_nh, payload);
+          break;
+        case "color":
+          await danhMucAPI.color.update(record.ma_mau, payload);
+          break;
+        case "loaiHinh":
+          await danhMucAPI.loaiHinh.update(record.ma_lh, payload);
+          break;
+        case "noiSX":
+          await danhMucAPI.noiSanXuat.update(record.ma, payload);
+          break;
+        case "model":
+          await danhMucAPI.modelCar.update(record.ma_loai, payload);
+          break;
+      }
+      notificationService.success("Khôi phục thành công");
+      fetchTabData(activeTab);
+    } catch (error) {
+      notificationService.error("Không thể khôi phục");
     }
   };
 
@@ -201,6 +263,20 @@ const DanhMucPage = () => {
     }
   };
 
+  const getStatusColumn = () => ({
+    title: "Trạng thái",
+    dataIndex: "status",
+    key: "status",
+    width: 120,
+    align: "center",
+    render: (status) =>
+      status === false ? (
+        <Tag color="error">Ngừng sử dụng</Tag>
+      ) : (
+        <Tag color="success">Đang sử dụng</Tag>
+      ),
+  });
+
   // Common columns
   const getActionColumn = () => ({
     title: "Thao tác",
@@ -209,22 +285,47 @@ const DanhMucPage = () => {
     fixed: "right",
     render: (_, record) => (
       <Space size="small">
-        {authService.canEdit() && (
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          />
-        )}
-        {authService.canDelete() && (
+        {record.status !== false ? (
+          <>
+            {authService.canEdit() && (
+              <Button
+                type="link"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+              />
+            )}
+            {authService.canDelete() && (
+              <Popconfirm
+                title="Ngừng sử dụng?"
+                onConfirm={() => handleDelete(record)}
+                okText="Đồng ý"
+                cancelText="Hủy"
+              >
+                <Button
+                  type="link"
+                  danger
+                  size="small"
+                  icon={<DeleteOutlined />}
+                />
+              </Popconfirm>
+            )}
+          </>
+        ) : (
           <Popconfirm
-            title="Xóa?"
-            onConfirm={() => handleDelete(record)}
-            okText="Xóa"
+            title="Khôi phục dữ liệu này?"
+            onConfirm={() => handleRestore(record)}
+            okText="Khôi phục"
             cancelText="Hủy"
           >
-            <Button type="link" danger size="small" icon={<DeleteOutlined />} />
+            <Button
+              type="link"
+              size="small"
+              icon={<RollbackOutlined />}
+              title="Khôi phục"
+            >
+              Phục hồi
+            </Button>
           </Popconfirm>
         )}
       </Space>
@@ -251,6 +352,7 @@ const DanhMucPage = () => {
       dataIndex: "ten_nh",
       key: "ten_nh",
     },
+    getStatusColumn(),
     getActionColumn(),
   ];
 
@@ -299,6 +401,7 @@ const DanhMucPage = () => {
         />
       ),
     },
+    getStatusColumn(),
     getActionColumn(),
   ];
 
@@ -322,6 +425,7 @@ const DanhMucPage = () => {
       dataIndex: "ten_lh",
       key: "ten_lh",
     },
+    getStatusColumn(),
     getActionColumn(),
   ];
 
@@ -345,6 +449,7 @@ const DanhMucPage = () => {
       dataIndex: "ten_noi_sx",
       key: "ten_noi_sx",
     },
+    getStatusColumn(),
     getActionColumn(),
   ];
 
@@ -396,6 +501,7 @@ const DanhMucPage = () => {
       align: "right",
       render: (text) => formatService.formatCurrency(text),
     },
+    getStatusColumn(),
     getActionColumn(),
   ];
 
@@ -424,11 +530,7 @@ const DanhMucPage = () => {
       case "color":
         return (
           <>
-            <Form.Item
-              name="ma_mau"
-              label="Mã màu"
-              rules={[{ required: true, message: "Vui lòng nhập mã" }]}
-            >
+            <Form.Item name="ma_mau" label="Mã màu">
               <Input disabled={!!editingRecord} />
             </Form.Item>
             <Form.Item
@@ -438,17 +540,7 @@ const DanhMucPage = () => {
             >
               <Input placeholder="VD: Đỏ, Xanh, Đen..." />
             </Form.Item>
-            <Form.Item
-              name="gia_tri"
-              label="Mã màu Hex"
-              rules={[
-                { required: true, message: "Vui lòng nhập mã màu" },
-                {
-                  pattern: /^#[0-9A-Fa-f]{6}$/,
-                  message: "Mã màu không hợp lệ (VD: #FF0000)",
-                },
-              ]}
-            >
+            <Form.Item name="gia_tri" label="Mã màu Hex">
               <Input placeholder="#FF0000" />
             </Form.Item>
           </>
@@ -555,7 +647,6 @@ const DanhMucPage = () => {
       color: "Màu sắc",
       loaiHinh: "Loại hình xe",
       noiSX: "Nơi sản xuất",
-      model: "Model xe",
     };
     return titles[activeTab] || "";
   };
@@ -587,14 +678,14 @@ const DanhMucPage = () => {
                   activeTab === "brand"
                     ? "brand"
                     : activeTab === "color"
-                    ? "color"
-                    : activeTab === "loaiHinh"
-                    ? "loai-hinh"
-                    : activeTab === "noiSX"
-                    ? "noi-sx"
-                    : activeTab === "model"
-                    ? "model-car"
-                    : ""
+                      ? "color"
+                      : activeTab === "loaiHinh"
+                        ? "loai-hinh"
+                        : activeTab === "noiSX"
+                          ? "noi-sx"
+                          : activeTab === "model"
+                            ? "model-car"
+                            : ""
                 }
                 title={getTitle()}
                 onSuccess={() => fetchTabData(activeTab)}
@@ -605,14 +696,14 @@ const DanhMucPage = () => {
                   activeTab === "brand"
                     ? "brand"
                     : activeTab === "color"
-                    ? "color"
-                    : activeTab === "loaiHinh"
-                    ? "loai-hinh"
-                    : activeTab === "noiSX"
-                    ? "noi-sx"
-                    : activeTab === "model"
-                    ? "model-car"
-                    : ""
+                      ? "color"
+                      : activeTab === "loaiHinh"
+                        ? "loai-hinh"
+                        : activeTab === "noiSX"
+                          ? "noi-sx"
+                          : activeTab === "model"
+                            ? "model-car"
+                            : ""
                 }
                 title={getTitle()}
                 size="small"
@@ -644,8 +735,7 @@ const DanhMucPage = () => {
           activeKey={activeTab}
           size={isMobile ? "small" : "middle"}
           onChange={(key) => {
-            setActiveTab(key);
-            fetchTabData(key);
+            navigate(getPathFromTab(key));
           }}
           items={[
             {
@@ -660,6 +750,9 @@ const DanhMucPage = () => {
                   size="small"
                   scroll={{ x: 400 }}
                   pagination={{ pageSize: 10, size: "small" }}
+                  rowClassName={(record) =>
+                    record.status === false ? "inactive-row" : ""
+                  }
                 />
               ),
             },
@@ -675,6 +768,9 @@ const DanhMucPage = () => {
                   size="small"
                   scroll={{ x: 500 }}
                   pagination={{ pageSize: 10, size: "small" }}
+                  rowClassName={(record) =>
+                    record.status === false ? "inactive-row" : ""
+                  }
                 />
               ),
             },
@@ -690,6 +786,9 @@ const DanhMucPage = () => {
                   size="small"
                   scroll={{ x: 400 }}
                   pagination={{ pageSize: 10, size: "small" }}
+                  rowClassName={(record) =>
+                    record.status === false ? "inactive-row" : ""
+                  }
                 />
               ),
             },
@@ -705,21 +804,9 @@ const DanhMucPage = () => {
                   size="small"
                   scroll={{ x: 400 }}
                   pagination={{ pageSize: 10, size: "small" }}
-                />
-              ),
-            },
-            {
-              key: "model",
-              label: "Model xe",
-              children: (
-                <Table
-                  dataSource={modelList}
-                  columns={modelColumns}
-                  rowKey="ma_loai"
-                  loading={loading}
-                  size="small"
-                  scroll={{ x: 800 }}
-                  pagination={{ pageSize: 10, size: "small" }}
+                  rowClassName={(record) =>
+                    record.status === false ? "inactive-row" : ""
+                  }
                 />
               ),
             },
@@ -759,6 +846,18 @@ const DanhMucPage = () => {
           </Form.Item>
         </Form>
       </Modal>
+      <style>{`
+        .inactive-row {
+          background-color: #fafafa !important;
+          color: #bfbfbf !important;
+        }
+        .inactive-row td {
+          color: #bfbfbf !important;
+        }
+        .inactive-row .ant-tag {
+          opacity: 0.6;
+        }
+      `}</style>
     </div>
   );
 };

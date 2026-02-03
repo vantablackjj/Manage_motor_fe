@@ -26,7 +26,14 @@ export const donHangMuaXeAPI = {
 
   pheDuyet: (id) => axiosInstance.post(ENDPOINTS.PHE_DUYET(id)),
 
-  huy: (id) => axiosInstance.post(ENDPOINTS.HUY(id)),
+  huy: (id, data) => axiosInstance.post(ENDPOINTS.HUY(id), data),
 
   nhapKho: (id, data) => axiosInstance.post(ENDPOINTS.NHAP_KHO(id), data),
+  deleteChiTiet: (id, chiTietId) =>
+    axiosInstance.delete(`${ENDPOINTS.CHI_TIET(id)}/${chiTietId}`),
+
+  inDonHang: (id) =>
+    axiosInstance.get(`${ENDPOINTS.DETAIL(id)}/in-don-hang`, {
+      responseType: "blob",
+    }),
 };

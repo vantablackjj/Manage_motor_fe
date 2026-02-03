@@ -41,13 +41,25 @@ const XeLichSuPage = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
 
-  const fetchData = async (key = xeKey) => {
-    if (!key) return;
+  useEffect(() => {
+    fetchData();
+  }, []);
 
+  const fetchData = async (key = xeKey) => {
     setLoading(true);
     try {
+      // Nếu key rỗng, API có thể trả về toàn bộ/lịch sử gần đây
       const res = await xeAPI.getLichSu(key);
-      setData(Array.isArray(res?.data) ? res.data : []);
+      const rawData = Array.isArray(res?.data) ? res.data : [];
+
+      // Sắp xếp: Mới nhất lên đầu
+      const sortedData = [...rawData].sort((a, b) => {
+        const tA = new Date(a.ngay_giao_dich || 0).getTime();
+        const tB = new Date(b.ngay_giao_dich || 0).getTime();
+        return tB - tA;
+      });
+
+      setData(sortedData);
     } catch {
       notificationService.error("Không thể tải lịch sử xe");
       setData([]);
@@ -60,18 +72,79 @@ const XeLichSuPage = () => {
     {
       title: "Thời gian",
       dataIndex: "ngay_giao_dich",
-      width: 160,
+      width: 150,
       render: (v) => formatService.formatDateTime(v),
+    },
+    {
+      title: "Mã xe / Serial",
+      dataIndex: "ma_serial",
+      width: 150,
+      render: (text, record) => (
+        <div>
+          <div style={{ fontWeight: "bold" }}>{text}</div>
+          <div style={{ fontSize: "11px", color: "#888" }}>
+            {record.ma_hang_hoa}
+          </div>
+        </div>
+      ),
     },
     {
       title: "Sự kiện",
       dataIndex: "loai_giao_dich",
-      width: 140,
+      width: 120,
       render: (v) => (
         <Tag color={SU_KIEN_COLORS[v] || "default"}>
           {formatService.formatXeTrangThai(v)}
         </Tag>
       ),
+    },
+    {
+      title: "Số phiếu",
+      dataIndex: "so_chung_tu",
+      width: 140,
+      render: (t) => <b>{t}</b>,
+    },
+    {
+      title: "Kho",
+      key: "kho",
+      width: 180,
+      render: (_, r) => {
+        if (r.ma_kho_xuat && r.ma_kho_nhap) {
+          return (
+            <span>
+              {r.kho_xuat || r.ma_kho_xuat} {"->"} {r.kho_nhap || r.ma_kho_nhap}
+            </span>
+          );
+        }
+        if (r.ma_kho_nhap) {
+          return (
+            <span style={{ color: "green" }}>
+              Về: {r.kho_nhap || r.ma_kho_nhap}
+            </span>
+          );
+        }
+        if (r.ma_kho_xuat) {
+          return (
+            <span style={{ color: "red" }}>
+              Từ: {r.kho_xuat || r.ma_kho_xuat}
+            </span>
+          );
+        }
+        return "-";
+      },
+    },
+    {
+      title: "SL",
+      dataIndex: "so_luong",
+      width: 60,
+      align: "center",
+    },
+    {
+      title: "Đơn giá",
+      dataIndex: "don_gia",
+      width: 120,
+      align: "right",
+      render: (val) => formatService.formatCurrency(val),
     },
     {
       title: "Mô tả",
@@ -81,10 +154,9 @@ const XeLichSuPage = () => {
     {
       title: "Người thao tác",
       dataIndex: "nguoi_thuc_hien",
-      width: 160,
+      width: 140,
     },
   ];
-
   return (
     <div
       style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
@@ -98,7 +170,7 @@ const XeLichSuPage = () => {
             >
               <Space wrap>
                 <HistoryOutlined />
-                <span>Lịch sử xe</span>
+                <span>Lịch sử chi tiết</span>
               </Space>
             </h1>
           </Col>
@@ -109,7 +181,6 @@ const XeLichSuPage = () => {
           >
             <Button
               icon={<ReloadOutlined />}
-              disabled={!xeKey}
               onClick={() => fetchData()}
               size="small"
               block={isMobile}
@@ -123,9 +194,9 @@ const XeLichSuPage = () => {
       {/* Bộ chọn xe */}
       <Card size="small" style={{ marginBottom: 16 }}>
         <Search
-          placeholder="Nhập mã xe (xe_key)..."
+          placeholder="Nhập mã xe hoặc Model..."
           allowClear
-          enterButton={isMobile ? <HistoryOutlined /> : "Xem lịch sử"}
+          enterButton={isMobile ? <HistoryOutlined /> : "Tìm kiếm"}
           size="small"
           onSearch={(value) => {
             setXeKey(value);
@@ -137,23 +208,16 @@ const XeLichSuPage = () => {
 
       {/* Table */}
       <Card size="small">
-        {!xeKey ? (
-          <Empty
-            description="Nhập mã xe để xem"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-          />
-        ) : (
-          <Table
-            columns={columns}
-            dataSource={data}
-            rowKey="id"
-            loading={loading}
-            pagination={false}
-            size="small"
-            scroll={{ x: 600 }}
-            locale={{ emptyText: "Chưa có lịch sử" }}
-          />
-        )}
+        <Table
+          columns={columns}
+          dataSource={data}
+          rowKey="id"
+          loading={loading}
+          pagination={{ pageSize: 20, size: "small" }}
+          size="small"
+          scroll={{ x: 1000 }}
+          locale={{ emptyText: "Chưa có dữ liệu lịch sử" }}
+        />
       </Card>
     </div>
   );

@@ -47,10 +47,20 @@ const ThuChiDetail = () => {
   const [form] = Form.useForm();
 
   useEffect(() => {
+    // Redirect if so_phieu is invalid
+    if (!so_phieu || so_phieu === "undefined" || so_phieu === "null") {
+      notificationService.warning("Số phiếu không hợp lệ");
+      navigate("/thu-chi");
+      return;
+    }
     fetchData();
   }, [so_phieu]);
 
   const fetchData = async () => {
+    if (!so_phieu || so_phieu === "undefined" || so_phieu === "null") {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await thuChiAPI.getBySoPhieu(so_phieu);

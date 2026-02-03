@@ -70,7 +70,8 @@ const DashboardPage = () => {
       };
 
       // Gọi API dashboard tổng quan
-      const overview = await reportAPI.dashboard.getOverview(params);
+      const response = await reportAPI.dashboard.getOverview(params);
+      const overview = response?.data || response;
       console.log("Dashboard overview data:", overview);
 
       if (overview) {
@@ -161,10 +162,10 @@ const DashboardPage = () => {
             text === "BAN_HANG"
               ? "purple"
               : text === "NHAP_KHO"
-              ? "green"
-              : text === "CHUYEN_KHO"
-              ? "orange"
-              : "blue"
+                ? "green"
+                : text === "CHUYEN_KHO"
+                  ? "orange"
+                  : "blue"
           }
         >
           {text}

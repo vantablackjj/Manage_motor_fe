@@ -20,13 +20,15 @@ import {
   ShoppingCartOutlined,
   ImportOutlined,
   ExportOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import ImportButton from "../../../features/Import/ImportButton";
 import ExportButton from "../../../features/Export/ExportButton";
 import { useNavigate } from "react-router-dom";
-import { donHangAPI, khoAPI } from "../../../../api";
+import { donHangAPI, khoAPI, khachHangAPI } from "../../../../api";
 import { formatService, notificationService } from "../../../../services";
-import { TRANG_THAI_COLORS } from "../../../../utils/constant";
+import { TRANG_THAI_COLORS, LOAI_DON_HANG } from "../../../../utils/constant";
+import PartReceiveModal from "./PartReceiveModal";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -36,16 +38,23 @@ const PartPurchaseList = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [khoList, setKhoList] = useState([]);
+  const [supplierList, setSupplierList] = useState([]);
+
+  // Modal State
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+
   const [filters, setFilters] = useState({
-    ma_kho: null,
+    ma_ben_nhap: null, // Kho nhập
+    status: true,
     trang_thai: null,
     tu_ngay: null,
     den_ngay: null,
   });
-  const [stats, setStats] = useState({});
 
   useEffect(() => {
     fetchKhoList();
+    fetchSupplierList();
     fetchData();
   }, []);
 
@@ -56,20 +65,29 @@ const PartPurchaseList = () => {
     } catch (error) {}
   };
 
+  const fetchSupplierList = async () => {
+    try {
+      const res = await khachHangAPI.getAll();
+      const all = res.data || res || [];
+      setSupplierList(all.filter((c) => c.la_ncc));
+    } catch (error) {}
+  };
+
   const fetchData = async (currentFilters = filters) => {
     setLoading(true);
     try {
-      const params = { ...currentFilters };
+      const params = {
+        ...currentFilters,
+        // loai_don_hang: LOAI_DON_HANG.MUA_HANG, // API /don-hang-mua implies this
+        // loai_hang: "PHU_TUNG", // API /don-hang-mua implies this
+      };
       if (params.tu_ngay) params.tu_ngay = params.tu_ngay.format("YYYY-MM-DD");
       if (params.den_ngay)
         params.den_ngay = params.den_ngay.format("YYYY-MM-DD");
 
-      // Using donHangAPI which maps to generic /don-hang-mua (Parts)
+      // Use donHangAPI ( /api/v1/don-hang-mua ) per user request
       const res = await donHangAPI.getAll(params);
-
-      // Adjust response structure handling if needed (res.data vs res)
-      setData(res.data || []);
-      setStats(res.stats || {});
+      setData(res.data?.data || res.data || []);
     } catch (error) {
       notificationService.error("Lỗi tải danh sách đơn hàng phụ tùng");
     } finally {
@@ -82,44 +100,50 @@ const PartPurchaseList = () => {
     setFilters(newFilters);
   };
 
+  const handleOpenReceiveModal = (id) => {
+    setSelectedOrderId(id);
+    setModalVisible(true);
+  };
+
   const columns = [
     {
-      title: "Số phiếu",
-      dataIndex: "so_phieu", // API mismatch check: donHangAPI uses so_phieu usually
+      title: "Mã đơn hàng",
+      // so_phieu or so_don_hang preferred
+      dataIndex: "so_phieu",
       key: "so_phieu",
-      render: (text) => <b>{text}</b>,
+      render: (text, record) => <b>{text || record.so_don_hang}</b>,
     },
     {
       title: "Ngày đặt",
       dataIndex: "ngay_dat_hang",
+      key: "ngay_dat_hang",
       render: (val) => formatService.formatDate(val),
     },
     {
       title: "Nhà cung cấp",
-      dataIndex: "ten_ncc",
+      dataIndex: "ten_ncc", // Backend returns ten_ncc
       key: "ten_ncc",
-      render: (text) => text || "-",
+      render: (text, record) => text || record.ma_ben_xuat, // Fallback
     },
     {
       title: "Kho nhập",
-      dataIndex: "ten_kho",
+      dataIndex: "ten_kho", // Backend returns ten_kho
       key: "ten_kho",
-      render: (text) => text || "-",
+      render: (text, record) => text || record.ma_ben_nhap, // Fallback
     },
     {
       title: "Tổng tiền",
       dataIndex: "tong_tien",
       align: "right",
-      render: (val) => formatService.formatCurrency(Number(val)), // Ensure val is number
+      render: (val, record) =>
+        formatService.formatCurrency(val || record.thanh_tien),
     },
     {
       title: "Trạng thái",
       dataIndex: "trang_thai",
       align: "center",
       render: (status) => (
-        <Tag color={TRANG_THAI_COLORS[status] || "default"}>
-          {status === "NHAP" ? "Nháp" : status}
-        </Tag>
+        <Tag color={TRANG_THAI_COLORS[status] || "default"}>{status}</Tag>
       ),
     },
     {
@@ -127,13 +151,25 @@ const PartPurchaseList = () => {
       key: "action",
       align: "center",
       render: (_, record) => (
-        <Button
-          icon={<EyeOutlined />}
-          size="small"
-          onClick={() => navigate(`/purchase/parts/${record.so_phieu}`)}
-        >
-          Chi tiết
-        </Button>
+        <Space>
+          <Button
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => navigate(`/purchase/parts/${record.id}`)}
+          >
+            Chi tiết
+          </Button>
+          {record.trang_thai === "DA_DUYET" && (
+            <Button
+              icon={<DownloadOutlined />}
+              size="small"
+              type="primary"
+              onClick={() => handleOpenReceiveModal(record.id)}
+            >
+              Nhập kho
+            </Button>
+          )}
+        </Space>
       ),
     },
   ];
@@ -186,7 +222,7 @@ const PartPurchaseList = () => {
                   placeholder="Chọn kho"
                   style={{ width: "100%" }}
                   allowClear
-                  onChange={(v) => handleFilterChange("ma_kho", v)}
+                  onChange={(v) => handleFilterChange("ma_ben_nhap", v)}
                 >
                   {khoList.map((k) => (
                     <Option key={k.ma_kho} value={k.ma_kho}>
@@ -233,7 +269,7 @@ const PartPurchaseList = () => {
         <Table
           dataSource={data}
           columns={columns}
-          rowKey="so_phieu"
+          rowKey="id"
           loading={loading}
           size="small"
           scroll={{ x: 800 }}
@@ -243,6 +279,16 @@ const PartPurchaseList = () => {
           }}
         />
       </Card>
+
+      <PartReceiveModal
+        visible={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        onSuccess={() => {
+          fetchData();
+          setModalVisible(false);
+        }}
+        orderId={selectedOrderId}
+      />
     </div>
   );
 };

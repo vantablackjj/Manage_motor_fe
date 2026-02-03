@@ -61,11 +61,15 @@ const ThuChiCreate = () => {
       if (res.success) {
         notificationService.success("Tạo phiếu thành công");
         const so_phieu = res.data?.so_phieu;
-        navigate(`/thu-chi/${so_phieu}`);
+        if (so_phieu) {
+          navigate(`/thu-chi/${so_phieu}`);
+        } else {
+          navigate("/thu-chi");
+        }
       }
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Lỗi tạo phiếu thu chi"
+        error?.response?.data?.message || "Lỗi tạo phiếu thu chi",
       );
     } finally {
       setLoading(false);

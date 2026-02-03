@@ -23,9 +23,9 @@ import {
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
 import { useNavigate } from "react-router-dom";
-import { hoaDonBanAPI, khoAPI } from "../../../api";
+import { orderAPI, khoAPI, khachHangAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
-import { TRANG_THAI_COLORS } from "../../../utils/constant";
+import { TRANG_THAI_COLORS, LOAI_DON_HANG } from "../../../utils/constant";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -35,15 +35,24 @@ const SalesOrderList = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [khoList, setKhoList] = useState([]);
+  const [customerList, setCustomerList] = useState([]);
+
   const [filters, setFilters] = useState({
-    ma_kho: null,
+    ma_ben_xuat: null,
+    status: true,
     trang_thai: null,
     tu_ngay: null,
     den_ngay: null,
   });
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 20,
+    total: 0,
+  });
 
   useEffect(() => {
     fetchKhoList();
+    fetchCustomerList();
     fetchData();
   }, []);
 
@@ -54,18 +63,43 @@ const SalesOrderList = () => {
     } catch (error) {}
   };
 
-  const fetchData = async (currentFilters = filters) => {
+  const fetchCustomerList = async () => {
+    try {
+      const res = await khachHangAPI.getAll();
+      setCustomerList(res.data || res || []);
+    } catch (error) {}
+  };
+
+  const fetchData = async (
+    page = pagination.current,
+    pageSize = pagination.pageSize,
+    currentFilters = filters,
+  ) => {
     setLoading(true);
     try {
-      const params = { ...currentFilters };
+      const params = {
+        ...currentFilters,
+        loai_don_hang: LOAI_DON_HANG.BAN_HANG,
+        page,
+        limit: pageSize,
+      };
       if (params.tu_ngay) params.tu_ngay = params.tu_ngay.format("YYYY-MM-DD");
       if (params.den_ngay)
         params.den_ngay = params.den_ngay.format("YYYY-MM-DD");
 
-      const res = await hoaDonBanAPI.getAll(params);
-      setData(res.data || []);
+      const res = await orderAPI.getAll(params);
+      const rawData = res.data || res || {};
+      const list = rawData.data || (Array.isArray(rawData) ? rawData : []);
+      const meta = rawData.pagination || {};
+
+      setData(list);
+      setPagination({
+        ...pagination,
+        current: page,
+        total: meta.total || list.length,
+      });
     } catch (error) {
-      notificationService.error("Lỗi tải danh sách hóa đơn bán");
+      notificationService.error("Lỗi tải danh sách đơn bán hàng");
     } finally {
       setLoading(false);
     }
@@ -78,42 +112,40 @@ const SalesOrderList = () => {
 
   const columns = [
     {
-      title: "Số hóa đơn",
-      dataIndex: "so_hd",
-      key: "so_hd",
+      title: "Mã đơn hàng",
+      dataIndex: "so_don_hang",
+      key: "so_don_hang",
       render: (text) => <b>{text}</b>,
     },
     {
-      title: "Ngày bán",
-      dataIndex: "ngay_ban",
-      render: (val) => formatService.formatDate(val),
+      title: "Ngày lập",
+      dataIndex: "created_at",
+      render: (val) => formatService.formatDateTime(val),
     },
     {
       title: "Khách hàng",
-      dataIndex: "ten_kh",
-      key: "ten_kh",
-      render: (text) => text || "-",
+      dataIndex: "ten_ben_nhap",
+      key: "ten_ben_nhap",
+      render: (text, record) => text || record.ma_ben_nhap || "-",
     },
     {
       title: "Kho xuất",
-      dataIndex: "ten_kho",
-      key: "ten_kho",
-      render: (text) => text || "-",
+      dataIndex: "ten_ben_xuat",
+      key: "ten_ben_xuat",
+      render: (text, record) => text || record.ma_ben_xuat || "-",
     },
     {
-      title: "Tổng tiền",
-      dataIndex: "tong_tien",
+      title: "Thanh toán",
+      dataIndex: "thanh_tien",
       align: "right",
-      render: (val) => formatService.formatCurrency(Number(val)),
+      render: (val) => formatService.formatCurrency(Number(val || 0)),
     },
     {
       title: "Trạng thái",
       dataIndex: "trang_thai",
       align: "center",
       render: (status) => (
-        <Tag color={TRANG_THAI_COLORS[status] || "default"}>
-          {status === "NHAP" ? "Nháp" : status}
-        </Tag>
+        <Tag color={TRANG_THAI_COLORS[status] || "default"}>{status}</Tag>
       ),
     },
     {
@@ -124,7 +156,7 @@ const SalesOrderList = () => {
         <Button
           icon={<EyeOutlined />}
           size="small"
-          onClick={() => navigate(`/sales/orders/${record.so_hd}`)}
+          onClick={() => navigate(`/sales/orders/${record.id}`)}
         >
           Chi tiết
         </Button>
@@ -180,7 +212,7 @@ const SalesOrderList = () => {
                   placeholder="Chọn kho"
                   style={{ width: "100%" }}
                   allowClear
-                  onChange={(v) => handleFilterChange("ma_kho", v)}
+                  onChange={(v) => handleFilterChange("ma_ben_xuat", v)}
                 >
                   {khoList.map((k) => (
                     <Option key={k.ma_kho} value={k.ma_kho}>
@@ -227,13 +259,17 @@ const SalesOrderList = () => {
         <Table
           dataSource={data}
           columns={columns}
-          rowKey="so_hd"
+          rowKey="id"
           loading={loading}
           size="small"
           scroll={{ x: 800 }}
           pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
             size: "small",
             showTotal: (total) => `Tổng: ${total}`,
+            onChange: (page, pageSize) => fetchData(page, pageSize),
           }}
         />
       </Card>

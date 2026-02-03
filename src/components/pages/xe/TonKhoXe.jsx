@@ -59,11 +59,17 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
       });
 
       // Chuyển map thành array và tính giá nhập trung bình
-      const tonKhoData = Object.values(tonKhoMap).map((item) => ({
-        ...item,
-        gia_nhap:
-          item.so_luong_ton > 0 ? item.tong_gia_nhap / item.so_luong_ton : 0,
-      }));
+      const tonKhoData = Object.values(tonKhoMap).map((item) => {
+        const vehiclesRaw = xeList.filter(
+          (xe) => xe.ma_loai_xe === item.ma_loai_xe && xe.ma_mau === item.ma_mau
+        );
+        return {
+          ...item,
+          gia_nhap:
+            item.so_luong_ton > 0 ? item.tong_gia_nhap / item.so_luong_ton : 0,
+          vehicles: vehiclesRaw,
+        };
+      });
 
       setData(tonKhoData);
     } catch (error) {
@@ -202,10 +208,36 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
         columns={columns}
         dataSource={data}
         rowKey={(record) =>
-          `${record.ma_kho}-${record.ma_loai}-${record.ma_mau}`
+          `${record.ma_kho}-${record.ma_loai_xe}-${record.ma_mau}`
         }
         loading={loading}
         scroll={{ x: 1100 }}
+        expandable={{
+          expandedRowRender: (record) => (
+            <Table
+              columns={[
+                { title: "Xe Key", dataIndex: "xe_key", width: 150 },
+                { title: "Số khung", dataIndex: "so_khung", width: 180 },
+                { title: "Số máy", dataIndex: "so_may", width: 150 },
+                {
+                  title: "Ngày nhập",
+                  dataIndex: "ngay_nhap",
+                  render: (d) => formatService.formatDateTime(d),
+                },
+                {
+                  title: "Giá nhập",
+                  dataIndex: "gia_nhap",
+                  align: "right",
+                  render: (v) => formatService.formatCurrency(v),
+                },
+              ]}
+              dataSource={record.vehicles}
+              pagination={false}
+              size="small"
+              rowKey="xe_key"
+            />
+          ),
+        }}
         pagination={{
           pageSize: 20,
           showSizeChanger: true,

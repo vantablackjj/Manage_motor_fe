@@ -34,7 +34,14 @@ const CongNoListPage = () => {
     setLoading(true);
     try {
       const res = await congNoAPI.getAllKho(currentFilters);
-      setData(res.data || []);
+      const rawData = res.data || [];
+      // Sắp xếp: Cập nhật mới nhất lên đầu (theo updated_at)
+      const sortedData = [...rawData].sort((a, b) => {
+        const tA = new Date(a.updated_at || 0).getTime();
+        const tB = new Date(b.updated_at || 0).getTime();
+        return tB - tA;
+      });
+      setData(sortedData);
     } catch (error) {
       console.error("Error fetching debt summary", error);
     } finally {
@@ -49,10 +56,11 @@ const CongNoListPage = () => {
   };
 
   const handleOpenPayment = (record) => {
+    const con_lai = Number(record.tong_no) - Number(record.tong_da_tra);
     setSelectedPair({
       ma_kho_tra: record.ma_kho_no,
       ma_kho_nhan: record.ma_kho_co,
-      so_tien_no: record.so_tien_con_lai,
+      so_tien_no: con_lai,
     });
     setShowPaymentModal(true);
   };
@@ -76,19 +84,22 @@ const CongNoListPage = () => {
     },
     {
       title: "Đã thanh toán",
-      dataIndex: "da_thanh_toan",
+      dataIndex: "tong_da_tra",
       align: "right",
       render: (val) => formatService.formatCurrency(val),
     },
     {
       title: "Còn lại",
-      dataIndex: "so_tien_con_lai",
+      key: "con_lai",
       align: "right",
-      render: (val) => (
-        <span style={{ color: "red", fontWeight: "bold" }}>
-          {formatService.formatCurrency(val)}
-        </span>
-      ),
+      render: (_, record) => {
+        const con_lai = Number(record.tong_no) - Number(record.tong_da_tra);
+        return (
+          <span style={{ color: "red", fontWeight: "bold" }}>
+            {formatService.formatCurrency(con_lai)}
+          </span>
+        );
+      },
     },
     {
       title: "Cập nhật cuối",
@@ -99,36 +110,39 @@ const CongNoListPage = () => {
       title: "Thao tác",
       key: "action",
       align: "center",
-      render: (_, record) => (
-        <Space>
-          <Button
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() =>
-              navigate(
-                `/cong-no/chi-tiet/${record.ma_kho_no}/${record.ma_kho_co}`
-              )
-            }
-          >
-            Chi tiết
-          </Button>
-          <Button
-            type="primary"
-            size="small"
-            icon={<DollarOutlined />}
-            disabled={!record.so_tien_con_lai || record.so_tien_con_lai <= 0}
-            onClick={() => handleOpenPayment(record)}
-          >
-            Thanh toán
-          </Button>
-        </Space>
-      ),
+      render: (_, record) => {
+        const con_lai = Number(record.tong_no) - Number(record.tong_da_tra);
+        return (
+          <Space>
+            <Button
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() =>
+                navigate(
+                  `/cong-no/chi-tiet/${record.ma_kho_no}/${record.ma_kho_co}`,
+                )
+              }
+            >
+              Chi tiết
+            </Button>
+            <Button
+              type="primary"
+              size="small"
+              icon={<DollarOutlined />}
+              disabled={con_lai <= 0}
+              onClick={() => handleOpenPayment(record)}
+            >
+              Thanh toán
+            </Button>
+          </Space>
+        );
+      },
     },
   ];
 
   const totalDebt = data.reduce(
-    (acc, curr) => acc + (curr.so_tien_con_lai || 0),
-    0
+    (acc, curr) => acc + (Number(curr.tong_no) - Number(curr.tong_da_tra)),
+    0,
   );
 
   return (
