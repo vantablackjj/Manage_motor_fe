@@ -17,10 +17,10 @@ const QuickAddBrandModal = ({ visible, onClose, onSuccess }) => {
       };
 
       const res = await danhMucAPI.brand.create(payload);
-      if (res) {
+      if (res && res.success) {
         message.success("Thêm nhóm hàng thành công!");
         form.resetFields();
-        onSuccess(res); // API response should contain the new brand with generated code
+        onSuccess(res.data); // res.data contains the new object with ma_nh
         onClose();
       }
     } catch (error) {

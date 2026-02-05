@@ -25,7 +25,7 @@ const PhuTungForm = ({ visible, onClose, onSubmit, initialValues, mode }) => {
 
   const fetchBrands = async () => {
     try {
-      const res = await danhMucAPI.brand.getAll({ ma_nhom_cha: "PT" });
+      const res = await danhMucAPI.nhomHang.getAll();
       setBrandList(res || []);
     } catch (error) {
       console.error("Failed to fetch brands:", error);

@@ -78,8 +78,7 @@ const PhuTungManage = () => {
 
   const fetchFilters = async () => {
     try {
-      const res = await danhMucAPI.brand.getAll({
-        ma_nhom_cha: "PT",
+      const res = await danhMucAPI.nhomHang.getAll({
         status: "all",
       });
       setNhomPTList(res || []);

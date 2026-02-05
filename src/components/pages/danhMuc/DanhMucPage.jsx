@@ -46,6 +46,7 @@ const DanhMucPage = () => {
 
   const getTabFromPath = (path) => {
     if (path.includes("nhan-hieu")) return "brand";
+    if (path.includes("nhom-phu-tung")) return "nhomHang";
     if (path.includes("mau-xe")) return "color";
     if (path.includes("loai-hinh")) return "loaiHinh";
     if (path.includes("noi-san-xuat")) return "noiSX";
@@ -57,6 +58,8 @@ const DanhMucPage = () => {
     switch (tab) {
       case "brand":
         return "/danh-muc/nhan-hieu";
+      case "nhomHang":
+        return "/danh-muc/nhom-phu-tung";
       case "color":
         return "/danh-muc/mau-xe";
       case "loaiHinh":
@@ -78,6 +81,7 @@ const DanhMucPage = () => {
 
   // Data states
   const [brandList, setBrandList] = useState([]);
+  const [nhomHangList, setNhomHangList] = useState([]);
   const [colorList, setColorList] = useState([]);
   const [loaiHinhList, setLoaiHinhList] = useState([]);
   const [noiSXList, setNoiSXList] = useState([]);
@@ -97,14 +101,16 @@ const DanhMucPage = () => {
     setLoading(true);
     try {
       const params = { status: "all" };
-      const [brands, colors, loaiHinh, noiSX] = await Promise.all([
-        danhMucAPI.brand.getAll(params),
+      const [brands, nhomHang, colors, loaiHinh, noiSX] = await Promise.all([
+        danhMucAPI.brand.getAll({ ...params, type: "XE" }),
+        danhMucAPI.nhomHang.getAll(params),
         danhMucAPI.color.getAll(params),
         danhMucAPI.loaiHinh.getAll(params),
         danhMucAPI.noiSanXuat.getAll(params),
       ]);
 
       setBrandList(brands?.data || brands || []);
+      setNhomHangList(nhomHang?.data || nhomHang || []);
       setColorList(colors?.data || colors || []);
       setLoaiHinhList(loaiHinh?.data || loaiHinh || []);
       setNoiSXList(noiSX?.data || noiSX || []);
@@ -123,8 +129,12 @@ const DanhMucPage = () => {
       const params = { status: "all" };
       switch (tab) {
         case "brand":
-          res = await danhMucAPI.brand.getAll(params);
+          res = await danhMucAPI.brand.getAll({ ...params, type: "XE" });
           setBrandList(res?.data || res || []);
+          break;
+        case "nhomHang":
+          res = await danhMucAPI.nhomHang.getAll(params);
+          setNhomHangList(res?.data || res || []);
           break;
         case "color":
           res = await danhMucAPI.color.getAll(params);
@@ -162,6 +172,7 @@ const DanhMucPage = () => {
     try {
       switch (activeTab) {
         case "brand":
+        case "nhomHang":
           await danhMucAPI.brand.delete(record.ma_nh);
           break;
         case "color":
@@ -189,6 +200,7 @@ const DanhMucPage = () => {
       const payload = { ...record, status: true };
       switch (activeTab) {
         case "brand":
+        case "nhomHang":
           await danhMucAPI.brand.update(record.ma_nh, payload);
           break;
         case "color":
@@ -217,7 +229,13 @@ const DanhMucPage = () => {
         // Update
         switch (activeTab) {
           case "brand":
-            await danhMucAPI.brand.update(editingRecord.ma_nh, values);
+            await danhMucAPI.brand.update(editingRecord.ma_nh, {
+              ...values,
+              ma_nhom_cha: "XE",
+            });
+            break;
+          case "nhomHang":
+            await danhMucAPI.nhomHang.update(editingRecord.ma_nh, values);
             break;
           case "color":
             await danhMucAPI.color.update(editingRecord.ma_mau, values);
@@ -237,7 +255,10 @@ const DanhMucPage = () => {
         // Create
         switch (activeTab) {
           case "brand":
-            await danhMucAPI.brand.create(values);
+            await danhMucAPI.brand.create({ ...values, ma_nhom_cha: "XE" });
+            break;
+          case "nhomHang":
+            await danhMucAPI.nhomHang.create(values);
             break;
           case "color":
             await danhMucAPI.color.create(values);
@@ -508,21 +529,28 @@ const DanhMucPage = () => {
   const getFormFields = () => {
     switch (activeTab) {
       case "brand":
+      case "nhomHang":
         return (
           <>
             <Form.Item
               name="ma_nh"
-              label="Mã nhãn hiệu"
-              rules={[{ required: true, message: "Vui lòng nhập mã" }]}
+              label={activeTab === "brand" ? "Mã nhãn hiệu" : "Mã nhóm hàng"}
+              hidden={!editingRecord}
             >
-              <Input disabled={!!editingRecord} />
+              <Input disabled />
             </Form.Item>
             <Form.Item
               name="ten_nh"
-              label="Tên nhãn hiệu"
+              label={activeTab === "brand" ? "Tên nhãn hiệu" : "Tên nhóm hàng"}
               rules={[{ required: true, message: "Vui lòng nhập tên" }]}
             >
-              <Input placeholder="VD: Honda, Yamaha, SYM..." />
+              <Input
+                placeholder={
+                  activeTab === "brand"
+                    ? "VD: Honda, Yamaha, SYM..."
+                    : "VD: Nhông sên dĩa, Lốp, Gương..."
+                }
+              />
             </Form.Item>
           </>
         );
@@ -643,7 +671,8 @@ const DanhMucPage = () => {
 
   const getTitle = () => {
     const titles = {
-      brand: "Nhãn hiệu",
+      brand: "Nhãn hiệu xe",
+      nhomHang: "Nhóm phụ tùng",
       color: "Màu sắc",
       loaiHinh: "Loại hình xe",
       noiSX: "Nơi sản xuất",
@@ -677,15 +706,17 @@ const DanhMucPage = () => {
                 module={
                   activeTab === "brand"
                     ? "brand"
-                    : activeTab === "color"
-                      ? "color"
-                      : activeTab === "loaiHinh"
-                        ? "loai-hinh"
-                        : activeTab === "noiSX"
-                          ? "noi-sx"
-                          : activeTab === "model"
-                            ? "model-car"
-                            : ""
+                    : activeTab === "nhomHang"
+                      ? "nhom-hang"
+                      : activeTab === "color"
+                        ? "color"
+                        : activeTab === "loaiHinh"
+                          ? "loai-hinh"
+                          : activeTab === "noiSX"
+                            ? "noi-sx"
+                            : activeTab === "model"
+                              ? "model-car"
+                              : ""
                 }
                 title={getTitle()}
                 onSuccess={() => fetchTabData(activeTab)}
@@ -695,15 +726,17 @@ const DanhMucPage = () => {
                 module={
                   activeTab === "brand"
                     ? "brand"
-                    : activeTab === "color"
-                      ? "color"
-                      : activeTab === "loaiHinh"
-                        ? "loai-hinh"
-                        : activeTab === "noiSX"
-                          ? "noi-sx"
-                          : activeTab === "model"
-                            ? "model-car"
-                            : ""
+                    : activeTab === "nhomHang"
+                      ? "nhom-hang"
+                      : activeTab === "color"
+                        ? "color"
+                        : activeTab === "loaiHinh"
+                          ? "loai-hinh"
+                          : activeTab === "noiSX"
+                            ? "noi-sx"
+                            : activeTab === "model"
+                              ? "model-car"
+                              : ""
                 }
                 title={getTitle()}
                 size="small"
@@ -740,11 +773,35 @@ const DanhMucPage = () => {
           items={[
             {
               key: "brand",
-              label: "Nhãn hiệu",
+              label: "Nhãn hiệu xe",
               children: (
                 <Table
                   dataSource={brandList}
                   columns={brandColumns}
+                  rowKey="ma_nh"
+                  loading={loading}
+                  size="small"
+                  scroll={{ x: 400 }}
+                  pagination={{ pageSize: 10, size: "small" }}
+                  rowClassName={(record) =>
+                    record.status === false ? "inactive-row" : ""
+                  }
+                />
+              ),
+            },
+            {
+              key: "nhomHang",
+              label: "Nhóm phụ tùng",
+              children: (
+                <Table
+                  dataSource={nhomHangList}
+                  columns={brandColumns.map((col) => {
+                    if (col.key === "ma_nh")
+                      return { ...col, title: "Mã nhóm hàng" };
+                    if (col.key === "ten_nh")
+                      return { ...col, title: "Tên nhóm hàng" };
+                    return col;
+                  })}
                   rowKey="ma_nh"
                   loading={loading}
                   size="small"

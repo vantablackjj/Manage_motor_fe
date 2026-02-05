@@ -187,6 +187,11 @@ export const privateRoutes = [
     layout: MainLayout,
   },
   {
+    path: "/danh-muc/nhom-phu-tung",
+    component: DanhMucPage,
+    layout: MainLayout,
+  },
+  {
     path: "/danh-muc/loai-hinh",
     component: DanhMucPage,
     layout: MainLayout,
