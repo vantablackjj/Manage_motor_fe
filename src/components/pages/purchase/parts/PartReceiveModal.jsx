@@ -111,9 +111,42 @@ const PartReceiveModal = ({ visible, onCancel, orderId, onSuccess }) => {
         danh_sach_hang: payloadItems,
       };
 
-      await donHangAPI.nhapKho(orderId, payload);
+      const res = await donHangAPI.nhapKho(orderId, payload);
+      const soPhieuNhap = res?.data?.so_phieu_nhap || res?.so_phieu_nhap;
 
-      message.success("Nhập kho thành công!");
+      message.success({
+        content: (
+          <span>
+            Nhập kho thành công!{" "}
+            {soPhieuNhap && (
+              <Button
+                type="link"
+                size="small"
+                onClick={async () => {
+                  try {
+                    const pdfRes = await donHangAPI.inDonHang(soPhieuNhap);
+                    const url = window.URL.createObjectURL(
+                      new Blob([pdfRes], { type: "application/pdf" }),
+                    );
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.setAttribute("download", `${soPhieuNhap}.pdf`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.parentNode.removeChild(link);
+                  } catch (err) {
+                    message.error("Lỗi in phiếu nhập");
+                  }
+                }}
+              >
+                In phiếu nhập
+              </Button>
+            )}
+          </span>
+        ),
+        duration: 5,
+      });
+
       onSuccess?.();
       onCancel();
     } catch (error) {

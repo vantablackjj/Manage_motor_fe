@@ -12,6 +12,8 @@ import {
   Input,
   Select,
   InputNumber,
+  Row,
+  Col,
 } from "antd";
 import {
   ArrowLeftOutlined,

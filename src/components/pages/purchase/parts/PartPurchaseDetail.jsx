@@ -21,6 +21,7 @@ import {
   ImportOutlined,
   CloseCircleOutlined,
   EditOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
 import PartReceiveModal from "./PartReceiveModal";
 import { donHangAPI, khoAPI, khachHangAPI } from "../../../../api";
@@ -130,6 +131,26 @@ const PartPurchaseDetail = () => {
     setShowReceiveModal(false);
   };
 
+  const handlePrint = async () => {
+    setLoading(true);
+    try {
+      const response = await donHangAPI.inDonHang(id);
+      const url = window.URL.createObjectURL(
+        new Blob([response], { type: "application/pdf" }),
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `purchase-order-${displayId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      notificationService.error("Lỗi in đơn hàng");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!data) return null;
 
   const {
@@ -197,6 +218,10 @@ const PartPurchaseDetail = () => {
                 </Button>
               </Space>
             )}
+
+            <Button icon={<PrinterOutlined />} onClick={handlePrint}>
+              In đơn hàng
+            </Button>
 
             {(trang_thai === "DA_DUYET" ||
               trang_thai === "DANG_NHAP" ||

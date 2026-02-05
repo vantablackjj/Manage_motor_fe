@@ -73,4 +73,11 @@ export const donHangAPI = {
       data,
     );
   },
+  // In don hang
+  inDonHang: async (ma_phieu) => {
+    return axiosInstance.get(
+      `${API_ENDPOINTS.DON_HANG_MUA_DETAIL(ma_phieu)}/in-don-hang`,
+      { responseType: "blob" },
+    );
+  },
 };
