@@ -9,13 +9,18 @@ import {
   Tag,
   Modal,
   Input,
-} from "antd"; // Added Modal, Input
+  Form,
+  InputNumber,
+  Row,
+  Col,
+} from "antd";
 import {
   ArrowLeftOutlined,
   CheckCircleOutlined,
   SendOutlined,
   ImportOutlined,
-  CloseCircleOutlined, // Added
+  CloseCircleOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import PartReceiveModal from "./PartReceiveModal";
 import { donHangAPI, khoAPI, khachHangAPI } from "../../../../api";
@@ -27,7 +32,7 @@ import {
 import {
   TRANG_THAI_COLORS,
   TRANG_THAI_LABELS,
-} from "../../../../utils/constant"; // Added Labels
+} from "../../../../utils/constant";
 
 const PartPurchaseDetail = () => {
   const { id } = useParams();
@@ -35,6 +40,9 @@ const PartPurchaseDetail = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
+
+  const [headerModalVisible, setHeaderModalVisible] = useState(false);
+  const [headerForm] = Form.useForm();
 
   useEffect(() => {
     fetchData();
@@ -44,7 +52,7 @@ const PartPurchaseDetail = () => {
     setLoading(true);
     try {
       const res = await donHangAPI.getById(id);
-      setData(res?.data?.data || res?.data || {}); // Access 'data' property from response if wrapped
+      setData(res?.data?.data || res?.data || {});
     } catch (error) {
       notificationService.error("Lỗi tải chi tiết đơn hàng");
     } finally {
@@ -93,20 +101,7 @@ const PartPurchaseDetail = () => {
         </div>
       ),
       onOk: async () => {
-        if (!reason.trim()) {
-          // Basic validation in modal confirm is tricky without custom UI,
-          // but for now let's allow empty or rely on user.
-          // To strictly enforce, we'd need a custom state.
-          // Let's proceed.
-        }
         try {
-          // If API supports reason payload
-          // donHangAPI.huyDuyet might take (id) only or (id, data)
-          // In api/donHang.api.js: huyDuyet: async (ma_phieu) => ... post(..., null) ??
-          // Let's check api definition. Step 261: post(API_ENDPOINTS.DON_HANG_MUA_HUY(ma_phieu));
-          // It doesn't seem to pass body.
-          // Vehicle uses `huy(id, { ghi_chu })`.
-          // I will assume `huyDuyet` handles it or just call it.
           await donHangAPI.huyDuyet(id);
           notificationService.success("Đã từ chối");
           fetchData();
@@ -115,6 +110,19 @@ const PartPurchaseDetail = () => {
         }
       },
     });
+  };
+
+  const handleUpdateHeader = async (values) => {
+    try {
+      await donHangAPI.update(id, values);
+      notificationService.success("Cập nhật đơn hàng thành công");
+      setHeaderModalVisible(false);
+      fetchData();
+    } catch (error) {
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi cập nhật đơn hàng",
+      );
+    }
   };
 
   const handleReceiveSuccess = () => {
@@ -132,16 +140,16 @@ const PartPurchaseDetail = () => {
     ten_ncc,
     ten_kho,
     tong_gia_tri,
-    tong_tien,
+    chiet_khau,
+    vat_percentage,
+    thanh_tien,
     ghi_chu,
     trang_thai,
     chi_tiet = [],
     created_at,
-    updated_at,
     created_by,
   } = data;
 
-  // Use so_phieu or so_don_hang preferred display
   const displayId = so_phieu || so_don_hang || orderId;
 
   return (
@@ -171,7 +179,6 @@ const PartPurchaseDetail = () => {
               </Button>
             )}
 
-            {/* Approval Actions */}
             {trang_thai === "GUI_DUYET" && (
               <Space>
                 <Button
@@ -191,7 +198,6 @@ const PartPurchaseDetail = () => {
               </Space>
             )}
 
-            {/* Part Receiving Button */}
             {(trang_thai === "DA_DUYET" ||
               trang_thai === "DANG_NHAP" ||
               trang_thai === "DANG_GIAO") && (
@@ -216,13 +222,8 @@ const PartPurchaseDetail = () => {
             <b>{ten_ncc}</b>
           </Descriptions.Item>
           <Descriptions.Item label="Kho nhập">{ten_kho}</Descriptions.Item>
-          <Descriptions.Item label="Tổng tiền">
-            {formatService.formatCurrency(
-              Number(tong_gia_tri || tong_tien || 0),
-            )}
-          </Descriptions.Item>
           <Descriptions.Item label="Người tạo">
-            {data.nguoi_tao || created_by || "-"}
+            {data.ten_nguoi_tao || data.nguoi_tao || created_by || "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Ngày tạo">
             {formatService.formatDateTime(created_at)}
@@ -231,6 +232,79 @@ const PartPurchaseDetail = () => {
             {ghi_chu || "-"}
           </Descriptions.Item>
         </Descriptions>
+
+        {/* Summary Box */}
+        <Card
+          style={{ marginTop: 16, backgroundColor: "#f5f5f5" }}
+          size="small"
+          title={
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span>Tổng hợp</span>
+              {trang_thai === "NHAP" && (
+                <Button
+                  type="link"
+                  icon={<EditOutlined />}
+                  onClick={() => {
+                    headerForm.setFieldsValue({
+                      vat_percentage: vat_percentage,
+                      chiet_khau: chiet_khau,
+                      ghi_chu: ghi_chu,
+                    });
+                    setHeaderModalVisible(true);
+                  }}
+                >
+                  Sửa
+                </Button>
+              )}
+            </div>
+          }
+        >
+          <Row gutter={[16, 8]} justify="end">
+            <Col xs={12} sm={8} style={{ textAlign: "right" }}>
+              <span style={{ color: "rgba(0,0,0,0.45)" }}>Tổng tiền hàng:</span>
+              <br />
+              <b style={{ fontSize: 16 }}>
+                {formatService.formatCurrency(Number(tong_gia_tri || 0))}
+              </b>
+            </Col>
+            <Col xs={12} sm={8} style={{ textAlign: "right" }}>
+              <span style={{ color: "rgba(0,0,0,0.45)" }}>Chiết khấu:</span>
+              <br />
+              <b style={{ fontSize: 16 }}>
+                {formatService.formatCurrency(Number(chiet_khau || 0))}
+              </b>
+            </Col>
+            <Col xs={12} sm={4} style={{ textAlign: "right" }}>
+              <span style={{ color: "rgba(0,0,0,0.45)" }}>VAT:</span>
+              <br />
+              <b style={{ fontSize: 16 }}>{vat_percentage || 0}%</b>
+            </Col>
+            <Col
+              xs={24}
+              style={{
+                marginTop: 8,
+                borderTop: "1px solid #d9d9d9",
+                paddingTop: 8,
+                textAlign: "right",
+              }}
+            >
+              <span style={{ marginRight: 16, fontWeight: "bold" }}>
+                Tổng thanh toán:
+              </span>
+              <span
+                style={{ fontSize: 20, fontWeight: "bold", color: "#1890ff" }}
+              >
+                {formatService.formatCurrency(Number(thanh_tien || 0))}
+              </span>
+            </Col>
+          </Row>
+        </Card>
 
         <Table
           style={{ marginTop: 24 }}
@@ -289,6 +363,40 @@ const PartPurchaseDetail = () => {
         orderId={id}
         onSuccess={handleReceiveSuccess}
       />
+
+      {/* Edit Header Modal */}
+      <Modal
+        title="Cập nhật thông tin đơn hàng"
+        open={headerModalVisible}
+        onCancel={() => setHeaderModalVisible(false)}
+        onOk={() => headerForm.submit()}
+        okText="Cập nhật"
+      >
+        <Form form={headerForm} layout="vertical" onFinish={handleUpdateHeader}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="vat_percentage" label="VAT (%)">
+                <InputNumber min={0} max={100} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="chiet_khau" label="Chiết khấu (VNĐ)">
+                <InputNumber
+                  min={0}
+                  style={{ width: "100%" }}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="ghi_chu" label="Ghi chú">
+            <Input.TextArea rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

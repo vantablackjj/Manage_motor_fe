@@ -135,11 +135,12 @@ const PartPurchaseCreate = () => {
     try {
       // Step 1: Create Header
       const headerPayload = {
-        ngay_dat_hang: values.ngay_dat_hang.format("YYYY-MM-DD"), // API expects YYYY-MM-DD usually? Or ISO? Guide says "2026-02-02"
+        ngay_dat_hang: values.ngay_dat_hang.format("YYYY-MM-DD"),
         ma_kho_nhap: values.ma_kho_nhap,
         ma_ncc: values.ma_ncc,
         dien_giai: values.dien_giai || "",
-        // Add others if needed?
+        vat_percentage: values.vat_percentage || 0,
+        chiet_khau: values.chiet_khau || 0,
       };
 
       const res = await donHangAPI.create(headerPayload);
@@ -309,7 +310,11 @@ const PartPurchaseCreate = () => {
           form={form}
           layout="vertical"
           onFinish={onFinish}
-          initialValues={{ ngay_dat_hang: moment() }}
+          initialValues={{
+            ngay_dat_hang: moment(),
+            vat_percentage: 10,
+            chiet_khau: 0,
+          }}
         >
           <Row gutter={[16, 0]}>
             <Col xs={24} sm={8}>
@@ -357,6 +362,26 @@ const PartPurchaseCreate = () => {
                 rules={[{ required: true }]}
               >
                 <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={8}>
+              <Form.Item name="vat_percentage" label="VAT (%)">
+                <InputNumber min={0} max={100} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8}>
+              <Form.Item name="chiet_khau" label="Chiết khấu (VNĐ)">
+                <InputNumber
+                  min={0}
+                  style={{ width: "100%" }}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                />
               </Form.Item>
             </Col>
           </Row>

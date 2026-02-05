@@ -20,7 +20,7 @@ export const donHangAPI = {
 
   // Update don hang
   update: async (ma_phieu, data) => {
-    return axiosInstance.put(API_ENDPOINTS.DON_HANG_MUA_DETAIL(ma_phieu), data);
+    return axiosInstance.put(`${API_ENDPOINTS.ORDERS}/${ma_phieu}`, data);
   },
 
   // Delete don hang

@@ -5,8 +5,10 @@ import { API_ENDPOINTS } from "../utils/constant";
 
 export const danhMucAPI = {
   // ===== BRAND (NHÃN HIỆU) =====
+  // ===== BRAND (NHÃN HIỆU & NHÓM HÀNG) =====
   brand: {
     getAll: async (params) => {
+      // params can include type (XE/PT) and status (true/all)
       const res = await axiosInstance.get(API_ENDPOINTS.BRAND, { params });
       return res.data;
     },
@@ -14,9 +16,11 @@ export const danhMucAPI = {
       return axiosInstance.get(`${API_ENDPOINTS.BRAND}/${ma_nh}`);
     },
     create: async (data) => {
+      // data: { ten_nh, ma_nhom_cha: 'XE' | 'PT' }
       return axiosInstance.post(API_ENDPOINTS.BRAND, data);
     },
     update: async (ma_nh, data) => {
+      // Supports partial update: { status: true } or { ten_nh: "..." }
       return axiosInstance.put(`${API_ENDPOINTS.BRAND}/${ma_nh}`, data);
     },
     delete: async (ma_nh) => {
@@ -148,11 +152,28 @@ export const danhMucAPI = {
     },
   },
 
-  // ===== NHÓM HÀNG (TREE) =====
+  // ===== NHÓM HÀNG (Unified with Brand) =====
   nhomHang: {
     getAll: async (params) => {
-      const res = await axiosInstance.get(API_ENDPOINTS.NHOM_HANG, { params });
+      const res = await axiosInstance.get(API_ENDPOINTS.BRAND, {
+        params: { ...params, type: "PT" },
+      });
       return res.data;
+    },
+    getById: async (ma_nh) => {
+      return axiosInstance.get(`${API_ENDPOINTS.BRAND}/${ma_nh}`);
+    },
+    create: async (data) => {
+      return axiosInstance.post(API_ENDPOINTS.BRAND, {
+        ...data,
+        ma_nhom_cha: "PT",
+      });
+    },
+    update: async (ma_nh, data) => {
+      return axiosInstance.put(`${API_ENDPOINTS.BRAND}/${ma_nh}`, data);
+    },
+    delete: async (ma_nh) => {
+      return axiosInstance.delete(`${API_ENDPOINTS.BRAND}/${ma_nh}`);
     },
   },
 };

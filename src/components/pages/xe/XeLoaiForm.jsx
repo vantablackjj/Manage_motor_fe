@@ -27,7 +27,7 @@ const XeLoaiForm = ({
 
   const fetchNhomHang = async () => {
     try {
-      const res = await danhMucAPI.brand.getAll();
+      const res = await danhMucAPI.brand.getAll({ type: "XE" });
       setNhomHangTree(res?.data || res || []);
     } catch (error) {
       console.error("Failed to fetch nhom hang tree", error);

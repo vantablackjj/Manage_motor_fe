@@ -22,6 +22,7 @@ import {
   DeleteOutlined,
   PlusOutlined,
   PrinterOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { donHangMuaXeAPI } from "../../../../api";
 import {
@@ -47,6 +48,10 @@ const VehiclePurchaseDetail = () => {
   // Master Data
   const [vehicleTypes, setVehicleTypes] = useState([]);
   const [colors, setColors] = useState([]);
+
+  // Header Edit State
+  const [headerModalVisible, setHeaderModalVisible] = useState(false);
+  const [headerForm] = Form.useForm();
 
   useEffect(() => {
     fetchData();
@@ -202,6 +207,22 @@ const VehiclePurchaseDetail = () => {
     }
   };
 
+  const handleUpdateHeader = async (values) => {
+    try {
+      // VehiclePurchase uses unified donHangAPI or specific donHangMuaXeAPI?
+      // VehiclePurchaseDetail.jsx uses donHangMuaXeAPI
+      // Let's check api/donHangMuaXe.api.js for update method.
+      await donHangMuaXeAPI.update(ma_phieu, values);
+      notificationService.success("Cập nhật đơn hàng thành công");
+      setHeaderModalVisible(false);
+      fetchData();
+    } catch (error) {
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi cập nhật đơn hàng",
+      );
+    }
+  };
+
   if (!data) return null;
   const header = data;
   const items = data.chi_tiet || data.items || [];
@@ -305,14 +326,14 @@ const VehiclePurchaseDetail = () => {
           <Descriptions.Item label="Kho nhập">
             {header.ten_kho_nhap || header.ma_kho_nhap}
           </Descriptions.Item>
-          <Descriptions.Item label="Tổng tiền">
-            {formatService.formatCurrency(Number(header.tong_tien))}
+          <Descriptions.Item label="Ghi chú">
+            {header.ghi_chu || "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Ngày tạo">
             {formatService.formatDateTime(header.ngay_tao)}
           </Descriptions.Item>
           <Descriptions.Item label="Người tạo">
-            {header.nguoi_tao || "-"}
+            {header.ten_nguoi_tao || header.nguoi_tao || "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Ngày gửi duyệt">
             {header.ngay_gui
@@ -333,10 +354,80 @@ const VehiclePurchaseDetail = () => {
           <Descriptions.Item label="Diễn giải" span={{ xs: 1, sm: 2, md: 3 }}>
             {header.dien_giai || "-"}
           </Descriptions.Item>
-          <Descriptions.Item label="Ghi chú" span={{ xs: 1, sm: 2, md: 3 }}>
-            {header.ghi_chu || "-"}
-          </Descriptions.Item>
         </Descriptions>
+
+        {/* Summary Box */}
+        <Card
+          style={{ marginTop: 16, backgroundColor: "#f5f5f5" }}
+          size="small"
+          title={
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span>Tổng hợp</span>
+              {header.trang_thai === "NHAP" && (
+                <Button
+                  type="link"
+                  icon={<EditOutlined />}
+                  onClick={() => {
+                    headerForm.setFieldsValue({
+                      vat_percentage: header.vat_percentage,
+                      chiet_khau: header.chiet_khau,
+                      ghi_chu: header.ghi_chu,
+                    });
+                    setHeaderModalVisible(true);
+                  }}
+                >
+                  Sửa
+                </Button>
+              )}
+            </div>
+          }
+        >
+          <Row gutter={[16, 8]} justify="end">
+            <Col xs={12} sm={8} style={{ textAlign: "right" }}>
+              <span style={{ color: "rgba(0,0,0,0.45)" }}>Tổng tiền hàng:</span>
+              <br />
+              <b style={{ fontSize: 16 }}>
+                {formatService.formatCurrency(Number(header.tong_gia_tri || 0))}
+              </b>
+            </Col>
+            <Col xs={12} sm={8} style={{ textAlign: "right" }}>
+              <span style={{ color: "rgba(0,0,0,0.45)" }}>Chiết khấu:</span>
+              <br />
+              <b style={{ fontSize: 16 }}>
+                {formatService.formatCurrency(Number(header.chiet_khau || 0))}
+              </b>
+            </Col>
+            <Col xs={12} sm={4} style={{ textAlign: "right" }}>
+              <span style={{ color: "rgba(0,0,0,0.45)" }}>VAT:</span>
+              <br />
+              <b style={{ fontSize: 16 }}>{header.vat_percentage || 0}%</b>
+            </Col>
+            <Col
+              xs={24}
+              style={{
+                marginTop: 8,
+                borderTop: "1px solid #d9d9d9",
+                paddingTop: 8,
+                textAlign: "right",
+              }}
+            >
+              <span style={{ marginRight: 16, fontWeight: "bold" }}>
+                Tổng thanh toán:
+              </span>
+              <span
+                style={{ fontSize: 20, fontWeight: "bold", color: "#1890ff" }}
+              >
+                {formatService.formatCurrency(Number(header.thanh_tien || 0))}
+              </span>
+            </Col>
+          </Row>
+        </Card>
 
         <Table
           style={{ marginTop: 24 }}
@@ -522,6 +613,39 @@ const VehiclePurchaseDetail = () => {
               }
               parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
             />
+          </Form.Item>
+        </Form>
+      </Modal>
+      {/* Edit Header Modal */}
+      <Modal
+        title="Cập nhật thông tin đơn hàng"
+        open={headerModalVisible}
+        onCancel={() => setHeaderModalVisible(false)}
+        onOk={() => headerForm.submit()}
+        okText="Cập nhật"
+      >
+        <Form form={headerForm} layout="vertical" onFinish={handleUpdateHeader}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="vat_percentage" label="VAT (%)">
+                <InputNumber min={0} max={100} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="chiet_khau" label="Chiết khấu (VNĐ)">
+                <InputNumber
+                  min={0}
+                  style={{ width: "100%" }}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="ghi_chu" label="Ghi chú">
+            <Input.TextArea rows={3} />
           </Form.Item>
         </Form>
       </Modal>
