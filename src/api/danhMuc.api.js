@@ -155,19 +155,25 @@ export const danhMucAPI = {
   // ===== NHÓM HÀNG (Unified with Brand) =====
   nhomHang: {
     getAll: async (params) => {
-      return danhMucAPI.brand.getAll({ ...params, type: "PT" });
+      const res = await axiosInstance.get(API_ENDPOINTS.BRAND, {
+        params: { ...params, type: "PT" },
+      });
+      return res.data;
     },
     getById: async (ma_nh) => {
-      return danhMucAPI.brand.getById(ma_nh);
+      return axiosInstance.get(`${API_ENDPOINTS.BRAND}/${ma_nh}`);
     },
     create: async (data) => {
-      return danhMucAPI.brand.create({ ...data, ma_nhom_cha: "PT" });
+      return axiosInstance.post(API_ENDPOINTS.BRAND, {
+        ...data,
+        ma_nhom_cha: "PT",
+      });
     },
     update: async (ma_nh, data) => {
-      return danhMucAPI.brand.update(ma_nh, data);
+      return axiosInstance.put(`${API_ENDPOINTS.BRAND}/${ma_nh}`, data);
     },
     delete: async (ma_nh) => {
-      return danhMucAPI.brand.delete(ma_nh);
+      return axiosInstance.delete(`${API_ENDPOINTS.BRAND}/${ma_nh}`);
     },
   },
 };

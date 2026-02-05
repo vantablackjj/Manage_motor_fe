@@ -158,11 +158,7 @@ const ChuyenKhoList = () => {
         </Tag>
       ),
     },
-    {
-      title: "Người tạo",
-      dataIndex: "created_by", // Chuẩn hóa Audit
-      key: "created_by",
-    },
+
     {
       title: "Thao tác",
       key: "action",

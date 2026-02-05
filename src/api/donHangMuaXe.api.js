@@ -3,6 +3,7 @@ import axiosInstance from "./axios.config";
 const ENDPOINTS = {
   BASE: "/don-hang-mua-xe",
   DETAIL: (id) => `/don-hang-mua-xe/${id}`,
+  UPDATE: (id) => `/orders/${id}`, // Use unified orders endpoint for updates
   CHI_TIET: (id) => `/don-hang-mua-xe/${id}/chi-tiet`,
   GUI_DUYET: (id) => `/don-hang-mua-xe/${id}/submit`,
   PHE_DUYET: (id) => `/don-hang-mua-xe/${id}/approve`,
@@ -14,6 +15,7 @@ export const donHangMuaXeAPI = {
   getAll: (params) => axiosInstance.get(ENDPOINTS.BASE, { params }),
 
   getById: (id) => axiosInstance.get(ENDPOINTS.DETAIL(id)),
+  update: (id, data) => axiosInstance.put(ENDPOINTS.UPDATE(id), data),
 
   create: (data) => axiosInstance.post(ENDPOINTS.BASE, data),
 

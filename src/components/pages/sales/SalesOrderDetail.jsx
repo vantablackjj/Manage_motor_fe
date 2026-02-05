@@ -25,6 +25,7 @@ import {
   PlusOutlined,
   DeleteOutlined,
   CloseCircleOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import {
   orderAPI,
@@ -58,9 +59,12 @@ const SalesOrderDetail = () => {
   const [availableVehicles, setAvailableVehicles] = useState([]);
   const [availableParts, setAvailableParts] = useState([]);
 
+  const [headerModalVisible, setHeaderModalVisible] = useState(false);
+
   const [vehicleForm] = Form.useForm();
   const [partForm] = Form.useForm();
   const [deliveryForm] = Form.useForm();
+  const [headerForm] = Form.useForm();
 
   useEffect(() => {
     fetchMasterData();
@@ -292,6 +296,19 @@ const SalesOrderDetail = () => {
     }
   };
 
+  const handleUpdateHeader = async (values) => {
+    try {
+      await orderAPI.update(id, values);
+      notificationService.success("Cập nhật đơn hàng thành công");
+      setHeaderModalVisible(false);
+      fetchData();
+    } catch (error) {
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi cập nhật đơn hàng",
+      );
+    }
+  };
+
   if (!data) return null;
 
   const {
@@ -507,19 +524,6 @@ const SalesOrderDetail = () => {
             {/* Luồng Đã duyệt / Đang giao (DA_DUYET, DANG_GIAO) */}
             {canDeliver && (
               <>
-                {trang_thai === "DA_DUYET" && (
-                  <Button
-                    onClick={() =>
-                      handleUpdateStatus(
-                        "GUI_DUYET",
-                        "Hủy duyệt",
-                        "Bạn muốn đưa đơn hàng về trạng thái chờ duyệt?",
-                      )
-                    }
-                  >
-                    Hủy duyệt
-                  </Button>
-                )}
                 <Button
                   type="primary"
                   icon={<SendOutlined />}
@@ -569,6 +573,33 @@ const SalesOrderDetail = () => {
         <Card
           style={{ marginTop: 16, backgroundColor: "#f5f5f5" }}
           size="small"
+          title={
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span>Tổng hợp</span>
+              {isEditable && (
+                <Button
+                  type="link"
+                  icon={<EditOutlined />}
+                  onClick={() => {
+                    headerForm.setFieldsValue({
+                      vat_percentage: data.vat_percentage,
+                      chiet_khau: data.chiet_khau,
+                      ghi_chu: data.ghi_chu,
+                    });
+                    setHeaderModalVisible(true);
+                  }}
+                >
+                  Sửa
+                </Button>
+              )}
+            </div>
+          }
         >
           <Row gutter={[16, 8]} justify="end">
             <Col xs={12} sm={8} style={{ textAlign: "right" }}>
@@ -908,6 +939,39 @@ const SalesOrderDetail = () => {
               </Button>
             </Space>
           </div>
+        </Form>
+      </Modal>
+      {/* Edit Header Modal */}
+      <Modal
+        title="Cập nhật thông tin đơn hàng"
+        open={headerModalVisible}
+        onCancel={() => setHeaderModalVisible(false)}
+        onOk={() => headerForm.submit()}
+        okText="Cập nhật"
+      >
+        <Form form={headerForm} layout="vertical" onFinish={handleUpdateHeader}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="vat_percentage" label="VAT (%)">
+                <InputNumber min={0} max={100} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="chiet_khau" label="Chiết khấu (VNĐ)">
+                <InputNumber
+                  min={0}
+                  style={{ width: "100%" }}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="ghi_chu" label="Ghi chú">
+            <Input.TextArea rows={3} />
+          </Form.Item>
         </Form>
       </Modal>
     </div>
