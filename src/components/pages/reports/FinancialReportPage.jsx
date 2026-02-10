@@ -11,12 +11,16 @@ import {
   Space,
   DatePicker,
   Typography,
+  Statistic,
+  Tag,
 } from "antd";
 import {
   FileExcelOutlined,
   FilePdfOutlined,
   ReloadOutlined,
   DollarCircleOutlined,
+  RiseOutlined,
+  FallOutlined,
 } from "@ant-design/icons";
 import { reportAPI, khoAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
@@ -32,6 +36,7 @@ const FinancialReportPage = () => {
   const [activeTab, setActiveTab] = useState("cong-no-noi-bo");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
+  const [summary, setSummary] = useState(null);
   const [khoList, setKhoList] = useState([]);
 
   // Filter params
@@ -39,7 +44,9 @@ const FinancialReportPage = () => {
     ma_kho: null,
     tu_ngay: dayjs().startOf("month"),
     den_ngay: dayjs(),
-    loai_doi_tac: null,
+    loai_cong_no: null, // PHAI_THU or PHAI_TRA
+    ma_kh: null,
+    ma_ncc: null,
   });
 
   useEffect(() => {
@@ -53,7 +60,9 @@ const FinancialReportPage = () => {
     params.ma_kho,
     params.tu_ngay,
     params.den_ngay,
-    params.loai_doi_tac,
+    params.loai_cong_no,
+    params.ma_kh,
+    params.ma_ncc,
   ]);
 
   const fetchKhoList = async () => {
@@ -77,18 +86,48 @@ const FinancialReportPage = () => {
 
       if (activeTab === "cong-no-noi-bo") {
         res = await reportAPI.debt.getInternal(apiParams);
+        const rawData = res?.data !== undefined ? res.data : res;
+        const list = Array.isArray(rawData)
+          ? rawData
+          : rawData
+            ? [rawData]
+            : [];
+        setData(list);
+        setSummary(null);
       } else if (activeTab === "cong-no-khach-hang") {
         res = await reportAPI.debt.getCustomer(apiParams);
-      } else {
-        res = await reportAPI.finance.getByDay({ ...apiParams, loai: "THU" }); // Default loai
-      }
 
-      const rawData = res?.data !== undefined ? res.data : res;
-      const list = Array.isArray(rawData) ? rawData : rawData ? [rawData] : [];
-      setData(list);
+        // Handle new unified response format
+        if (res?.data && res?.summary) {
+          // New format with summary
+          setData(res.data || []);
+          setSummary(res.summary);
+        } else {
+          // Old format (array only)
+          const rawData = res?.data !== undefined ? res.data : res;
+          const list = Array.isArray(rawData)
+            ? rawData
+            : rawData
+              ? [rawData]
+              : [];
+          setData(list);
+          setSummary(null);
+        }
+      } else {
+        res = await reportAPI.finance.getByDay({ ...apiParams, loai: "THU" });
+        const rawData = res?.data !== undefined ? res.data : res;
+        const list = Array.isArray(rawData)
+          ? rawData
+          : rawData
+            ? [rawData]
+            : [];
+        setData(list);
+        setSummary(null);
+      }
     } catch (error) {
       notificationService.error("Không thể tải dữ liệu báo cáo");
       setData([]);
+      setSummary(null);
     } finally {
       setLoading(false);
     }
@@ -150,21 +189,55 @@ const FinancialReportPage = () => {
 
   const customerDebtColumns = [
     {
-      title: "Khách hàng",
-      dataIndex: "ho_ten",
-      key: "ho_ten",
-      render: (text) => <b>{text}</b>,
+      title: "Loại",
+      dataIndex: "loai_cong_no",
+      key: "loai_cong_no",
+      width: 120,
+      render: (loai) => {
+        if (loai === "PHAI_THU") {
+          return (
+            <Tag color="green" icon={<RiseOutlined />}>
+              Phải thu
+            </Tag>
+          );
+        } else if (loai === "PHAI_TRA") {
+          return (
+            <Tag color="orange" icon={<FallOutlined />}>
+              Phải trả
+            </Tag>
+          );
+        }
+        return loai;
+      },
     },
     {
-      title: "Mã KH",
-      dataIndex: "ma_ncc",
-      key: "ma_ncc",
+      title: "Đối tác",
+      dataIndex: "ho_ten",
+      key: "ho_ten",
+      render: (text, record) => (
+        <div>
+          <b>{text}</b>
+          <br />
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {record.loai_doi_tac === "KHACH_HANG"
+              ? "Khách hàng"
+              : "Nhà cung cấp"}
+          </Text>
+        </div>
+      ),
+    },
+    {
+      title: "Mã đối tác",
+      dataIndex: "ma_doi_tac",
+      key: "ma_doi_tac",
+      width: 120,
     },
     {
       title: "Tổng phải trả",
       dataIndex: "tong_phai_tra",
       key: "tong_phai_tra",
       align: "right",
+      width: 150,
       render: (val) => formatService.formatCurrency(val),
     },
     {
@@ -172,6 +245,7 @@ const FinancialReportPage = () => {
       dataIndex: "da_tra",
       key: "da_tra",
       align: "right",
+      width: 150,
       render: (val) => formatService.formatCurrency(val),
     },
     {
@@ -179,11 +253,23 @@ const FinancialReportPage = () => {
       dataIndex: "con_lai",
       key: "con_lai",
       align: "right",
-      render: (val) => (
-        <strong style={{ color: "red" }}>
+      width: 150,
+      render: (val, record) => (
+        <strong
+          style={{
+            color: record.loai_cong_no === "PHAI_THU" ? "#52c41a" : "#ff4d4f",
+          }}
+        >
           {formatService.formatCurrency(val)}
         </strong>
       ),
+    },
+    {
+      title: "Ngày cập nhật",
+      dataIndex: "ngay_cap_nhat",
+      key: "ngay_cap_nhat",
+      width: 120,
+      render: (date) => formatService.formatDate(date),
     },
   ];
 
@@ -279,25 +365,58 @@ const FinancialReportPage = () => {
           ]}
         />
 
+        {/* Summary Cards - Only show for customer debt report with summary */}
+        {activeTab === "cong-no-khach-hang" && summary && (
+          <Row gutter={16} style={{ marginBottom: 16 }}>
+            <Col xs={24} sm={12} md={6}>
+              <Card size="small">
+                <Statistic
+                  title="Tổng phải thu"
+                  value={summary.tong_phai_thu || 0}
+                  precision={0}
+                  valueStyle={{ color: "#52c41a" }}
+                  prefix={<RiseOutlined />}
+                  suffix="₫"
+                  formatter={(value) => formatService.formatCurrency(value)}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card size="small">
+                <Statistic
+                  title="Tổng phải trả"
+                  value={summary.tong_phai_tra || 0}
+                  precision={0}
+                  valueStyle={{ color: "#ff4d4f" }}
+                  prefix={<FallOutlined />}
+                  suffix="₫"
+                  formatter={(value) => formatService.formatCurrency(value)}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card size="small">
+                <Statistic
+                  title="Số khách hàng còn nợ"
+                  value={summary.so_khach_hang_no || 0}
+                  valueStyle={{ color: "#1890ff" }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card size="small">
+                <Statistic
+                  title="Số nhà cung cấp còn nợ"
+                  value={summary.so_nha_cung_cap_no || 0}
+                  valueStyle={{ color: "#faad14" }}
+                />
+              </Card>
+            </Col>
+          </Row>
+        )}
+
         <Card size="small" style={{ marginBottom: 16, background: "#fafafa" }}>
           <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} sm={8} md={4}>
-              <Text strong>Chọn kho:</Text>
-              <Select
-                style={{ width: "100%" }}
-                placeholder="Tất cả kho"
-                allowClear
-                value={params.ma_kho}
-                onChange={(val) => setParams({ ...params, ma_kho: val })}
-              >
-                {khoList.map((k) => (
-                  <Option key={k.ma_kho} value={k.ma_kho}>
-                    {k.ten_kho}
-                  </Option>
-                ))}
-              </Select>
-            </Col>
-
             <Col xs={24} sm={12} md={6}>
               <Text strong>Thời gian:</Text>
               <RangePicker
@@ -316,20 +435,19 @@ const FinancialReportPage = () => {
             </Col>
 
             {activeTab === "cong-no-khach-hang" && (
-              <Col xs={24} sm={8} md={4}>
-                <Text strong>Đối tượng:</Text>
+              <Col xs={24} sm={8} md={5}>
+                <Text strong>Loại công nợ:</Text>
                 <Select
                   style={{ width: "100%" }}
-                  placeholder="Tất cả đối tượng"
+                  placeholder="Tất cả"
                   allowClear
-                  value={params.loai_doi_tac}
+                  value={params.loai_cong_no}
                   onChange={(val) =>
-                    setParams({ ...params, loai_doi_tac: val })
+                    setParams({ ...params, loai_cong_no: val })
                   }
                 >
-                  <Option value="KHACH_HANG">Khách hàng</Option>
-                  <Option value="NHA_CUNG_CAP">Nhà cung cấp</Option>
-                  <Option value="NHAN_VIEN">Nhân viên</Option>
+                  <Option value="PHAI_THU">Phải thu (Khách hàng)</Option>
+                  <Option value="PHAI_TRA">Phải trả (Nhà cung cấp)</Option>
                 </Select>
               </Col>
             )}

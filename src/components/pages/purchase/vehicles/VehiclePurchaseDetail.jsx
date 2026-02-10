@@ -326,7 +326,7 @@ const VehiclePurchaseDetail = () => {
             {header.ten_ncc || header.ma_ncc}
           </Descriptions.Item>
           <Descriptions.Item label="Kho nhập">
-            {header.ten_kho_nhap || header.ma_kho_nhap}
+            {header.ten_kho || header.ten_kho_nhap || header.ma_kho_nhap}
           </Descriptions.Item>
           <Descriptions.Item label="Ghi chú">
             {header.ghi_chu || "-"}
@@ -338,12 +338,14 @@ const VehiclePurchaseDetail = () => {
             {header.ten_nguoi_tao || header.nguoi_tao || "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Ngày gửi duyệt">
-            {header.ngay_gui
-              ? formatService.formatDateTime(header.ngay_gui)
-              : "-"}
+            {header.ngay_gui_duyet
+              ? formatService.formatDateTime(header.ngay_gui_duyet)
+              : header.ngay_gui
+                ? formatService.formatDateTime(header.ngay_gui)
+                : "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Người gửi">
-            {header.nguoi_gui || "-"}
+            {header.ten_nguoi_gui || header.nguoi_gui || "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Ngày duyệt">
             {header.ngay_duyet
@@ -351,7 +353,7 @@ const VehiclePurchaseDetail = () => {
               : "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Người duyệt">
-            {header.nguoi_duyet || "-"}
+            {header.ten_nguoi_duyet || header.nguoi_duyet || "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Diễn giải" span={{ xs: 1, sm: 2, md: 3 }}>
             {header.dien_giai || "-"}
@@ -395,7 +397,9 @@ const VehiclePurchaseDetail = () => {
               <span style={{ color: "rgba(0,0,0,0.45)" }}>Tổng tiền hàng:</span>
               <br />
               <b style={{ fontSize: 16 }}>
-                {formatService.formatCurrency(Number(header.tong_gia_tri || 0))}
+                {formatService.formatCurrency(
+                  Number(header.tong_tien || header.tong_gia_tri || 0),
+                )}
               </b>
             </Col>
             <Col xs={12} sm={8} style={{ textAlign: "right" }}>
@@ -425,7 +429,9 @@ const VehiclePurchaseDetail = () => {
               <span
                 style={{ fontSize: 20, fontWeight: "bold", color: "#1890ff" }}
               >
-                {formatService.formatCurrency(Number(header.thanh_tien || 0))}
+                {formatService.formatCurrency(
+                  Number(header.tong_tien || header.thanh_tien || 0),
+                )}
               </span>
             </Col>
           </Row>
@@ -447,9 +453,13 @@ const VehiclePurchaseDetail = () => {
             },
             {
               title: "Mã xe",
-              dataIndex: "xe_key",
+              key: "ma_xe",
               width: 160,
-              render: (text) => text || "-",
+              render: (_, record) =>
+                record.ma_xe ||
+                record.xe_key ||
+                (record.danh_sach_xe && record.danh_sach_xe[0]?.ma_xe) ||
+                "-",
             },
             {
               title: "Loại xe",
@@ -463,20 +473,30 @@ const VehiclePurchaseDetail = () => {
             },
             {
               title: "Màu sắc",
-              dataIndex: "ma_mau",
-              width: 80,
+              key: "ten_mau",
+              width: 120,
+              render: (_, record) =>
+                record.ten_mau ||
+                colors.find((c) => c.ma_mau === record.ma_mau)?.ten_mau ||
+                record.ma_mau,
             },
             {
               title: "Số khung",
-              dataIndex: "so_khung",
-              width: 120,
-              render: (text) => text || "-",
+              key: "so_khung",
+              width: 150,
+              render: (_, record) =>
+                record.so_khung ||
+                (record.danh_sach_xe && record.danh_sach_xe[0]?.so_khung) ||
+                "-",
             },
             {
               title: "Số máy",
-              dataIndex: "so_may",
-              width: 100,
-              render: (text) => text || "-",
+              key: "so_may",
+              width: 150,
+              render: (_, record) =>
+                record.so_may ||
+                (record.danh_sach_xe && record.danh_sach_xe[0]?.so_may) ||
+                "-",
             },
             {
               title: "SL Đặt",

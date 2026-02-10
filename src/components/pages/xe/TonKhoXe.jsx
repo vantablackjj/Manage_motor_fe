@@ -33,7 +33,9 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
       const tonKhoMap = {};
 
       xeList.forEach((xe) => {
-        const key = `${xe.ma_loai_xe}_${xe.ma_mau}`;
+        // Group by type and color (handle missing ma_mau)
+        const colorKey = xe.ma_mau || xe.ten_mau || "N/A";
+        const key = `${xe.ma_loai_xe || "N/A"}_${colorKey}`;
 
         if (!tonKhoMap[key]) {
           tonKhoMap[key] = {
@@ -52,17 +54,25 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
         tonKhoMap[key].so_luong_ton += 1;
         tonKhoMap[key].tong_gia_nhap += parseFloat(xe.gia_nhap || 0);
 
-        // Cập nhật ngày mới nhất
-        if (new Date(xe.ngay_nhap) > new Date(tonKhoMap[key].ngay_cap_nhat)) {
+        // Update to latest date
+        if (
+          xe.ngay_nhap &&
+          (!tonKhoMap[key].ngay_cap_nhat ||
+            new Date(xe.ngay_nhap) > new Date(tonKhoMap[key].ngay_cap_nhat))
+        ) {
           tonKhoMap[key].ngay_cap_nhat = xe.ngay_nhap;
         }
       });
 
-      // Chuyển map thành array và tính giá nhập trung bình
+      // Convert map to array and calculate average price
       const tonKhoData = Object.values(tonKhoMap).map((item) => {
-        const vehiclesRaw = xeList.filter(
-          (xe) => xe.ma_loai_xe === item.ma_loai_xe && xe.ma_mau === item.ma_mau
-        );
+        const vehiclesRaw = xeList.filter((xe) => {
+          const xeColorKey = xe.ma_mau || xe.ten_mau || "N/A";
+          const itemColorKey = item.ma_mau || item.ten_mau || "N/A";
+          return (
+            xe.ma_loai_xe === item.ma_loai_xe && xeColorKey === itemColorKey
+          );
+        });
         return {
           ...item,
           gia_nhap:
@@ -83,11 +93,11 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
   // Tính toán thống kê
   const tongSoLuong = data.reduce(
     (sum, item) => sum + (item.so_luong_ton || 0),
-    0
+    0,
   );
   const tongGiaTri = data.reduce(
     (sum, item) => sum + (item.so_luong_ton || 0) * (item.gia_nhap || 0),
-    0
+    0,
   );
   const loaiXeTonKho = data.filter((item) => item.so_luong_ton > 0).length;
 
@@ -141,7 +151,7 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
       align: "right",
       render: (_, record) =>
         formatService.formatCurrency(
-          (record.so_luong_ton || 0) * (record.gia_nhap || 0)
+          (record.so_luong_ton || 0) * (record.gia_nhap || 0),
         ),
     },
     {
