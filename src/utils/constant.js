@@ -109,12 +109,11 @@ export const XE_TRANG_THAI_COLORS = {
   HU_HONG: "error",
 };
 
-// Loại giao dịch
+// Loại giao dịch (Warehouse Transaction Types)
 export const LOAI_GIAO_DICH = {
   NHAP_KHO: "NHAP_KHO",
   XUAT_KHO: "XUAT_KHO",
   CHUYEN_KHO: "CHUYEN_KHO",
-  BAN_HANG: "XUAT_KHO", // Aliasing for system compatibility
   TRA_HANG: "TRA_HANG",
   KIEM_KE: "KIEM_KE",
 };
@@ -128,11 +127,12 @@ export const LOAI_GIAO_DICH_LABELS = {
   KIEM_KE: "Kiểm kê",
 };
 
-// Loại đơn hàng (Unified ERP)
+// Loại đơn hàng (Order Types - must match backend enum)
+// Note: These are API values, NOT display labels
 export const LOAI_DON_HANG = {
-  MUA_HANG: "NHAP_KHO",
-  BAN_HANG: "XUAT_KHO",
-  CHUYEN_KHO: "CHUYEN_KHO",
+  MUA_HANG: "MUA_HANG", // Purchase Order (results in NHAP_KHO transaction)
+  BAN_HANG: "BAN_HANG", // Sales Order (results in XUAT_KHO transaction)
+  CHUYEN_KHO: "CHUYEN_KHO", // Transfer Order
 };
 
 // Loại đối thể (Polymorphic Entities)
