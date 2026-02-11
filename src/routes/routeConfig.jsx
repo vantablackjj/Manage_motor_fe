@@ -18,6 +18,9 @@ import ChuyenKhoCreate from "../components/pages/chuyenKho/ChuyenKhoCreate";
 import ChuyenKhoDetail from "../components/pages/chuyenKho/ChuyenKhoDetail";
 import CongNoManage from "../components/pages/congNo/CongNoManage";
 import CongNoDetailView from "../components/pages/congNo/CongNoDetailView";
+import AccessDenied from "../components/common/Error/AccessDenied";
+import NotFound from "../components/common/Error/NotFound";
+import UserProfilePage from "../components/pages/user/UserProfilePage";
 
 // Purchase - Xe
 import VehiclePurchaseList from "../components/pages/purchase/vehicles/VehiclePurchaseList";

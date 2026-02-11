@@ -177,6 +177,7 @@ const MainLayout = ({ children }) => {
       key: "/he-thong",
       icon: <SettingOutlined />,
       label: "Quản lý hệ thống",
+      roles: ["ADMIN"],
       children: [
         { key: "/he-thong/nguoi-dung", label: "Người dùng" },
         { key: "/he-thong/phan-quyen", label: "Phân quyền" },
@@ -184,6 +185,21 @@ const MainLayout = ({ children }) => {
       ],
     },
   ];
+
+  // Lọc menu theo vai trò
+  const filteredMenuItems = menuItems
+    .filter((item) => !item.roles || authService.hasRole(item.roles))
+    .map((item) => {
+      if (item.children) {
+        return {
+          ...item,
+          children: item.children.filter(
+            (child) => !child.roles || authService.hasRole(child.roles),
+          ),
+        };
+      }
+      return item;
+    });
 
   const userMenuItems = [
     {
@@ -220,7 +236,7 @@ const MainLayout = ({ children }) => {
       {!isMobile && (
         <Sidebar
           collapsed={collapsed}
-          menuItems={menuItems}
+          menuItems={filteredMenuItems}
           onMenuClick={handleMenuClick}
         />
       )}
@@ -235,7 +251,7 @@ const MainLayout = ({ children }) => {
         >
           <Sidebar
             collapsed={false}
-            menuItems={menuItems}
+            menuItems={filteredMenuItems}
             onMenuClick={handleMenuClick}
           />
         </Drawer>
