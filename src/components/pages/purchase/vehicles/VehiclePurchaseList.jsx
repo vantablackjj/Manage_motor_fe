@@ -84,7 +84,7 @@ const VehiclePurchaseList = () => {
       const res = await donHangMuaXeAPI.getAll(params);
       setData(res.data?.data || []);
     } catch (error) {
-      notificationService.error("Lỗi tải danh sách đơn hàng mua xe");
+      notificationService.error("Lỗi tải danh sách phiếu nhập xe");
     } finally {
       setLoading(false);
     }
@@ -189,7 +189,9 @@ const VehiclePurchaseList = () => {
           style={{ marginBottom: 16 }}
         >
           <Col xs={24} md={12}>
-            <h2 style={{ margin: 0 }}>Mua Xe</h2>
+            <h2 style={{ margin: 0 }}>
+              <ImportOutlined /> Nhập Xe
+            </h2>
           </Col>
           <Col xs={24} md={12} style={{ textAlign: "right" }}>
             <Space wrap>

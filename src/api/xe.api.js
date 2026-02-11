@@ -38,4 +38,17 @@ export const xeAPI = {
   lockPhieu: async (xe_key) => {
     return axiosInstance.put(API_ENDPOINTS.XE_KHOA_PHIEU(xe_key));
   },
+  // Approval Workflow
+  getApprovalList: async (params) => {
+    return axiosInstance.get(API_ENDPOINTS.XE_APPROVAL_LIST, { params });
+  },
+  submitApproval: async (xe_key) => {
+    return axiosInstance.post(API_ENDPOINTS.XE_SUBMIT(xe_key));
+  },
+  approve: async (xe_key) => {
+    return axiosInstance.post(API_ENDPOINTS.XE_APPROVE(xe_key));
+  },
+  reject: async (xe_key, data) => {
+    return axiosInstance.post(API_ENDPOINTS.XE_REJECT(xe_key), data);
+  },
 };

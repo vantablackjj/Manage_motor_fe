@@ -53,12 +53,9 @@ const HoaDonCreatePage = () => {
   const [khoList, setKhoList] = useState([]);
   const [khachHangList, setKhachHangList] = useState([]);
 
-  // Modal states
-  const [addItemVisible, setAddItemVisible] = useState(false);
-  const [loaiHangMoi, setLoaiHangMoi] = useState("PHU_TUNG");
+  // Products data
   const [xeList, setXeList] = useState([]);
   const [phuTungList, setPhuTungList] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     fetchInitialData();
@@ -127,44 +124,75 @@ const HoaDonCreatePage = () => {
   };
 
   const handleAddItem = () => {
-    setAddItemVisible(true);
-    setSelectedItem(null);
-  };
-
-  const handleSelectItem = (value, loaiHang) => {
-    if (loaiHang === "XE") {
-      const xe = xeList.find((x) => x.xe_key === value);
-      setSelectedItem(xe);
-    } else {
-      const pt = phuTungList.find((p) => p.ma_pt === value);
-      setSelectedItem(pt);
+    if (!form.getFieldValue("ma_kho_xuat")) {
+      notificationService.warning("Vui lòng chọn kho xuất trước");
+      return;
     }
-  };
-
-  const handleConfirmAddItem = (values) => {
     const newItem = {
       key: Date.now().toString(),
       stt: chiTiet.length + 1,
-      loai_hang: loaiHangMoi,
-      so_luong: values.so_luong || 1,
-      don_gia: values.don_gia,
-      thanh_tien: (values.so_luong || 1) * values.don_gia,
+      loai_hang: "PHU_TUNG",
+      so_luong: 1,
+      don_gia: 0,
+      thanh_tien: 0,
     };
-
-    if (loaiHangMoi === "XE") {
-      const xe = xeList.find((x) => x.xe_key === values.xe_key);
-      newItem.xe_key = xe.xe_key;
-      newItem.ten_hang = `${xe.ten_loai} - ${xe.ten_mau} (${xe.so_khung})`;
-      newItem.so_luong = 1;
-    } else {
-      const pt = phuTungList.find((p) => p.ma_pt === values.ma_pt);
-      newItem.ma_pt = pt.ma_pt;
-      newItem.ten_hang = `${pt.ten_pt} (${pt.don_vi_tinh})`;
-    }
-
     setChiTiet([...chiTiet, newItem]);
-    setAddItemVisible(false);
-    setSelectedItem(null);
+  };
+
+  const handleRowChange = (key, field, value) => {
+    const newChiTiet = chiTiet.map((item) => {
+      if (item.key === key) {
+        const updatedItem = { ...item, [field]: value };
+
+        if (field === "loai_hang") {
+          updatedItem.xe_key = null;
+          updatedItem.ma_pt = null;
+          updatedItem.ten_hang = "";
+          updatedItem.don_gia = 0;
+          updatedItem.so_luong = 1;
+        }
+
+        if (field === "so_luong" || field === "don_gia") {
+          updatedItem.thanh_tien =
+            (updatedItem.so_luong || 0) * (updatedItem.don_gia || 0);
+        }
+        return updatedItem;
+      }
+      return item;
+    });
+    setChiTiet(newChiTiet);
+    saveDraft();
+  };
+
+  const handleProductChange = (key, value) => {
+    const newChiTiet = chiTiet.map((item) => {
+      if (item.key === key) {
+        let updatedItem = { ...item };
+        if (item.loai_hang === "XE") {
+          const xe = xeList.find((x) => x.xe_key === value);
+          if (xe) {
+            updatedItem.xe_key = xe.xe_key;
+            updatedItem.ma_pt = null;
+            updatedItem.ten_hang = `${xe.ten_loai} - ${xe.ten_mau} (${xe.so_khung})`;
+            updatedItem.don_gia = xe.gia_ban || 0;
+            updatedItem.so_luong = 1;
+          }
+        } else {
+          const pt = phuTungList.find((p) => p.ma_pt === value);
+          if (pt) {
+            updatedItem.ma_pt = pt.ma_pt;
+            updatedItem.xe_key = null;
+            updatedItem.ten_hang = `${pt.ten_pt} (${pt.don_vi_tinh})`;
+            updatedItem.don_gia = pt.gia_ban || 0;
+          }
+        }
+        updatedItem.thanh_tien =
+          (updatedItem.so_luong || 0) * (updatedItem.don_gia || 0);
+        return updatedItem;
+      }
+      return item;
+    });
+    setChiTiet(newChiTiet);
     saveDraft();
   };
 
@@ -192,7 +220,7 @@ const HoaDonCreatePage = () => {
     const chietKhauAmount = calculationService.calculateDiscount(
       subtotal,
       0,
-      chietKhau
+      chietKhau,
     );
     const afterDiscount = subtotal - chietKhauAmount;
     const vatAmount = calculationService.calculateVAT(afterDiscount, vat);
@@ -248,38 +276,79 @@ const HoaDonCreatePage = () => {
       title: "Loại",
       dataIndex: "loai_hang",
       key: "loai_hang",
-      width: 100,
-      render: (text) =>
-        text === "XE" ? (
-          <span>
-            <CarOutlined /> Xe
-          </span>
-        ) : (
-          <span>
-            <ToolOutlined /> Phụ tùng
-          </span>
-        ),
+      width: 120,
+      render: (val, record) => (
+        <Select
+          value={val}
+          onChange={(v) => handleRowChange(record.key, "loai_hang", v)}
+          style={{ width: "100%" }}
+        >
+          <Option value="XE">Xe</Option>
+          <Option value="PHU_TUNG">Phụ tùng</Option>
+        </Select>
+      ),
     },
     {
-      title: "Tên hàng",
-      dataIndex: "ten_hang",
-      key: "ten_hang",
-      ellipsis: true,
+      title: "Hàng hóa",
+      key: "hang_hoa",
+      render: (_, record) => (
+        <Select
+          showSearch
+          placeholder="Chọn hàng hóa"
+          style={{ width: "100%" }}
+          value={record.xe_key || record.ma_pt}
+          onChange={(v) => handleProductChange(record.key, v)}
+          optionFilterProp="children"
+        >
+          {record.loai_hang === "XE"
+            ? xeList.map((x) => (
+                <Option key={x.xe_key} value={x.xe_key}>
+                  {x.ten_loai} - {x.ten_mau} ({x.so_khung})
+                </Option>
+              ))
+            : phuTungList.map((p) => (
+                <Option key={p.ma_pt} value={p.ma_pt}>
+                  {p.ten_pt} - Tồn: {p.so_luong_ton}
+                </Option>
+              ))}
+        </Select>
+      ),
     },
     {
       title: "SL",
       dataIndex: "so_luong",
       key: "so_luong",
-      width: 80,
+      width: 100,
       align: "right",
+      render: (val, record) => (
+        <InputNumber
+          min={1}
+          disabled={record.loai_hang === "XE"}
+          value={val}
+          onChange={(v) => handleRowChange(record.key, "so_luong", v)}
+          style={{ width: "100%" }}
+        />
+      ),
     },
     {
       title: "Đơn giá",
       dataIndex: "don_gia",
       key: "don_gia",
-      width: 130,
+      width: 150,
       align: "right",
-      render: (text) => formatService.formatCurrency(text),
+      render: (val, record) => (
+        <InputNumber
+          min={0}
+          value={val}
+          onChange={(v) => handleRowChange(record.key, "don_gia", v)}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+          style={{ width: "100%" }}
+          addonAfter="₫"
+        />
+      ),
     },
     {
       title: "Thành tiền",
@@ -505,136 +574,7 @@ const HoaDonCreatePage = () => {
         </Card>
       </Form>
 
-      {/* Modal Add Item */}
-      <Modal
-        title="Thêm hàng hóa"
-        open={addItemVisible}
-        onCancel={() => setAddItemVisible(false)}
-        footer={null}
-        width={600}
-      >
-        <Radio.Group
-          value={loaiHangMoi}
-          onChange={(e) => setLoaiHangMoi(e.target.value)}
-          style={{ marginBottom: "16px" }}
-        >
-          <Radio value="XE">Xe</Radio>
-          <Radio value="PHU_TUNG">Phụ tùng</Radio>
-        </Radio.Group>
-
-        <Form layout="vertical" onFinish={handleConfirmAddItem}>
-          {loaiHangMoi === "XE" ? (
-            <>
-              <Form.Item
-                name="xe_key"
-                label="Chọn xe"
-                rules={[{ required: true, message: "Vui lòng chọn xe" }]}
-              >
-                <Select
-                  placeholder="Chọn xe"
-                  showSearch
-                  onChange={(value) => handleSelectItem(value, "XE")}
-                >
-                  {xeList.map((xe) => (
-                    <Option key={xe.xe_key} value={xe.xe_key}>
-                      {xe.ten_loai} - {xe.ten_mau} ({xe.so_khung})
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-
-              {selectedItem && (
-                <div
-                  style={{
-                    padding: "12px",
-                    background: "#f5f5f5",
-                    borderRadius: "4px",
-                    marginBottom: "16px",
-                  }}
-                >
-                  <p>
-                    <strong>Giá bán:</strong>{" "}
-                    {formatService.formatCurrency(selectedItem.gia_ban)}
-                  </p>
-                </div>
-              )}
-
-              <Form.Item
-                name="don_gia"
-                label="Đơn giá bán"
-                rules={[{ required: true }]}
-                initialValue={selectedItem?.gia_ban}
-              >
-                <InputNumber
-                  style={{ width: "100%" }}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                  addonAfter="₫"
-                />
-              </Form.Item>
-            </>
-          ) : (
-            <>
-              <Form.Item
-                name="ma_pt"
-                label="Chọn phụ tùng"
-                rules={[{ required: true }]}
-              >
-                <Select
-                  placeholder="Chọn phụ tùng"
-                  showSearch
-                  onChange={(value) => handleSelectItem(value, "PHU_TUNG")}
-                >
-                  {phuTungList.map((pt) => (
-                    <Option key={pt.ma_pt} value={pt.ma_pt}>
-                      {pt.ten_pt} - Tồn: {pt.so_luong_ton}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-
-              <Form.Item
-                name="so_luong"
-                label="Số lượng"
-                rules={[{ required: true }]}
-              >
-                <InputNumber
-                  style={{ width: "100%" }}
-                  min={1}
-                  max={selectedItem?.so_luong_ton}
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="don_gia"
-                label="Đơn giá"
-                rules={[{ required: true }]}
-                initialValue={selectedItem?.gia_ban}
-              >
-                <InputNumber
-                  style={{ width: "100%" }}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                  addonAfter="₫"
-                />
-              </Form.Item>
-            </>
-          )}
-
-          <Form.Item>
-            <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <Button onClick={() => setAddItemVisible(false)}>Hủy</Button>
-              <Button type="primary" htmlType="submit">
-                Thêm
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+      {/* Modal removed for inline entry */}
     </div>
   );
 };

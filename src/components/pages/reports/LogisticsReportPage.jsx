@@ -11,12 +11,15 @@ import {
   Space,
   DatePicker,
   Typography,
+  Tag,
 } from "antd";
 import {
   FileExcelOutlined,
   FilePdfOutlined,
   ReloadOutlined,
   SwapOutlined,
+  HomeOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import { reportAPI, khoAPI, phuTungAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
@@ -114,16 +117,16 @@ const LogisticsReportPage = () => {
       render: (text) => <b>{text}</b>,
     },
     {
-      title: "Loại có",
+      title: "Loại giao dịch",
       dataIndex: "loai_giao_dich",
       key: "loai_giao_dich",
-      width: 120,
+      width: 130,
       render: (val) => {
         let color = "default";
         if (val === "NHAP_KHO") color = "success";
         if (val === "XUAT_KHO") color = "error";
         if (val === "CHUYEN_KHO") color = "processing";
-        return <Text type={color}>{formatService.formatXeTrangThai(val)}</Text>;
+        return <Tag color={color}>{formatService.formatLoaiGiaoDich(val)}</Tag>;
       },
     },
     {
@@ -146,18 +149,46 @@ const LogisticsReportPage = () => {
       ellipsis: true,
     },
     {
-      title: "Nơi đi (Kho xuất)",
+      title: "Đối tác / Kho xuất",
       dataIndex: "kho_xuat",
       key: "kho_xuat",
-      width: 150,
-      render: (val, record) => val || record.ma_kho_xuat || "-",
+      width: 180,
+      render: (val, record) => {
+        const text = val || record.ma_kho_xuat;
+        if (!text) return "-";
+        const isPartner = record.loai_giao_dich === "NHAP_KHO";
+        return (
+          <Space>
+            {isPartner ? (
+              <UserOutlined style={{ color: "#fa8c16" }} />
+            ) : (
+              <HomeOutlined style={{ color: "#1890ff" }} />
+            )}
+            <span>{text}</span>
+          </Space>
+        );
+      },
     },
     {
-      title: "Nơi đến (Kho nhập)",
+      title: "Đối tác / Kho nhập",
       dataIndex: "kho_nhap",
       key: "kho_nhap",
-      width: 150,
-      render: (val, record) => val || record.ma_kho_nhap || "-",
+      width: 180,
+      render: (val, record) => {
+        const text = val || record.ma_kho_nhap;
+        if (!text) return "-";
+        const isPartner = record.loai_giao_dich === "XUAT_KHO";
+        return (
+          <Space>
+            {isPartner ? (
+              <UserOutlined style={{ color: "#fa8c16" }} />
+            ) : (
+              <HomeOutlined style={{ color: "#1890ff" }} />
+            )}
+            <span>{text}</span>
+          </Space>
+        );
+      },
     },
 
     {
@@ -193,16 +224,16 @@ const LogisticsReportPage = () => {
       render: (text) => <b>{text}</b>,
     },
     {
-      title: "Loại có",
+      title: "Loại giao dịch",
       dataIndex: "loai_giao_dich",
       key: "loai_giao_dich",
-      width: 120,
+      width: 130,
       render: (val) => {
         let color = "default";
         if (val === "NHAP_KHO") color = "success";
         if (val === "XUAT_KHO") color = "error";
         if (val === "CHUYEN_KHO") color = "processing";
-        return <Text type={color}>{formatService.formatXeTrangThai(val)}</Text>;
+        return <Tag color={color}>{formatService.formatLoaiGiaoDich(val)}</Tag>;
       },
     },
     {
@@ -219,18 +250,46 @@ const LogisticsReportPage = () => {
       ),
     },
     {
-      title: "Nơi đi (Kho xuất)",
+      title: "Đối tác / Kho xuất",
       dataIndex: "kho_xuat",
       key: "kho_xuat",
-      width: 150,
-      render: (val, record) => val || record.ma_kho_xuat || "-",
+      width: 180,
+      render: (val, record) => {
+        const text = val || record.ma_kho_xuat;
+        if (!text) return "-";
+        const isPartner = record.loai_giao_dich === "NHAP_KHO";
+        return (
+          <Space>
+            {isPartner ? (
+              <UserOutlined style={{ color: "#fa8c16" }} />
+            ) : (
+              <HomeOutlined style={{ color: "#1890ff" }} />
+            )}
+            <span>{text}</span>
+          </Space>
+        );
+      },
     },
     {
-      title: "Nơi đến (Kho nhập)",
+      title: "Đối tác / Kho nhập",
       dataIndex: "kho_nhap",
       key: "kho_nhap",
-      width: 150,
-      render: (val, record) => val || record.ma_kho_nhap || "-",
+      width: 180,
+      render: (val, record) => {
+        const text = val || record.ma_kho_nhap;
+        if (!text) return "-";
+        const isPartner = record.loai_giao_dich === "XUAT_KHO";
+        return (
+          <Space>
+            {isPartner ? (
+              <UserOutlined style={{ color: "#fa8c16" }} />
+            ) : (
+              <HomeOutlined style={{ color: "#1890ff" }} />
+            )}
+            <span>{text}</span>
+          </Space>
+        );
+      },
     },
     {
       title: "ĐVT",
@@ -268,33 +327,119 @@ const LogisticsReportPage = () => {
   const cardColumns = [
     {
       title: "Ngày",
-      dataIndex: "ngay",
-      key: "ngay",
+      dataIndex: "ngay_giao_dich",
+      key: "ngay_giao_dich",
+      width: 110,
       render: (date) => formatService.formatDate(date),
     },
-    { title: "Mã phiếu", dataIndex: "so_phieu", key: "so_phieu" },
-    { title: "Diễn giải", dataIndex: "dien_giai", key: "dien_giai" },
-    { title: "Đầu kỳ", dataIndex: "ton_dau", key: "ton_dau", align: "right" },
+    {
+      title: "Số chứng từ",
+      dataIndex: "so_chung_tu",
+      key: "so_chung_tu",
+      width: 150,
+      render: (text) => <b>{text}</b>,
+    },
+    {
+      title: "Loại giao dịch",
+      dataIndex: "loai_giao_dich",
+      key: "loai_giao_dich",
+      width: 130,
+      render: (val) => {
+        let color = "default";
+        if (val === "NHAP_KHO") color = "success";
+        if (val === "XUAT_KHO") color = "error";
+        if (val === "CHUYEN_KHO") color = "processing";
+        return <Tag color={color}>{formatService.formatLoaiGiaoDich(val)}</Tag>;
+      },
+    },
+    {
+      title: "Diễn giải",
+      dataIndex: "dien_giai",
+      key: "dien_giai",
+      ellipsis: true,
+      render: (val) => val || <Text type="secondary">N/A</Text>,
+    },
+    {
+      title: "Đối tác / Kho xuất",
+      dataIndex: "kho_xuat",
+      key: "kho_xuat",
+      width: 150,
+      render: (val, record) => {
+        const text = val || record.ma_kho_xuat;
+        if (!text) return "-";
+        const isPartner = record.loai_giao_dich === "NHAP_KHO";
+        return (
+          <Space>
+            {isPartner ? (
+              <UserOutlined style={{ color: "#fa8c16" }} />
+            ) : (
+              <HomeOutlined style={{ color: "#1890ff" }} />
+            )}
+            <span>{text}</span>
+          </Space>
+        );
+      },
+    },
+    {
+      title: "Đối tác / Kho nhập",
+      dataIndex: "kho_nhap",
+      key: "kho_nhap",
+      width: 150,
+      render: (val, record) => {
+        const text = val || record.ma_kho_nhap;
+        if (!text) return "-";
+        const isPartner = record.loai_giao_dich === "XUAT_KHO";
+        return (
+          <Space>
+            {isPartner ? (
+              <UserOutlined style={{ color: "#fa8c16" }} />
+            ) : (
+              <HomeOutlined style={{ color: "#1890ff" }} />
+            )}
+            <span>{text}</span>
+          </Space>
+        );
+      },
+    },
     {
       title: "Nhập",
-      dataIndex: "nhap",
       key: "nhap",
       align: "right",
-      render: (val) => (val > 0 ? <Text type="success">+{val}</Text> : ""),
+      width: 90,
+      render: (_, record) =>
+        record.so_luong > 0 ? (
+          <Text type="success">+{record.so_luong}</Text>
+        ) : (
+          ""
+        ),
     },
     {
       title: "Xuất",
-      dataIndex: "xuat",
       key: "xuat",
       align: "right",
-      render: (val) => (val > 0 ? <Text type="danger">-{val}</Text> : ""),
+      width: 90,
+      render: (_, record) =>
+        record.so_luong < 0 ? <Text type="danger">{record.so_luong}</Text> : "",
     },
     {
-      title: "Cuối kỳ",
-      dataIndex: "ton_cuoi",
-      key: "ton_cuoi",
+      title: "Đơn giá",
+      dataIndex: "don_gia",
+      key: "don_gia",
       align: "right",
-      render: (val) => <strong>{val}</strong>,
+      width: 110,
+      render: (val) => formatService.formatCurrency(val),
+    },
+    {
+      title: "Thành tiền",
+      dataIndex: "thanh_tien",
+      key: "thanh_tien",
+      align: "right",
+      width: 130,
+      render: (val) => (
+        <strong style={{ color: Number(val) < 0 ? "red" : "inherit" }}>
+          {formatService.formatCurrency(val)}
+        </strong>
+      ),
     },
   ];
 

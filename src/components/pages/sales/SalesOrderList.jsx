@@ -99,7 +99,7 @@ const SalesOrderList = () => {
         total: meta.total || list.length,
       });
     } catch (error) {
-      notificationService.error("Lỗi tải danh sách đơn bán hàng");
+      notificationService.error("Lỗi tải danh sách phiếu xuất kho");
     } finally {
       setLoading(false);
     }
@@ -145,7 +145,9 @@ const SalesOrderList = () => {
       dataIndex: "trang_thai",
       align: "center",
       render: (status) => (
-        <Tag color={TRANG_THAI_COLORS[status] || "default"}>{status}</Tag>
+        <Tag color={TRANG_THAI_COLORS[status] || "default"}>
+          {formatService.formatTrangThai(status)}
+        </Tag>
       ),
     },
     {
@@ -175,7 +177,7 @@ const SalesOrderList = () => {
         >
           <Col xs={24} md={12}>
             <h2 style={{ margin: 0 }}>
-              <ShoppingOutlined /> Bán Hàng
+              <ExportOutlined /> Xuất Kho (Bán)
             </h2>
           </Col>
           <Col xs={24} md={12} style={{ textAlign: "right" }}>

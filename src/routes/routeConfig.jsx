@@ -9,6 +9,7 @@ import DanhMucPage from "../components/pages/danhMuc/DanhMucPage";
 import MainLayout from "../components/layout/MainLayout/MainLayout";
 import XeLoai from "../components/pages/xe/XeLoai";
 import XeLichSu from "../components/pages/xe/XeLichSu";
+import VehicleApprovalList from "../components/pages/xe/VehicleApprovalList";
 import PhuTungManage from "../components/pages/phuTung/PhuTungManage";
 import KhoManage from "../components/pages/kho/KhoManage";
 import KhachHangManage from "../components/pages/khachHang/KhachHangManage";
@@ -156,6 +157,11 @@ export const privateRoutes = [
   {
     path: "/xe/lich-su",
     component: XeLichSu,
+    layout: MainLayout,
+  },
+  {
+    path: "/xe/phe-duyet",
+    component: VehicleApprovalList,
     layout: MainLayout,
   },
 

@@ -110,11 +110,13 @@ const HoaDonBanListPage = () => {
       title: "Khách hàng",
       dataIndex: "ten_khach_hang",
       key: "ten_khach_hang",
+      render: (text, record) => text || record.ma_kh,
     },
     {
       title: "Kho",
       dataIndex: "ten_kho",
       key: "ten_kho",
+      render: (text, record) => text || record.ma_kho_xuat,
     },
     {
       title: "Tổng tiền",

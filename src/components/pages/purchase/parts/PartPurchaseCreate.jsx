@@ -16,6 +16,7 @@ import {
   PlusOutlined,
   DeleteOutlined,
   SaveOutlined,
+  SendOutlined,
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -115,7 +116,7 @@ const PartPurchaseCreate = () => {
     setItems(newItems);
   };
 
-  const onFinish = async (values) => {
+  const onFinish = async (values, submitForApproval = false) => {
     if (items.length === 0) {
       notificationService.error("Vui lòng thêm ít nhất 1 phụ tùng");
       return;
@@ -180,7 +181,12 @@ const PartPurchaseCreate = () => {
 
       await Promise.all(detailPromises);
 
-      notificationService.success("Tạo đơn hàng mua phụ tùng thành công");
+      if (submitForApproval) {
+        await donHangAPI.guiDuyet(ma_phieu);
+        notificationService.success("Đã tạo và gửi duyệt đơn hàng");
+      } else {
+        notificationService.success("Tạo đơn hàng mua phụ tùng thành công");
+      }
       navigate("/purchase/parts");
     } catch (error) {
       console.error(error);
@@ -444,12 +450,23 @@ const PartPurchaseCreate = () => {
             <Space wrap>
               <Button onClick={() => navigate("/purchase/parts")}>Hủy</Button>
               <Button
-                type="primary"
-                htmlType="submit"
                 icon={<SaveOutlined />}
                 loading={loading}
+                onClick={() =>
+                  form.validateFields().then((v) => onFinish(v, false))
+                }
               >
-                Lưu đơn hàng
+                Lưu nháp
+              </Button>
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
+                loading={loading}
+                onClick={() =>
+                  form.validateFields().then((v) => onFinish(v, true))
+                }
+              >
+                Lưu và Gửi duyệt
               </Button>
             </Space>
           </div>

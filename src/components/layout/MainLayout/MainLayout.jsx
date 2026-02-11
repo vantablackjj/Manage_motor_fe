@@ -27,6 +27,8 @@ import {
   SettingOutlined,
   AppstoreOutlined,
   CustomerServiceOutlined,
+  ImportOutlined,
+  ExportOutlined,
 } from "@ant-design/icons";
 
 import "./MainLayout.css";
@@ -53,22 +55,25 @@ const MainLayout = ({ children }) => {
   const menuItems = [
     { key: "/", icon: <DashboardOutlined />, label: "Dashboard" },
 
-    // KHO VẬN (Mới)
+    // KHO VẬN
     {
-      key: "/kho-van",
-      icon: <SwapOutlined />,
-      label: "Kho vận",
-      children: [{ key: "/chuyen-kho", label: "Chuyển kho" }],
+      key: "/warehouse-manage",
+      icon: <HomeOutlined />,
+      label: "Quản lý kho",
+      children: [
+        { key: "/chuyen-kho", label: "Chuyển kho" },
+        { key: "/danh-muc/kho", label: "Danh mục kho" },
+      ],
     },
 
-    // MUA HÀNG (PURCHASE)
+    // NHẬP KHO (PURCHASE)
     {
       key: "/purchase",
-      icon: <ShoppingCartOutlined />,
-      label: "Mua Hàng",
+      icon: <ImportOutlined />,
+      label: "Nhập Kho",
       children: [
-        { key: "/purchase/vehicles", label: "Mua Xe" },
-        { key: "/purchase/parts", label: "Mua Phụ Tùng" },
+        { key: "/purchase/vehicles", label: "Nhập Xe" },
+        { key: "/purchase/parts", label: "Nhập Phụ Tùng" },
       ],
     },
 
@@ -80,16 +85,17 @@ const MainLayout = ({ children }) => {
       children: [
         { key: "/xe/danh-sach", label: "Danh sách xe" },
         { key: "/xe/lich-su", label: "Lịch sử xe" },
+        { key: "/xe/phe-duyet", label: "Phê duyệt xe nhập lẻ" },
       ],
     },
-    //3.Bán hàng
+    // XUẤT KHO (SALES)
     {
       key: "/sales",
-      icon: <ShoppingCartOutlined />,
-      label: "Bán hàng",
+      icon: <ExportOutlined />,
+      label: "Xuất Kho",
       children: [
-        { key: "/sales/orders", label: "Đơn hàng bán" },
-        { key: "/sales/invoices", label: "Hóa đơn bán" },
+        { key: "/sales/orders", label: "Đơn hàng xuất" },
+        { key: "/sales/invoices", label: "Hóa đơn xuất" },
       ],
     },
 

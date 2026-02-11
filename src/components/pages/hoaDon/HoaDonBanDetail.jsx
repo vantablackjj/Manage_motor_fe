@@ -124,13 +124,13 @@ const HoaDonBanDetail = () => {
   const {
     trang_thai,
     ngay_lap,
-    ma_kh,
-    ten_khach_hang,
-    ma_kho,
-    ten_kho,
+    ma_ben_nhap, // ma_kh old
+    ten_ben_nhap, // ten_khach_hang old
+    ma_ben_xuat, // ma_kho old
+    ten_ben_xuat, // ten_kho old
     tong_tien,
     chiet_khau,
-    thue_vat,
+    tien_thue_gtgt, // thue_vat old
     thanh_tien,
     ghi_chu,
     chi_tiet_xe = [],
@@ -264,11 +264,10 @@ const HoaDonBanDetail = () => {
   };
 
   const vehicleColumns = [
-    { title: "Mã xe", dataIndex: "ma_xe", width: 140 },
-    { title: "Loại xe", dataIndex: "ten_loai_xe" },
-    { title: "Màu sắc", dataIndex: "ten_mau", width: 100 },
-    { title: "Số khung", dataIndex: "so_khung" },
-    { title: "Số máy", dataIndex: "so_may" },
+    { title: "Mã xe/Serial", dataIndex: "xe_key", width: 160 },
+    { title: "Mã PT", dataIndex: "ma_pt" },
+    { title: "Tên Xe/PT", dataIndex: "ten_pt" },
+    { title: "ĐVT", dataIndex: "don_vi_tinh", width: 80 },
     {
       title: "Đơn giá",
       dataIndex: "don_gia",
@@ -332,10 +331,10 @@ const HoaDonBanDetail = () => {
                 {formatService.formatDateTime(ngay_lap)}
               </Descriptions.Item>
               <Descriptions.Item label="Khách hàng">
-                {ten_khach_hang || ma_kh}
+                {ten_ben_nhap || ma_ben_nhap}
               </Descriptions.Item>
               <Descriptions.Item label="Kho xuất">
-                {ten_kho || ma_kho}
+                {ten_ben_xuat || ma_ben_xuat}
               </Descriptions.Item>
               <Descriptions.Item label="Ghi chú">
                 {ghi_chu || "-"}
@@ -398,7 +397,9 @@ const HoaDonBanDetail = () => {
                 <Col xs={12} sm={4} style={{ textAlign: "right" }}>
                   <span style={{ color: "rgba(0,0,0,0.45)" }}>VAT:</span>
                   <br />
-                  <b style={{ fontSize: 16 }}>{thue_vat || 0}%</b>
+                  <b style={{ fontSize: 16 }}>
+                    {formatService.formatCurrency(Number(tien_thue_gtgt || 0))}
+                  </b>
                 </Col>
                 <Col
                   xs={24}

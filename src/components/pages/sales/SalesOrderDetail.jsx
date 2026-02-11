@@ -264,7 +264,7 @@ const SalesOrderDetail = () => {
         .concat(data.chi_tiet_pt)
         .map((item) => ({
           ma_hang_hoa: item.ma_hang_hoa,
-          so_luong: values[`qty_${item.ma_hang_hoa}`] || 0,
+          so_luong: values[`qty_${item.stt}`] || 0,
           don_gia: Number(item.don_gia),
           serials:
             item.loai_hang === "XE"
@@ -538,7 +538,7 @@ const SalesOrderDetail = () => {
                           (item.so_luong_dat || 1) -
                           (item.so_luong_da_giao || 0);
                         deliveryForm.setFieldValue(
-                          `qty_${item.ma_hang_hoa}`,
+                          `qty_${item.stt}`,
                           remaining > 0 ? remaining : 0,
                         );
                       });
@@ -882,7 +882,7 @@ const SalesOrderDetail = () => {
             size="small"
             pagination={false}
             dataSource={(data.chi_tiet_xe || []).concat(data.chi_tiet_pt || [])}
-            rowKey="ma_hang_hoa"
+            rowKey="stt"
             columns={[
               {
                 title: "Sản phẩm",
@@ -912,10 +912,7 @@ const SalesOrderDetail = () => {
                   if (remaining <= 0)
                     return <Tag color="success">Đã giao đủ</Tag>;
                   return (
-                    <Form.Item
-                      name={`qty_${record.ma_hang_hoa}`}
-                      style={{ margin: 0 }}
-                    >
+                    <Form.Item name={`qty_${record.stt}`} style={{ margin: 0 }}>
                       <InputNumber
                         min={0}
                         max={remaining}

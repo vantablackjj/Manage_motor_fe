@@ -16,6 +16,7 @@ import {
   PlusOutlined,
   DeleteOutlined,
   SaveOutlined,
+  SendOutlined,
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -123,7 +124,7 @@ const VehiclePurchaseCreate = () => {
     setItems(newItems);
   };
 
-  const onFinish = async (values) => {
+  const onFinish = async (values, submitForApproval = false) => {
     if (items.length === 0) {
       notificationService.error("Vui lòng thêm ít nhất 1 xe");
       return;
@@ -173,9 +174,15 @@ const VehiclePurchaseCreate = () => {
       console.log("Exploded Items:", explodedItems);
       console.log("Final Payload:", payload);
 
-      await donHangMuaXeAPI.createWithDetails(payload);
+      const res = await donHangMuaXeAPI.createWithDetails(payload);
+      const ma_phieu = res.data?.id || res.id || res.data?.so_phieu;
 
-      notificationService.success("Tạo đơn hàng thành công");
+      if (submitForApproval && ma_phieu) {
+        await donHangMuaXeAPI.guiDuyet(ma_phieu);
+        notificationService.success("Đã tạo và gửi duyệt đơn hàng");
+      } else {
+        notificationService.success("Tạo đơn hàng mua xe thành công");
+      }
       navigate("/purchase/vehicles");
     } catch (error) {
       notificationService.error(
@@ -427,12 +434,23 @@ const VehiclePurchaseCreate = () => {
                 Hủy
               </Button>
               <Button
-                type="primary"
-                htmlType="submit"
                 icon={<SaveOutlined />}
                 loading={loading}
+                onClick={() =>
+                  form.validateFields().then((v) => onFinish(v, false))
+                }
               >
-                Lưu đơn hàng
+                Lưu nháp
+              </Button>
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
+                loading={loading}
+                onClick={() =>
+                  form.validateFields().then((v) => onFinish(v, true))
+                }
+              >
+                Lưu và Gửi duyệt
               </Button>
             </Space>
           </div>

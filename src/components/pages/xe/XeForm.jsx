@@ -1,5 +1,5 @@
-// src/pages/xe/XeForm.jsx
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Form,
   Input,
@@ -32,6 +32,7 @@ const XeForm = ({
   onCancel,
 }) => {
   const { isMobile } = useResponsive();
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const isView = mode === "view";
@@ -75,7 +76,10 @@ const XeForm = ({
         notificationService.success("Cập nhật xe thành công");
       } else {
         await xeAPI.create(payload);
-        notificationService.success("Thêm xe thành công");
+        notificationService.success(
+          "Xe đã được tạo dưới dạng Nháp và chờ gửi duyệt",
+        );
+        navigate("/xe/phe-duyet");
       }
 
       onSuccess?.();

@@ -33,6 +33,11 @@ export const TRANG_THAI = {
   DA_THANH_TOAN: "DA_THANH_TOAN",
   TU_CHOI: "TU_CHOI",
   DA_HUY: "DA_HUY",
+
+  // Trạng thái phê duyệt XE
+  XE_NHAP: "NHAP",
+  XE_CHO_DUYET: "CHO_DUYET",
+  XE_TU_CHOI: "DA_TU_CHOI",
 };
 
 export const TRANG_THAI_LABELS = {
@@ -41,14 +46,19 @@ export const TRANG_THAI_LABELS = {
   DA_DUYET: "Đã duyệt",
   DANG_NHAP_KHO: "Đang nhập kho",
   HOAN_THANH: "Hoàn thành",
-  DANG_GIAO: "Đang giao hàng",
+  DANG_GIAO: "Đang xuất kho",
   DA_XUAT: "Đã xuất kho",
-  CHO_DUYET_GIAO: "Chờ duyệt giao",
-  DA_DUYET_GIAO: "Đã duyệt giao",
-  DA_GIAO: "Đã giao hàng",
+  CHO_DUYET_GIAO: "Chờ duyệt xuất",
+  DA_DUYET_GIAO: "Đã duyệt xuất",
+  DA_GIAO: "Đã hoàn thành",
   DA_THANH_TOAN: "Đã thanh toán",
   TU_CHOI: "Đã từ chối",
   DA_HUY: "Đã hủy",
+
+  // Labels phê duyệt XE
+  NHAP: "Nháp",
+  CHO_DUYET: "Chờ duyệt",
+  DA_TU_CHOI: "Từ chối",
 };
 
 export const TRANG_THAI_COLORS = {
@@ -65,6 +75,10 @@ export const TRANG_THAI_COLORS = {
   DA_THANH_TOAN: "green",
   TU_CHOI: "error",
   DA_HUY: "error",
+
+  // Colors phê duyệt XE
+  CHO_DUYET: "gold",
+  DA_TU_CHOI: "red",
 };
 
 // Trạng thái xe
@@ -81,7 +95,7 @@ export const XE_TRANG_THAI_LABELS = {
   CHO_NHAP_KHO: "Chờ nhập kho",
   TON_KHO: "Tồn kho",
   DANG_CHUYEN: "Đang chuyển",
-  DA_BAN: "Đã bán",
+  DA_BAN: "Đã xuất",
   BAO_HANH: "Bảo hành",
   HU_HONG: "Hư hỏng",
 };
@@ -100,7 +114,7 @@ export const LOAI_GIAO_DICH = {
   NHAP_KHO: "NHAP_KHO",
   XUAT_KHO: "XUAT_KHO",
   CHUYEN_KHO: "CHUYEN_KHO",
-  BAN_HANG: "BAN_HANG",
+  BAN_HANG: "XUAT_KHO", // Aliasing for system compatibility
   TRA_HANG: "TRA_HANG",
   KIEM_KE: "KIEM_KE",
 };
@@ -109,15 +123,15 @@ export const LOAI_GIAO_DICH_LABELS = {
   NHAP_KHO: "Nhập kho",
   XUAT_KHO: "Xuất kho",
   CHUYEN_KHO: "Chuyển kho",
-  BAN_HANG: "Bán hàng",
+  BAN_HANG: "Xuất kho (Bán)",
   TRA_HANG: "Trả hàng",
   KIEM_KE: "Kiểm kê",
 };
 
 // Loại đơn hàng (Unified ERP)
 export const LOAI_DON_HANG = {
-  MUA_HANG: "MUA_HANG",
-  BAN_HANG: "BAN_HANG",
+  MUA_HANG: "NHAP_KHO",
+  BAN_HANG: "XUAT_KHO",
   CHUYEN_KHO: "CHUYEN_KHO",
 };
 
@@ -238,6 +252,10 @@ export const API_ENDPOINTS = {
   XE_KHOA: (xe_key) => `/xe/${xe_key}/lock`,
   XE_MO_KHOA: (xe_key) => `/xe/${xe_key}/unlock`,
   XE_KHOA_PHIEU: (xe_key) => `/xe/${xe_key}/khoa-phieu`,
+  XE_APPROVAL_LIST: "/xe/approval/list",
+  XE_SUBMIT: (xe_key) => `/xe/${xe_key}/submit`,
+  XE_APPROVE: (xe_key) => `/xe/${xe_key}/approve`,
+  XE_REJECT: (xe_key) => `/xe/${xe_key}/reject`,
   // Phụ tùng
   PHU_TUNG: "/phu-tung",
   PHU_TUNG_TON_KHO: (ma_kho) => `/phu-tung/ton-kho/${ma_kho}`,

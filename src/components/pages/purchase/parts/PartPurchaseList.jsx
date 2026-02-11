@@ -89,7 +89,7 @@ const PartPurchaseList = () => {
       const res = await donHangAPI.getAll(params);
       setData(res.data?.data || res.data || []);
     } catch (error) {
-      notificationService.error("Lỗi tải danh sách đơn hàng phụ tùng");
+      notificationService.error("Lỗi tải danh sách phiếu nhập phụ tùng");
     } finally {
       setLoading(false);
     }
@@ -143,7 +143,9 @@ const PartPurchaseList = () => {
       dataIndex: "trang_thai",
       align: "center",
       render: (status) => (
-        <Tag color={TRANG_THAI_COLORS[status] || "default"}>{status}</Tag>
+        <Tag color={TRANG_THAI_COLORS[status] || "default"}>
+          {formatService.formatTrangThai(status)}
+        </Tag>
       ),
     },
     {
@@ -185,7 +187,7 @@ const PartPurchaseList = () => {
         >
           <Col xs={24} md={12}>
             <h2 style={{ margin: 0 }}>
-              <ShoppingCartOutlined /> Mua Phụ Tùng
+              <ImportOutlined /> Nhập Phụ Tùng
             </h2>
           </Col>
           <Col xs={24} md={12} style={{ textAlign: "right" }}>

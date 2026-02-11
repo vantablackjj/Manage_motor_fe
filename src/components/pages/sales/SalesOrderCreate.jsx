@@ -12,17 +12,27 @@ import {
   InputNumber,
 } from "antd";
 import { useNavigate } from "react-router-dom";
+import { Divider, Table, Popconfirm } from "antd";
 import {
+  CarOutlined,
+  ToolOutlined,
+  DeleteOutlined,
   PlusOutlined,
   SaveOutlined,
+  SendOutlined,
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
-import { orderAPI, khoAPI, khachHangAPI } from "../../../api";
+import {
+  orderAPI,
+  khoAPI,
+  khachHangAPI,
+  xeAPI,
+  phuTungAPI,
+} from "../../../api";
 import { notificationService } from "../../../services";
 import { LOAI_DON_HANG, LOAI_BEN } from "../../../utils/constant";
 import QuickAddCustomerModal from "../khachHang/QuickAddCustomerModal";
-import { Divider } from "antd";
 
 const { Option } = Select;
 
@@ -30,6 +40,9 @@ const SalesOrderCreate = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState([]);
+  const [availableXe, setAvailableXe] = useState([]);
+  const [availablePT, setAvailablePT] = useState([]);
   const [khoList, setKhoList] = useState([]);
   const [customerList, setCustomerList] = useState([]);
   const [customerModalVisible, setCustomerModalVisible] = useState(false);
@@ -37,6 +50,20 @@ const SalesOrderCreate = () => {
   useEffect(() => {
     loadMasterData();
   }, []);
+
+  const fetchStock = async (ma_kho) => {
+    if (!ma_kho) return;
+    try {
+      const [xeRes, ptRes] = await Promise.all([
+        xeAPI.getTonKho(ma_kho, { trang_thai: "TON_KHO" }),
+        phuTungAPI.getTonKho(ma_kho),
+      ]);
+      setAvailableXe(xeRes.data || xeRes || []);
+      setAvailablePT(ptRes.data || ptRes || []);
+    } catch (error) {
+      console.error("Lỗi tải tồn kho", error);
+    }
+  };
 
   const loadMasterData = async () => {
     try {
@@ -52,21 +79,99 @@ const SalesOrderCreate = () => {
     }
   };
 
-  const onFinish = async (values) => {
+  const handleAddItem = () => {
+    if (!form.getFieldValue("ma_kho_xuat")) {
+      notificationService.warning("Vui lòng chọn kho xuất trước");
+      return;
+    }
+    const newItem = {
+      key: Date.now().toString(),
+      loai_hang: "PHU_TUNG",
+      so_luong: 1,
+      don_gia: 0,
+      thanh_tien: 0,
+    };
+    setItems([...items, newItem]);
+  };
+
+  const removeItem = (key) => {
+    setItems(items.filter((i) => i.key !== key));
+  };
+
+  const handleRowChange = (key, field, value) => {
+    const newItems = items.map((item) => {
+      if (item.key === key) {
+        const updatedItem = { ...item, [field]: value };
+
+        if (field === "loai_hang") {
+          updatedItem.xe_key = null;
+          updatedItem.ma_pt = null;
+          updatedItem.ten_hang = "";
+          updatedItem.don_gia = 0;
+          updatedItem.so_luong = 1;
+        }
+
+        if (field === "so_luong" || field === "don_gia") {
+          updatedItem.thanh_tien =
+            (updatedItem.so_luong || 0) * (updatedItem.don_gia || 0);
+        }
+        return updatedItem;
+      }
+      return item;
+    });
+    setItems(newItems);
+  };
+
+  const handleProductChange = (key, value) => {
+    const newItems = items.map((item) => {
+      if (item.key === key) {
+        let updatedItem = { ...item };
+        if (item.loai_hang === "XE") {
+          const xe = availableXe.find((x) => x.xe_key === value);
+          if (xe) {
+            updatedItem.xe_key = xe.xe_key;
+            updatedItem.ma_pt = null;
+            updatedItem.ten_hang = `${xe.ten_loai} - ${xe.ten_mau} (${xe.so_khung})`;
+            updatedItem.don_gia = xe.gia_ban || 0;
+            updatedItem.so_luong = 1;
+          }
+        } else {
+          const pt = availablePT.find((p) => p.ma_pt === value);
+          if (pt) {
+            updatedItem.ma_pt = pt.ma_pt;
+            updatedItem.xe_key = null;
+            updatedItem.ten_hang = pt.ten_pt;
+            updatedItem.don_gia = pt.gia_ban || 0;
+          }
+        }
+        updatedItem.thanh_tien =
+          (updatedItem.so_luong || 0) * (updatedItem.don_gia || 0);
+        return updatedItem;
+      }
+      return item;
+    });
+    setItems(newItems);
+  };
+
+  const totalBeforeVat = items.reduce(
+    (sum, item) => sum + (item.thanh_tien || 0),
+    0,
+  );
+
+  const onFinish = async (values, submitForApproval = false) => {
+    if (items.length === 0) {
+      notificationService.warning("Vui lòng thêm sản phẩm");
+      return;
+    }
     setLoading(true);
     try {
-      // 1. Chuẩn bị payload theo cấu trúc Unified ERP
       const payload = {
         loai_don_hang: LOAI_DON_HANG.BAN_HANG,
         ngay_dat_hang: values.ngay_ban.toISOString(),
-
-        // Cấu trúc Đối thể đa hình (Polymorphic Entities)
         ma_ben_xuat: values.ma_kho_xuat,
-        loai_ben_xuat: LOAI_BEN.KHO, // Kho xuất hàng
-
+        loai_ben_xuat: LOAI_BEN.KHO,
         ma_ben_nhap: values.ma_kh,
-        loai_ben_nhap: LOAI_BEN.DOI_TAC, // Khách hàng nhận hàng
-
+        loai_ben_nhap: LOAI_BEN.DOI_TAC,
         ghi_chu: values.ghi_chu || null,
         vat_percentage: values.vat_percentage || 0,
         chiet_khau: values.chiet_khau || 0,
@@ -74,19 +179,130 @@ const SalesOrderCreate = () => {
       };
 
       const res = await orderAPI.create(payload);
-      const orderId = res.data?.id;
+      const orderId = res.data?.id || res.id;
 
-      notificationService.success("Tạo đơn hàng bán thành công");
-      // Chuyển sang trang chi tiết để thêm Xe/Phụ tùng
+      // Add Details
+      await Promise.all(
+        items.map((item) =>
+          orderAPI.addDetail(orderId, {
+            ma_hang_hoa: item.xe_key || item.ma_pt,
+            don_gia: item.don_gia,
+            so_luong_dat: item.so_luong,
+            loai_hang: item.loai_hang,
+            yeu_cau_dac_biet: item.xe_key
+              ? { ma_serial_du_kien: item.xe_key }
+              : {},
+          }),
+        ),
+      );
+
+      if (submitForApproval) {
+        await orderAPI.updateStatus(orderId, "GUI_DUYET");
+        notificationService.success("Đã tạo và gửi duyệt đơn hàng");
+      } else {
+        notificationService.success("Tạo đơn hàng thành công (Nháp)");
+      }
       navigate(`/sales/orders/${orderId}`);
     } catch (error) {
-      notificationService.error(
-        error?.response?.data?.message || "Lỗi tạo đơn hàng bán",
-      );
+      notificationService.error(error?.response?.data?.message || "Lỗi xử lý");
     } finally {
       setLoading(false);
     }
   };
+
+  const columns = [
+    {
+      title: "Loại",
+      dataIndex: "loai_hang",
+      width: 120,
+      render: (val, record) => (
+        <Select
+          value={val}
+          onChange={(v) => handleRowChange(record.key, "loai_hang", v)}
+          style={{ width: "100%" }}
+        >
+          <Option value="XE">Xe</Option>
+          <Option value="PHU_TUNG">Phụ tùng</Option>
+        </Select>
+      ),
+    },
+    {
+      title: "Sản phẩm",
+      key: "san_pham",
+      render: (_, record) => (
+        <Select
+          showSearch
+          placeholder="Chọn sản phẩm"
+          style={{ width: "100%" }}
+          value={record.xe_key || record.ma_pt}
+          onChange={(v) => handleProductChange(record.key, v)}
+          optionFilterProp="children"
+        >
+          {record.loai_hang === "XE"
+            ? availableXe.map((x) => (
+                <Option key={x.xe_key} value={x.xe_key}>
+                  {x.ten_loai} - {x.ten_mau} ({x.so_khung})
+                </Option>
+              ))
+            : availablePT.map((p) => (
+                <Option key={p.ma_pt} value={p.ma_pt}>
+                  {p.ten_pt} - Tồn: {p.so_luong_ton}
+                </Option>
+              ))}
+        </Select>
+      ),
+    },
+    {
+      title: "SL",
+      dataIndex: "so_luong",
+      width: 100,
+      render: (val, record) => (
+        <InputNumber
+          min={1}
+          disabled={record.loai_hang === "XE"}
+          value={val}
+          onChange={(v) => handleRowChange(record.key, "so_luong", v)}
+          style={{ width: "100%" }}
+        />
+      ),
+    },
+    {
+      title: "Đơn giá",
+      dataIndex: "don_gia",
+      width: 150,
+      render: (val, record) => (
+        <InputNumber
+          min={0}
+          value={val}
+          onChange={(v) => handleRowChange(record.key, "don_gia", v)}
+          formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          parser={(v) => v.replace(/\$\s?|(,*)/g, "")}
+          style={{ width: "100%" }}
+          addonAfter="₫"
+        />
+      ),
+    },
+    {
+      title: "Thành tiền",
+      dataIndex: "thanh_tien",
+      align: "right",
+      width: 130,
+      render: (v) => <b>{v?.toLocaleString()}</b>,
+    },
+    {
+      title: "",
+      key: "action",
+      width: 50,
+      render: (_, record) => (
+        <Button
+          danger
+          size="small"
+          icon={<DeleteOutlined />}
+          onClick={() => removeItem(record.key)}
+        />
+      ),
+    },
+  ];
 
   return (
     <div style={{ padding: "16px 8px" }}>
@@ -159,7 +375,14 @@ const SalesOrderCreate = () => {
                 label="Kho xuất"
                 rules={[{ required: true, message: "Chọn kho xuất" }]}
               >
-                <Select placeholder="Chọn kho" style={{ width: "100%" }}>
+                <Select
+                  placeholder="Chọn kho"
+                  style={{ width: "100%" }}
+                  onChange={(val) => {
+                    fetchStock(val);
+                    setItems([]); // Reset items if warehouse changes
+                  }}
+                >
                   {khoList.map((k) => (
                     <Option key={k.ma_kho} value={k.ma_kho}>
                       {k.ten_kho}
@@ -199,20 +422,57 @@ const SalesOrderCreate = () => {
             </Col>
           </Row>
 
-          <Form.Item label="Ghi chú" name="ghi_chu">
-            <Input.TextArea rows={2} />
-          </Form.Item>
+          <Divider orientation="left">Chi tiết hàng hóa</Divider>
+          <div style={{ marginBottom: 16 }}>
+            <Button
+              type="dashed"
+              onClick={handleAddItem}
+              icon={<PlusOutlined />}
+              block
+              style={{ marginBottom: 16 }}
+            >
+              Thêm hàng hóa
+            </Button>
+            <Table
+              dataSource={items}
+              columns={columns}
+              pagination={false}
+              size="small"
+              scroll={{ x: 800 }}
+              summary={() => (
+                <Table.Summary.Row>
+                  <Table.Summary.Cell index={0} colSpan={4} align="right">
+                    <b>Tạm tính:</b>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={1} align="right">
+                    <b>{totalBeforeVat.toLocaleString()} ₫</b>
+                  </Table.Summary.Cell>
+                </Table.Summary.Row>
+              )}
+            />
+          </div>
 
           <div style={{ textAlign: "right", marginTop: 24 }}>
             <Space wrap>
               <Button onClick={() => navigate("/sales/orders")}>Hủy</Button>
               <Button
-                type="primary"
-                htmlType="submit"
                 icon={<SaveOutlined />}
                 loading={loading}
+                onClick={() =>
+                  form.validateFields().then((v) => onFinish(v, false))
+                }
               >
-                Tiếp tục
+                Lưu nháp
+              </Button>
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
+                loading={loading}
+                onClick={() =>
+                  form.validateFields().then((v) => onFinish(v, true))
+                }
+              >
+                Lưu và Gửi duyệt
               </Button>
             </Space>
           </div>
