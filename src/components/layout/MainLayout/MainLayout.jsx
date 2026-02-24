@@ -1,5 +1,5 @@
 // src/components/layout/MainLayout/MainLayout.jsx
-import React, { useState, useEffect, lazy } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Layout, Drawer } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -8,8 +8,6 @@ import HeaderBar from "../Header/Header";
 
 import { useAuth } from "../../../contexts/AuthContext";
 import { useResponsive } from "../../../hooks/useResponsive";
-
-import authService from "../../../services/auth.service";
 
 import {
   DashboardOutlined,
@@ -29,6 +27,8 @@ import {
   CustomerServiceOutlined,
   ImportOutlined,
   ExportOutlined,
+  InboxOutlined,
+  ShopOutlined,
 } from "@ant-design/icons";
 
 import "./MainLayout.css";
@@ -41,7 +41,7 @@ const MainLayout = ({ children }) => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission, hasRole } = useAuth();
   const { isMobile, isTablet } = useResponsive();
 
   useEffect(() => {
@@ -52,103 +52,151 @@ const MainLayout = ({ children }) => {
     if (isMobile) setMobileDrawerVisible(false);
   }, [location, isMobile]);
 
-  const menuItems = [
-    { key: "/", icon: <DashboardOutlined />, label: "Dashboard" },
+  // Xây dựng menu items dựa trên permissions của user
+  // useMemo để tránh re-build mỗi lần render
+  const menuItems = useMemo(() => {
+    const items = [];
 
-    // KHO VẬN
-    {
-      key: "/warehouse-manage",
-      icon: <HomeOutlined />,
-      label: "Quản lý kho",
-      children: [
-        { key: "/chuyen-kho", label: "Chuyển kho" },
-        { key: "/danh-muc/kho", label: "Danh mục kho" },
-      ],
-    },
+    // Dashboard - tất cả role đều xem
+    items.push({ key: "/", icon: <DashboardOutlined />, label: "Dashboard" });
 
-    // NHẬP KHO (PURCHASE)
-    {
-      key: "/purchase",
-      icon: <ImportOutlined />,
-      label: "Nhập Kho",
-      children: [
-        { key: "/purchase/vehicles", label: "Nhập Xe" },
-        { key: "/purchase/parts", label: "Nhập Phụ Tùng" },
-      ],
-    },
+    // === KHO / NHẬP KHO (PURCHASE) ===
+    // purchase_orders.view: KHO, QUAN_LY, ADMIN, KE_TOAN
+    if (hasPermission("purchase_orders", "view")) {
+      items.push({
+        key: "/purchase",
+        icon: <ImportOutlined />,
+        label: "Nhập Kho",
+        children: [
+          { key: "/purchase/vehicles", label: "Nhập Xe" },
+          { key: "/purchase/parts", label: "Nhập Phụ Tùng" },
+        ],
+      });
+    }
 
-    // 1. QUẢN LÝ XE
-    {
-      key: "/xe",
-      icon: <CarOutlined />,
-      label: "Quản lý xe",
-      children: [
+    // === QUẢN LÝ XE (inventory.view) ===
+    if (hasPermission("inventory", "view")) {
+      const xeChildren = [
         { key: "/xe/danh-sach", label: "Danh sách xe" },
         { key: "/xe/lich-su", label: "Lịch sử xe" },
-        { key: "/xe/phe-duyet", label: "Phê duyệt xe nhập lẻ" },
-      ],
-    },
-    // XUẤT KHO (SALES)
-    {
-      key: "/sales",
-      icon: <ExportOutlined />,
-      label: "Xuất Kho",
-      children: [
-        { key: "/sales/orders", label: "Đơn hàng xuất" },
-        { key: "/sales/invoices", label: "Hóa đơn xuất" },
-      ],
-    },
+      ];
 
-    // 2. QUẢN LÝ PHỤ TÙNG
-    {
-      key: "/phu-tung",
-      icon: <ToolOutlined />,
-      label: "Quản lý phụ tùng",
-      children: [{ key: "/phu-tung/danh-sach", label: "Danh sách phụ tùng" }],
-    },
+      // Phê duyệt xe - cần products.approve
+      if (hasPermission("products", "approve")) {
+        xeChildren.push({
+          key: "/xe/phe-duyet",
+          label: "Phê duyệt xe nhập lẻ",
+        });
+      }
 
-    // 3. DỊCH VỤ
-    {
-      key: "/dich-vu",
-      icon: <CustomerServiceOutlined />,
-      label: "Dịch vụ",
-      children: [
-        { key: "/dich-vu/danh-sach", label: "Danh sách dịch vụ" },
-        { key: "/dich-vu/phieu-sua-chua", label: "Phiếu sửa chữa" },
-      ],
-    },
+      items.push({
+        key: "/xe",
+        icon: <CarOutlined />,
+        label: "Quản lý xe",
+        children: xeChildren,
+      });
+    }
 
-    // 4. TÀI CHÍNH
-    {
-      key: "/tai-chinh",
-      icon: <DollarOutlined />,
-      label: "Tài chính",
-      children: [
-        { key: "/thu-chi", label: "Quản lý Thu Chi" },
-        { key: "/cong-no/quan-ly", label: "Công nợ" },
-      ],
-    },
-    {
-      key: "/bao-cao",
-      icon: <BarChartOutlined />,
-      label: "Báo cáo",
-      children: [
+    // === QUẢN LÝ KHO VẬN ===
+    if (hasPermission("inventory", "view")) {
+      const khoVanChildren = [];
+
+      // Chuyển kho - cần inventory.view (chi tiết action transfer check trong trang)
+      khoVanChildren.push({ key: "/chuyen-kho", label: "Chuyển kho" });
+
+      // Quản lý kho - cần warehouses.view
+      if (hasPermission("warehouses", "view")) {
+        khoVanChildren.push({ key: "/danh-muc/kho", label: "Danh mục kho" });
+      }
+
+      if (khoVanChildren.length > 0) {
+        items.push({
+          key: "/warehouse-manage",
+          icon: <HomeOutlined />,
+          label: "Quản lý kho",
+          children: khoVanChildren,
+        });
+      }
+    }
+
+    // === XUẤT KHO / BÁN HÀNG (sales_orders.view) ===
+    if (hasPermission("sales_orders", "view")) {
+      items.push({
+        key: "/sales",
+        icon: <ExportOutlined />,
+        label: "Xuất Kho",
+        children: [
+          { key: "/sales/orders", label: "Đơn hàng xuất" },
+          // invoices.view
+          ...(hasPermission("invoices", "view")
+            ? [{ key: "/sales/invoices", label: "Hóa đơn xuất" }]
+            : []),
+        ],
+      });
+    }
+
+    // === QUẢN LÝ PHỤ TÙNG (products.view) ===
+    if (hasPermission("products", "view")) {
+      items.push({
+        key: "/phu-tung",
+        icon: <ToolOutlined />,
+        label: "Quản lý phụ tùng",
+        children: [{ key: "/phu-tung/danh-sach", label: "Danh sách phụ tùng" }],
+      });
+    }
+
+    // === TÀI CHÍNH (debt.view OR payments.view) ===
+    const taiChinhChildren = [];
+    if (hasPermission("payments", "view")) {
+      taiChinhChildren.push({ key: "/thu-chi", label: "Quản lý Thu Chi" });
+    }
+    if (hasPermission("debt", "view")) {
+      taiChinhChildren.push({ key: "/cong-no/quan-ly", label: "Công nợ" });
+    }
+    if (taiChinhChildren.length > 0) {
+      items.push({
+        key: "/tai-chinh",
+        icon: <DollarOutlined />,
+        label: "Tài chính",
+        children: taiChinhChildren,
+      });
+    }
+
+    // === BÁO CÁO (reports.view) ===
+    if (hasPermission("reports", "view")) {
+      const baoCaoChildren = [
         { key: "/bao-cao/dashboard", label: "Dashboard Báo cáo" },
         { key: "/bao-cao/ton-kho", label: "Báo cáo Tồn kho" },
         { key: "/bao-cao/doanh-thu", label: "Báo cáo Doanh thu" },
         { key: "/bao-cao/nhap-xuat", label: "Báo cáo Nhập xuất" },
-        { key: "/bao-cao/thu-chi", label: "Báo cáo Thu chi" },
-        { key: "/bao-cao/cong-no", label: "Báo cáo Công nợ" },
-      ],
-    },
+      ];
 
-    // 6. QUẢN LÝ DANH MỤC
-    {
-      key: "/danh-muc",
-      icon: <AppstoreOutlined />,
-      label: "Quản lý danh mục",
-      children: [
-        {
+      // Báo cáo tài chính - chỉ KE_TOAN, QUAN_LY, ADMIN
+      if (hasPermission("reports", "view_financial")) {
+        baoCaoChildren.push(
+          { key: "/bao-cao/thu-chi", label: "Báo cáo Thu chi" },
+          { key: "/bao-cao/cong-no", label: "Báo cáo Công nợ" },
+        );
+      }
+
+      items.push({
+        key: "/bao-cao",
+        icon: <BarChartOutlined />,
+        label: "Báo cáo",
+        children: baoCaoChildren,
+      });
+    }
+
+    // === QUẢN LÝ DANH MỤC ===
+    // Hiển thị nếu có ít nhất một trong: products.view, partners.view
+    if (
+      hasPermission("products", "view") ||
+      hasPermission("partners", "view")
+    ) {
+      const danhMucChildren = [];
+
+      if (hasPermission("products", "view")) {
+        danhMucChildren.push({
           key: "/danh-muc/xe",
           label: "Danh mục xe",
           children: [
@@ -158,48 +206,58 @@ const MainLayout = ({ children }) => {
             { key: "/danh-muc/noi-san-xuat", label: "Nơi sản xuất" },
             { key: "/danh-muc/mau-xe", label: "Màu sắc" },
           ],
-        },
-        {
+        });
+        danhMucChildren.push({
           key: "/danh-muc/phu-tung",
           label: "Danh mục phụ tùng",
           children: [
             { key: "/danh-muc/nhom-phu-tung", label: "Nhóm phụ tùng" },
           ],
-        },
-        { key: "/danh-muc/kho", label: "Kho" },
-        { key: "/danh-muc/khach-hang", label: "Khách hàng" },
-        { key: "/danh-muc/nha-cung-cap", label: "Nhà cung cấp" },
-      ],
-    },
-
-    // 7. QUẢN LÝ HỆ THỐNG
-    {
-      key: "/he-thong",
-      icon: <SettingOutlined />,
-      label: "Quản lý hệ thống",
-      roles: ["ADMIN"],
-      children: [
-        { key: "/he-thong/nguoi-dung", label: "Người dùng" },
-        { key: "/he-thong/phan-quyen", label: "Phân quyền" },
-        { key: "/he-thong/cau-hinh", label: "Cấu hình" },
-      ],
-    },
-  ];
-
-  // Lọc menu theo vai trò
-  const filteredMenuItems = menuItems
-    .filter((item) => !item.roles || authService.hasRole(item.roles))
-    .map((item) => {
-      if (item.children) {
-        return {
-          ...item,
-          children: item.children.filter(
-            (child) => !child.roles || authService.hasRole(child.roles),
-          ),
-        };
+        });
       }
-      return item;
-    });
+
+      if (hasPermission("partners", "view")) {
+        danhMucChildren.push(
+          { key: "/danh-muc/khach-hang", label: "Khách hàng" },
+          { key: "/danh-muc/nha-cung-cap", label: "Nhà cung cấp" },
+        );
+      }
+
+      if (danhMucChildren.length > 0) {
+        items.push({
+          key: "/danh-muc",
+          icon: <AppstoreOutlined />,
+          label: "Quản lý danh mục",
+          children: danhMucChildren,
+        });
+      }
+    }
+
+    // === QUẢN LÝ HỆ THỐNG (users.view) ===
+    if (hasPermission("users", "view")) {
+      const heThongChildren = [
+        { key: "/he-thong/nguoi-dung", label: "Người dùng" },
+      ];
+
+      // Chỉ ADMIN mới thấy phân quyền và cài hình
+      if (hasRole("ADMIN")) {
+        heThongChildren.push(
+          { key: "/he-thong/phan-quyen", label: "Phân quyền" },
+          { key: "/he-thong/cau-hinh", label: "Cấu hình" },
+        );
+      }
+
+      items.push({
+        key: "/he-thong",
+        icon: <SettingOutlined />,
+        label: "Quản lý hệ thống",
+        children: heThongChildren,
+      });
+    }
+
+    return items;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const userMenuItems = [
     {
@@ -236,7 +294,7 @@ const MainLayout = ({ children }) => {
       {!isMobile && (
         <Sidebar
           collapsed={collapsed}
-          menuItems={filteredMenuItems}
+          menuItems={menuItems}
           onMenuClick={handleMenuClick}
         />
       )}
@@ -251,7 +309,7 @@ const MainLayout = ({ children }) => {
         >
           <Sidebar
             collapsed={false}
-            menuItems={filteredMenuItems}
+            menuItems={menuItems}
             onMenuClick={handleMenuClick}
           />
         </Drawer>

@@ -187,7 +187,11 @@ const PartPurchaseCreate = () => {
       } else {
         notificationService.success("Tạo đơn hàng mua phụ tùng thành công");
       }
-      navigate("/purchase/parts");
+
+      // Reset form and items to stay on page as requested
+      form.resetFields();
+      setItems([]);
+      // navigate("/purchase/parts");
     } catch (error) {
       console.error(error);
       notificationService.error(
@@ -450,23 +454,14 @@ const PartPurchaseCreate = () => {
             <Space wrap>
               <Button onClick={() => navigate("/purchase/parts")}>Hủy</Button>
               <Button
+                type="primary"
                 icon={<SaveOutlined />}
                 loading={loading}
                 onClick={() =>
                   form.validateFields().then((v) => onFinish(v, false))
                 }
               >
-                Lưu nháp
-              </Button>
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                loading={loading}
-                onClick={() =>
-                  form.validateFields().then((v) => onFinish(v, true))
-                }
-              >
-                Lưu và Gửi duyệt
+                Lưu đơn hàng
               </Button>
             </Space>
           </div>

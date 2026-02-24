@@ -10,6 +10,9 @@ const USER_ENDPOINTS = {
   ACTIVATE: (id) => `/users/${id}/activate`,
   DEACTIVATE: (id) => `/users/${id}/deactivate`,
   RESET_PASSWORD: (id) => `/users/${id}/reset-password`,
+  WAREHOUSES_GET: (id) => `/users/${id}/warehouses`,
+  WAREHOUSES_POST: (id) => `/auth/users/${id}/warehouses`,
+  WAREHOUSES_DELETE: (id, ma_kho) => `/auth/users/${id}/warehouses/${ma_kho}`,
 };
 
 export const userAPI = {
@@ -61,6 +64,29 @@ export const userAPI = {
     return axiosInstance.put(USER_ENDPOINTS.PERMISSIONS(id), { permissions });
   },
 
+  // Get user warehouse permissions
+  getWarehouses: async (id) => {
+    const res = await axiosInstance.get(USER_ENDPOINTS.WAREHOUSES_GET(id));
+    return res.data;
+  },
+
+  // Grant or update warehouse permission
+  addWarehousePermission: async (id, data) => {
+    const res = await axiosInstance.post(
+      USER_ENDPOINTS.WAREHOUSES_POST(id),
+      data,
+    );
+    return res.data;
+  },
+
+  // Remove warehouse permission
+  removeWarehousePermission: async (id, ma_kho) => {
+    const res = await axiosInstance.delete(
+      USER_ENDPOINTS.WAREHOUSES_DELETE(id, ma_kho),
+    );
+    return res.data;
+  },
+
   // Change password
   changePassword: async (id, data) => {
     return axiosInstance.patch(USER_ENDPOINTS.CHANGE_PASSWORD(id), data);
@@ -93,11 +119,30 @@ export const userAPI = {
     return axiosInstance.put("/user/profile", data);
   },
 
-  // Toggle user status (active/inactive) - for internal use or simple toggle
-  toggleStatus: async (id, currentStatus) => {
-    if (currentStatus) {
+  // Toggle user status (active/inactive)
+  toggleStatus: async (id, record) => {
+    // Debug để xem backend đang trả về gì
+    console.log("Toggle user:", id, "Record data:", record);
+
+    // Lấy giá trị hiện tại (ưu tiên status, fallback trang_thai)
+    const val = record.status !== undefined ? record.status : record.trang_thai;
+
+    // Kiểm tra chính xác xem có phải đang ACTIVE không
+    const isActive =
+      val === true ||
+      val === 1 ||
+      val === "1" ||
+      (typeof val === "string" &&
+        (val.toLowerCase() === "active" || val.toLowerCase() === "true"));
+
+    console.log("Is current user active?", isActive);
+
+    if (isActive) {
+      console.log("Calling endpoint: DEACTIVATE");
       return axiosInstance.patch(USER_ENDPOINTS.DEACTIVATE(id));
+    } else {
+      console.log("Calling endpoint: ACTIVATE");
+      return axiosInstance.patch(USER_ENDPOINTS.ACTIVATE(id));
     }
-    return axiosInstance.patch(USER_ENDPOINTS.ACTIVATE(id));
   },
 };

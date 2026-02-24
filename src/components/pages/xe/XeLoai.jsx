@@ -205,7 +205,7 @@ const XeLoaiPage = () => {
             />
           </Tooltip>
 
-          {authService.canEdit() && (
+          {authService.hasPermission("products", "edit") && (
             <Tooltip title="Chỉnh sửa">
               <Button
                 type="link"
@@ -218,16 +218,17 @@ const XeLoaiPage = () => {
             </Tooltip>
           )}
 
-          {authService.canDelete() && record.status !== false && (
-            <Tooltip title="Ngừng sử dụng">
-              <Button
-                type="link"
-                danger
-                icon={<StopOutlined />}
-                onClick={() => handleSoftDelete(record)}
-              />
-            </Tooltip>
-          )}
+          {authService.hasPermission("products", "delete") &&
+            record.status !== false && (
+              <Tooltip title="Ngừng sử dụng">
+                <Button
+                  type="link"
+                  danger
+                  icon={<StopOutlined />}
+                  onClick={() => handleSoftDelete(record)}
+                />
+              </Tooltip>
+            )}
 
           {record.status === false && (
             <Tooltip title="Khôi phục">
@@ -280,7 +281,7 @@ const XeLoaiPage = () => {
           <Button icon={<ReloadOutlined />} onClick={fetchData}>
             Làm mới
           </Button>
-          {authService.canCreate() && (
+          {authService.hasPermission("products", "create") && (
             <Button
               type="primary"
               icon={<PlusOutlined />}

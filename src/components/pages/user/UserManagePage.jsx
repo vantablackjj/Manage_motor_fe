@@ -16,6 +16,7 @@ import {
   List,
   Typography,
   Tooltip,
+  Divider,
 } from "antd";
 import {
   PlusOutlined,
@@ -28,13 +29,21 @@ import {
   HomeOutlined,
   CheckCircleOutlined,
   StopOutlined,
+  EyeOutlined,
+  AppstoreAddOutlined,
+  FormOutlined,
+  SwapOutlined,
 } from "@ant-design/icons";
 import { userAPI, khoAPI } from "../../../api";
 import { notificationService, authService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
-import { USER_ROLE_LABELS, USER_ROLES } from "../../../utils/constant";
+import {
+  USER_ROLE_LABELS,
+  USER_ROLES,
+  USER_ROLE_COLORS,
+} from "../../../utils/constant";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const UserManagePage = () => {
   const { isMobile } = useResponsive();
@@ -56,7 +65,8 @@ const UserManagePage = () => {
   const [passwordForm] = Form.useForm();
   const [permissionForm] = Form.useForm();
 
-  const [userPermissions, setUserPermissions] = useState([]);
+  const [userWarehouses, setUserWarehouses] = useState([]);
+  const [warehouseLoading, setWarehouseLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -67,7 +77,7 @@ const UserManagePage = () => {
     setLoading(true);
     try {
       const response = await userAPI.getAll();
-      setData(response || []);
+      setData(response?.data || response || []);
     } catch (error) {
       notificationService.error("Không thể tải danh sách người dùng");
     } finally {
@@ -78,7 +88,7 @@ const UserManagePage = () => {
   const fetchKhoList = async () => {
     try {
       const response = await khoAPI.getAll();
-      setKhoList(response || []);
+      setKhoList(response?.data || response || []);
     } catch (error) {
       console.error("Error fetching kho list", error);
     }
@@ -98,11 +108,13 @@ const UserManagePage = () => {
 
   const handleToggleStatus = async (record) => {
     try {
-      await userAPI.toggleStatus(record.id, record.trang_thai);
+      await userAPI.toggleStatus(record.id, record);
       notificationService.success("Cập nhật trạng thái thành công");
       fetchData();
     } catch (error) {
-      notificationService.error("Không thể cập nhật trạng thái");
+      notificationService.error(
+        error?.response?.data?.message || "Không thể cập nhật trạng thái",
+      );
     }
   };
 
@@ -119,7 +131,7 @@ const UserManagePage = () => {
       fetchData();
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Lỗi khi lưu người dùng"
+        error?.response?.data?.message || "Lỗi khi lưu người dùng",
       );
     }
   };
@@ -142,40 +154,68 @@ const UserManagePage = () => {
 
   const handleManagePermissions = async (record) => {
     setPermissionUser(record);
-    setLoading(true);
+    setWarehouseLoading(true);
+    setPermissionModalVisible(true);
+    // Setting defaults for modal
+    permissionForm.setFieldsValue({
+      quyen_xem: true,
+      quyen_them: false,
+      quyen_sua: false,
+      quyen_xoa: false,
+      quyen_chuyen_kho: false,
+    });
+
     try {
-      const response = await userAPI.getPermissions(record.id);
-      setUserPermissions(response || []);
-      setPermissionModalVisible(true);
+      const response = await userAPI.getWarehouses(record.id);
+      setUserWarehouses(response?.data || response || []);
     } catch (error) {
-      notificationService.error("Không thể lấy quyền kho");
+      notificationService.error(
+        "Không thể lấy quyền kho. Nhớ thông báo cho Backend thêm API!",
+      );
+      setUserWarehouses([]);
     } finally {
-      setLoading(false);
+      setWarehouseLoading(false);
     }
   };
 
-  const handleAddPermission = async (values) => {
+  const handleAddWarehousePermission = async (values) => {
     try {
-      await userAPI.updatePermissions(permissionUser.id, [
-        ...userPermissions,
-        { ...values, ma_kho: values.ma_kho },
-      ]);
-      notificationService.success("Gán quyền thành công");
-      handleManagePermissions(permissionUser); // Refresh permissions list
-      permissionForm.resetFields();
+      setWarehouseLoading(true);
+      await userAPI.addWarehousePermission(permissionUser.id, values);
+      notificationService.success("Cấp quyền kho thành công");
+
+      // Refresh list
+      const response = await userAPI.getWarehouses(permissionUser.id);
+      setUserWarehouses(response?.data || response || []);
+
+      // Reset Select Kho ONLY in form
+      permissionForm.setFieldsValue({
+        ma_kho: undefined,
+      });
     } catch (error) {
-      notificationService.error("Lỗi khi gán quyền");
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi khi cấp quyền",
+      );
+    } finally {
+      setWarehouseLoading(false);
     }
   };
 
-  const handleRemovePermission = async (ma_kho) => {
+  const handleRemoveWarehousePermission = async (ma_kho) => {
     try {
-      const newPermissions = userPermissions.filter((p) => p.ma_kho !== ma_kho);
-      await userAPI.updatePermissions(permissionUser.id, newPermissions);
+      setWarehouseLoading(true);
+      await userAPI.removeWarehousePermission(permissionUser.id, ma_kho);
       notificationService.success("Đã xóa quyền kho");
-      handleManagePermissions(permissionUser);
+
+      // Refresh list
+      const response = await userAPI.getWarehouses(permissionUser.id);
+      setUserWarehouses(response?.data || response || []);
     } catch (error) {
-      notificationService.error("Lỗi khi xóa quyền");
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi khi xóa quyền",
+      );
+    } finally {
+      setWarehouseLoading(false);
     }
   };
 
@@ -191,250 +231,225 @@ const UserManagePage = () => {
 
   const columns = [
     {
+      title: "STT",
+      key: "stt",
+      width: 60,
+      align: "center",
+      render: (_, __, index) => index + 1,
+    },
+    {
       title: "Username",
       dataIndex: "username",
       key: "username",
       width: 120,
-      fixed: isMobile ? false : "left",
-      render: (text) => <strong>{text}</strong>,
+      render: (text) => <strong className="text-gray-800">{text}</strong>,
     },
     {
       title: "Họ tên",
       dataIndex: "ho_ten",
       key: "ho_ten",
       width: 180,
-      ellipsis: true,
     },
-    !isMobile && {
+    {
       title: "Vai trò",
       dataIndex: "vai_tro",
       key: "vai_tro",
       width: 150,
-      render: (val) => <Tag color="blue">{USER_ROLE_LABELS[val] || val}</Tag>,
+      render: (val, record) => (
+        <Tag
+          color={USER_ROLE_COLORS[val] || "blue"}
+          className="rounded-full px-3 py-1 font-medium border-0"
+        >
+          {record.ten_vai_tro || USER_ROLE_LABELS[val] || val}
+        </Tag>
+      ),
     },
-    !isMobile && {
+    {
       title: "Kho mặc định",
       dataIndex: "ten_kho",
       key: "ten_kho",
       width: 150,
-      render: (val) => val || "Toàn hệ thống",
+      render: (val, record) => val || record.ma_kho || "Toàn hệ thống",
     },
     {
       title: "Trạng thái",
-      dataIndex: "trang_thai",
-      key: "trang_thai",
+      key: "status_toggle",
       width: 120,
       align: "center",
-      render: (val, record) => (
-        <Tooltip title={val ? "Đang hoạt động" : "Đã khóa"}>
-          <Switch
-            checked={val}
-            size="small"
-            onChange={() => handleToggleStatus(record)}
-            checkedChildren={<CheckCircleOutlined />}
-            unCheckedChildren={<StopOutlined />}
-          />
-        </Tooltip>
-      ),
+      render: (_, record) => {
+        const val =
+          record.status !== undefined ? record.status : record.trang_thai;
+        const isActive =
+          val === true ||
+          val === 1 ||
+          val === "1" ||
+          String(val).toLowerCase() === "true" ||
+          String(val).toLowerCase() === "active";
+        return (
+          <Popconfirm
+            title={isActive ? "Khóa tài khoản này?" : "Mở khóa tài khoản này?"}
+            onConfirm={() => handleToggleStatus(record)}
+          >
+            <Tag
+              color={isActive ? "green" : "red"}
+              className="cursor-pointer m-0 border-0 rounded-md"
+            >
+              {isActive ? "Đang hoạt động" : "Đã khóa"}
+            </Tag>
+          </Popconfirm>
+        );
+      },
     },
     {
-      title: "Thao tác",
+      title: "Hành động",
       key: "action",
-      width: 220,
+      width: 250,
       fixed: "right",
       render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            {!isMobile && "Sửa"}
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<KeyOutlined />}
-            onClick={() => handleResetPassword(record)}
-          >
-            {!isMobile && "Mật khẩu"}
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<HomeOutlined />}
-            onClick={() => handleManagePermissions(record)}
-          >
-            {!isMobile && "Quyền kho"}
-          </Button>
+        <Space size="small" split={<Divider type="vertical" />}>
+          <Tooltip title="Chỉnh sửa">
+            <Button
+              type="text"
+              className="text-blue-600 p-0"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Đổi mật khẩu">
+            <Button
+              type="text"
+              className="text-yellow-600 p-0"
+              icon={<KeyOutlined />}
+              onClick={() => handleResetPassword(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Phân quyền kho">
+            <Button
+              type="text"
+              className="text-purple-600 p-0"
+              icon={<HomeOutlined />}
+              onClick={() => handleManagePermissions(record)}
+            />
+          </Tooltip>
         </Space>
       ),
     },
-  ].filter(Boolean);
+  ];
 
   return (
-    <div
-      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
-    >
-      <Card size="small">
-        <div style={{ marginBottom: 16 }}>
-          <Row justify="space-between" align="middle" gutter={[8, 16]}>
-            <Col xs={24} sm={16}>
-              <h2
-                style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.5rem" }}
-              >
-                <Space wrap>
-                  <UserOutlined />
-                  <span>Quản lý người dùng</span>
-                </Space>
-              </h2>
-            </Col>
-            <Col
-              xs={24}
-              sm={8}
-              style={{ textAlign: isMobile ? "left" : "right" }}
-            >
-              <Space wrap>
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={fetchData}
-                  size="small"
-                >
-                  Tải lại
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleAdd}
-                  size="small"
-                >
-                  Thêm mới
-                </Button>
-              </Space>
-            </Col>
-          </Row>
+    <div className="p-4 md:p-6 bg-slate-50 min-h-screen">
+      <Card
+        className="shadow-sm border-0 rounded-xl"
+        styles={{ body: { padding: "24px" } }}
+      >
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div>
+            <Title level={3} className="m-0 text-gray-800 flex items-center">
+              <UserOutlined className="mr-3 text-blue-500" />
+              Danh sách Nhân viên
+            </Title>
+            <Text className="text-gray-500">
+              Quản lý tài khoản và phân quyền cho nhân viên
+            </Text>
+          </div>
 
-          <div style={{ marginTop: 16 }}>
+          <Space wrap>
             <Input.Search
               placeholder="Tìm username, tên, email..."
               allowClear
               onSearch={setSearchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: "100%", maxWidth: isMobile ? "100%" : 300 }}
-              size="small"
+              className="w-full md:w-64"
+              size="middle"
             />
-          </div>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={fetchData}
+              size="middle"
+            />
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAdd}
+              size="middle"
+              className="bg-blue-600"
+            >
+              Thêm nhân viên
+            </Button>
+          </Space>
         </div>
 
-        {isMobile ? (
-          <List
-            dataSource={filteredData}
-            loading={loading}
-            pagination={{
-              pageSize: 10,
-              size: "small",
-            }}
-            renderItem={(item) => (
-              <List.Item
-                actions={[
-                  <Button
-                    type="link"
-                    icon={<EditOutlined />}
-                    onClick={() => handleEdit(item)}
-                  />,
-                  <Button
-                    type="link"
-                    icon={<KeyOutlined />}
-                    onClick={() => handleResetPassword(item)}
-                  />,
-                  <Button
-                    type="link"
-                    icon={<HomeOutlined />}
-                    onClick={() => handleManagePermissions(item)}
-                  />,
-                ]}
-              >
-                <List.Item.Meta
-                  avatar={
-                    <UserOutlined
-                      style={{
-                        fontSize: 24,
-                        padding: 8,
-                        background: "#e6f7ff",
-                        borderRadius: "50%",
-                      }}
-                    />
-                  }
-                  title={<strong>{item.username}</strong>}
-                  description={
-                    <Space direction="vertical" size={0}>
-                      <Text type="secondary">{item.ho_ten}</Text>
-                      <Space>
-                        <Tag color="blue" style={{ margin: 0 }}>
-                          {USER_ROLE_LABELS[item.vai_tro]}
-                        </Tag>
-                        <Switch
-                          checked={item.trang_thai}
-                          size="small"
-                          onChange={() => handleToggleStatus(item)}
-                        />
-                      </Space>
-                    </Space>
-                  }
-                />
-              </List.Item>
-            )}
-          />
-        ) : (
-          <Table
-            dataSource={filteredData}
-            columns={columns}
-            rowKey="id"
-            loading={loading}
-            scroll={{ x: 1000 }}
-            size="small"
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showTotal: (total) => `Tổng: ${total}`,
-            }}
-          />
-        )}
+        <Table
+          dataSource={filteredData}
+          columns={columns}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: "max-content" }}
+          pagination={{
+            pageSize: 15,
+            showTotal: (total) => `Tổng ${total} nhân viên`,
+          }}
+          className="rounded-lg overflow-hidden border border-gray-100"
+        />
       </Card>
 
       {/* Modal User Form */}
       <Modal
-        title={editingRecord ? "Cập nhật người dùng" : "Thêm người dùng mới"}
+        title={
+          <div className="text-lg font-bold text-gray-800">
+            {editingRecord ? "Cập nhật người dùng" : "Thêm nhân viên mới"}
+          </div>
+        }
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
-        width={isMobile ? "100%" : 600}
+        width={700}
+        destroyOnClose
+        centered
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          size="small"
+          size="large"
+          className="mt-4"
         >
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} md={12}>
               <Form.Item
                 name="username"
-                label="Username"
+                label={
+                  <span className="font-semibold text-gray-700">
+                    Tên đăng nhập
+                  </span>
+                }
                 rules={[{ required: true, message: "Nhập username" }]}
               >
-                <Input disabled={!!editingRecord} prefix={<UserOutlined />} />
+                <Input
+                  disabled={!!editingRecord}
+                  prefix={<UserOutlined className="text-gray-400" />}
+                  placeholder="Ví dụ: nhatkhang"
+                />
               </Form.Item>
             </Col>
             {!editingRecord && (
-              <Col span={12}>
+              <Col xs={24} md={12}>
                 <Form.Item
                   name="password"
-                  label="Mật khẩu"
-                  rules={[{ required: true, message: "Nhập mật khẩu" }]}
+                  label={
+                    <span className="font-semibold text-gray-700">
+                      Mật khẩu
+                    </span>
+                  }
+                  rules={[
+                    { required: true, message: "Nhập mật khẩu" },
+                    { min: 6, message: "Ít nhất 6 ký tự" },
+                  ]}
                 >
-                  <Input.Password prefix={<LockOutlined />} />
+                  <Input.Password
+                    prefix={<LockOutlined className="text-gray-400" />}
+                    placeholder="******"
+                  />
                 </Form.Item>
               </Col>
             )}
@@ -442,44 +457,76 @@ const UserManagePage = () => {
 
           <Form.Item
             name="ho_ten"
-            label="Họ tên"
+            label={
+              <span className="font-semibold text-gray-700">Họ và tên</span>
+            }
             rules={[{ required: true, message: "Nhập họ tên" }]}
           >
-            <Input />
+            <Input placeholder="Nguyễn Văn A" />
           </Form.Item>
 
           <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="email" label="Email" rules={[{ type: "email" }]}>
-                <Input />
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="email"
+                label={
+                  <span className="font-semibold text-gray-700">Email</span>
+                }
+                rules={[{ type: "email", message: "Email không hợp lệ" }]}
+              >
+                <Input placeholder="example@motor.vn" />
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <Form.Item name="dien_thoai" label="Điện thoại">
-                <Input />
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="dien_thoai"
+                label={
+                  <span className="font-semibold text-gray-700">
+                    Điện thoại
+                  </span>
+                }
+                rules={[
+                  {
+                    pattern: /^[0-9]{10,11}$/,
+                    message: "Số điện thoại chỉ gồm 10-11 chữ số",
+                  },
+                ]}
+              >
+                <Input placeholder="0987654321" />
               </Form.Item>
             </Col>
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} md={12}>
               <Form.Item
                 name="vai_tro"
-                label="Vai trò"
-                rules={[{ required: true }]}
+                label={
+                  <span className="font-semibold text-gray-700">Vai trò</span>
+                }
+                rules={[{ required: true, message: "Chọn vai trò" }]}
               >
-                <Select>
-                  {Object.entries(USER_ROLE_LABELS).map(([key, label]) => (
-                    <Select.Option key={key} value={key}>
-                      {label}
-                    </Select.Option>
-                  ))}
+                <Select placeholder="-- Chọn vai trò --">
+                  {["ADMIN", "BAN_HANG", "KHO", "KE_TOAN", "QUAN_LY"].map(
+                    (key) => (
+                      <Select.Option key={key} value={key}>
+                        {USER_ROLE_LABELS[key]}
+                      </Select.Option>
+                    ),
+                  )}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <Form.Item name="ma_kho" label="Kho mặc định">
-                <Select allowClear placeholder="Tất cả kho">
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="ma_kho"
+                label={
+                  <span className="font-semibold text-gray-700">
+                    Kho mặc định
+                  </span>
+                }
+              >
+                <Select allowClear placeholder="-- Tất cả kho --">
                   {khoList.map((k) => (
                     <Select.Option key={k.ma_kho} value={k.ma_kho}>
                       {k.ten_kho}
@@ -490,199 +537,290 @@ const UserManagePage = () => {
             </Col>
           </Row>
 
-          <Form.Item
-            style={{ marginBottom: 0, textAlign: "right", marginTop: 16 }}
-          >
-            <Space>
-              <Button onClick={() => setModalVisible(false)}>Hủy</Button>
-              <Button type="primary" htmlType="submit">
-                Lưu
-              </Button>
-            </Space>
-          </Form.Item>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              onClick={() => setModalVisible(false)}
+              size="large"
+              className="rounded-md"
+            >
+              Hủy
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              className="bg-blue-600 rounded-md shadow-sm"
+            >
+              {editingRecord ? "Lưu thay đổi" : "Tạo tài khoản"}
+            </Button>
+          </div>
         </Form>
       </Modal>
 
       {/* Modal Password Reset */}
       <Modal
-        title="Đặt lại mật khẩu"
+        title={
+          <div className="text-lg font-bold text-gray-800">
+            Đặt lại mật khẩu
+          </div>
+        }
         open={passwordModalVisible}
         onCancel={() => setPasswordModalVisible(false)}
         footer={null}
+        width={400}
+        centered
+        destroyOnClose
       >
         <Form
           form={passwordForm}
           layout="vertical"
           onFinish={handlePasswordSubmit}
+          className="mt-4"
+          size="large"
         >
           <Form.Item
             name="password"
             label="Mật khẩu mới"
-            rules={[{ required: true, min: 6 }]}
-          >
-            <Input.Password prefix={<LockOutlined />} />
-          </Form.Item>
-          <Form.Item
-            name="confirm"
-            label="Xác nhận mật khẩu"
-            dependencies={["password"]}
             rules={[
-              { required: true },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error("Mật khẩu không khớp!"));
-                },
-              }),
+              { required: true, message: "Vui lòng nhập mật khẩu mới" },
+              { min: 6, message: "Ít nhất 6 ký tự" },
             ]}
           >
-            <Input.Password prefix={<LockOutlined />} />
+            <Input.Password
+              prefix={<LockOutlined className="text-gray-400" />}
+            />
           </Form.Item>
-          <Form.Item style={{ textAlign: "right" }}>
-            <Space>
-              <Button onClick={() => setPasswordModalVisible(false)}>
-                Hủy
-              </Button>
-              <Button type="primary" htmlType="submit">
-                Đổi mật khẩu
-              </Button>
-            </Space>
-          </Form.Item>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button onClick={() => setPasswordModalVisible(false)}>Hủy</Button>
+            <Button type="primary" htmlType="submit" className="bg-blue-600">
+              Đổi mật khẩu
+            </Button>
+          </div>
         </Form>
       </Modal>
 
       {/* Modal Warehouse Permissions */}
       <Modal
         title={
-          <span>
-            <HomeOutlined /> Quyền kho:{" "}
-            <strong>{permissionUser?.username}</strong>
-          </span>
+          <div className="text-lg font-bold text-gray-800 flex items-center mb-2">
+            <HomeOutlined className="text-purple-600 mr-2" />
+            Phân quyền Kho:{" "}
+            <span className="text-blue-600 ml-1">
+              {permissionUser?.ho_ten || permissionUser?.username}
+            </span>
+          </div>
         }
         open={permissionModalVisible}
         onCancel={() => setPermissionModalVisible(false)}
-        width={700}
+        width={800}
         footer={null}
+        destroyOnClose
+        centered
       >
-        <div style={{ marginBottom: 24 }}>
-          <Text strong>Thêm quyền kho mới</Text>
+        <div className="mb-6 bg-purple-50 p-4 rounded-lg border border-purple-100">
+          <h4 className="font-semibold text-purple-800 mb-3 flex items-center">
+            <PlusOutlined className="mr-2" /> Cấp thêm quyền kho mới
+          </h4>
           <Form
             form={permissionForm}
-            layout="inline"
-            onFinish={handleAddPermission}
-            style={{ marginTop: 8 }}
+            layout="vertical"
+            onFinish={handleAddWarehousePermission}
           >
-            <Form.Item
-              name="ma_kho"
-              rules={[{ required: true, message: "Chọn kho" }]}
-            >
-              <Select
-                placeholder="Chọn kho"
-                style={{ width: 200 }}
-                size="small"
-              >
-                {khoList
-                  .filter(
-                    (k) => !userPermissions.some((p) => p.ma_kho === k.ma_kho)
-                  )
-                  .map((k) => (
-                    <Select.Option key={k.ma_kho} value={k.ma_kho}>
-                      {k.ten_kho}
-                    </Select.Option>
-                  ))}
-              </Select>
-            </Form.Item>
-            <Form.Item>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                htmlType="submit"
-                size="small"
-              >
-                Thêm
-              </Button>
-            </Form.Item>
+            <Row gutter={16} align="middle">
+              <Col xs={24} md={16}>
+                <Form.Item
+                  name="ma_kho"
+                  rules={[{ required: true, message: "Vui lòng chọn kho" }]}
+                  className="mb-3"
+                >
+                  <Select
+                    placeholder="-- Chọn kho để cấp quyền --"
+                    size="middle"
+                    options={khoList
+                      .filter(
+                        (k) =>
+                          !userWarehouses.find((p) => p.ma_kho === k.ma_kho),
+                      )
+                      .map((k) => ({ label: k.ten_kho, value: k.ma_kho }))}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={8} className="flex items-center mb-3">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  size="middle"
+                  icon={<PlusOutlined />}
+                  className="bg-purple-600 hover:bg-purple-500 w-full md:w-auto"
+                >
+                  Cấp quyền mới
+                </Button>
+              </Col>
+            </Row>
+
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-2 bg-white p-3 rounded border border-gray-200">
+              <div className="flex items-center">
+                <Form.Item
+                  name="quyen_xem"
+                  valuePropName="checked"
+                  className="mb-0"
+                  noStyle
+                >
+                  <Switch
+                    checkedChildren={<EyeOutlined />}
+                    unCheckedChildren={<EyeOutlined />}
+                  />
+                </Form.Item>
+                <span className="ml-2 text-sm font-medium">Xem kho</span>
+              </div>
+              <div className="flex items-center">
+                <Form.Item
+                  name="quyen_them"
+                  valuePropName="checked"
+                  className="mb-0"
+                  noStyle
+                >
+                  <Switch
+                    checkedChildren={<AppstoreAddOutlined />}
+                    unCheckedChildren={<AppstoreAddOutlined />}
+                  />
+                </Form.Item>
+                <span className="ml-2 text-sm font-medium">Thêm hàng</span>
+              </div>
+              <div className="flex items-center">
+                <Form.Item
+                  name="quyen_sua"
+                  valuePropName="checked"
+                  className="mb-0"
+                  noStyle
+                >
+                  <Switch
+                    checkedChildren={<FormOutlined />}
+                    unCheckedChildren={<FormOutlined />}
+                  />
+                </Form.Item>
+                <span className="ml-2 text-sm font-medium">Sửa hàng</span>
+              </div>
+              <div className="flex items-center">
+                <Form.Item
+                  name="quyen_xoa"
+                  valuePropName="checked"
+                  className="mb-0"
+                  noStyle
+                >
+                  <Switch
+                    checkedChildren={<DeleteOutlined />}
+                    unCheckedChildren={<DeleteOutlined />}
+                  />
+                </Form.Item>
+                <span className="ml-2 text-sm font-medium">Xóa hàng</span>
+              </div>
+              <div className="flex items-center col-span-2 md:col-span-1">
+                <Form.Item
+                  name="quyen_chuyen_kho"
+                  valuePropName="checked"
+                  className="mb-0"
+                  noStyle
+                >
+                  <Switch
+                    checkedChildren={<SwapOutlined />}
+                    unCheckedChildren={<SwapOutlined />}
+                  />
+                </Form.Item>
+                <span className="ml-2 text-sm font-medium">Chuyển kho</span>
+              </div>
+            </div>
           </Form>
         </div>
 
+        <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+          Danh sách kho đã được cấp
+        </h4>
         <Table
-          dataSource={userPermissions}
+          dataSource={userWarehouses}
           rowKey="ma_kho"
           size="small"
+          loading={warehouseLoading}
           pagination={false}
+          className="border border-gray-100 rounded-lg overflow-hidden"
           columns={[
-            { title: "Kho", dataIndex: "ten_kho", key: "ten_kho" },
             {
-              title: "Xem",
+              title: "Tên Kho",
+              dataIndex: "ten_kho",
+              key: "ten_kho",
+              render: (text, record) => (
+                <strong className="text-gray-800">
+                  {text || record.ma_kho}
+                </strong>
+              ),
+            },
+            {
+              title: "Q.Xem",
               dataIndex: "quyen_xem",
-              render: (v) => <Switch size="small" checked={v} disabled />,
+              align: "center",
+              render: (v) =>
+                v ? (
+                  <CheckCircleOutlined className="text-green-500 text-lg" />
+                ) : (
+                  <StopOutlined className="text-gray-300" />
+                ),
             },
             {
-              title: "Thêm/Sửa",
+              title: "Q.Thêm",
               dataIndex: "quyen_them",
-              render: (v, record) => (
-                <Switch
-                  size="small"
-                  checked={record.quyen_them || record.quyen_sua}
-                  onChange={(checked) => {
-                    const updated = userPermissions.map((p) =>
-                      p.ma_kho === record.ma_kho
-                        ? { ...p, quyen_them: checked, quyen_sua: checked }
-                        : p
-                    );
-                    userAPI
-                      .updatePermissions(permissionUser.id, updated)
-                      .then(() => {
-                        notificationService.success(
-                          "Cập nhật quyền thành công"
-                        );
-                        setUserPermissions(updated);
-                      });
-                  }}
-                />
-              ),
+              align: "center",
+              render: (v) =>
+                v ? (
+                  <CheckCircleOutlined className="text-green-500 text-lg" />
+                ) : (
+                  <StopOutlined className="text-gray-300" />
+                ),
             },
             {
-              title: "Xóa",
+              title: "Q.Sửa",
+              dataIndex: "quyen_sua",
+              align: "center",
+              render: (v) =>
+                v ? (
+                  <CheckCircleOutlined className="text-green-500 text-lg" />
+                ) : (
+                  <StopOutlined className="text-gray-300" />
+                ),
+            },
+            {
+              title: "Q.Xóa",
               dataIndex: "quyen_xoa",
-              render: (v, record) => (
-                <Switch
-                  size="small"
-                  checked={v}
-                  onChange={(checked) => {
-                    const updated = userPermissions.map((p) =>
-                      p.ma_kho === record.ma_kho
-                        ? { ...p, quyen_xoa: checked }
-                        : p
-                    );
-                    userAPI
-                      .updatePermissions(permissionUser.id, updated)
-                      .then(() => {
-                        notificationService.success(
-                          "Cập nhật quyền thành công"
-                        );
-                        setUserPermissions(updated);
-                      });
-                  }}
-                />
-              ),
+              align: "center",
+              render: (v) =>
+                v ? (
+                  <CheckCircleOutlined className="text-green-500 text-lg" />
+                ) : (
+                  <StopOutlined className="text-gray-300" />
+                ),
+            },
+            {
+              title: "Q.Chuyển",
+              dataIndex: "quyen_chuyen_kho",
+              align: "center",
+              render: (v) =>
+                v ? (
+                  <CheckCircleOutlined className="text-green-500 text-lg" />
+                ) : (
+                  <StopOutlined className="text-gray-300" />
+                ),
             },
             {
               title: "Thao tác",
               key: "action",
+              align: "center",
               render: (_, record) => (
                 <Popconfirm
-                  title="Xóa quyền kho này?"
-                  onConfirm={() => handleRemovePermission(record.ma_kho)}
+                  title="Xóa quyền truy cập thuộc kho này?"
+                  onConfirm={() =>
+                    handleRemoveWarehousePermission(record.ma_kho)
+                  }
                 >
-                  <Button
-                    type="link"
-                    danger
-                    icon={<DeleteOutlined />}
-                    size="small"
-                  />
+                  <Button type="text" danger icon={<DeleteOutlined />} />
                 </Popconfirm>
               ),
             },

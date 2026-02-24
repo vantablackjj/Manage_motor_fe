@@ -124,7 +124,7 @@ const XeThucTe = () => {
           fetchData();
         } catch (error) {
           notificationService.error(
-            error?.response?.data?.message || "Không thể khóa xe"
+            error?.response?.data?.message || "Không thể khóa xe",
           );
         }
       },
@@ -153,7 +153,7 @@ const XeThucTe = () => {
           fetchData();
         } catch (error) {
           notificationService.error(
-            error?.response?.data?.message || "Không thể mở khóa xe"
+            error?.response?.data?.message || "Không thể mở khóa xe",
           );
         }
       },
@@ -205,7 +205,7 @@ const XeThucTe = () => {
       const tonKho = list.filter((x) => x.trang_thai === "TON_KHO").length;
       const daBan = list.filter((x) => x.trang_thai === "DA_BAN").length;
       const dangChuyen = list.filter(
-        (x) => x.trang_thai === "DANG_CHUYEN"
+        (x) => x.trang_thai === "DANG_CHUYEN",
       ).length;
       const biKhoa = list.filter((x) => x.locked === true).length;
 
@@ -385,7 +385,7 @@ const XeThucTe = () => {
             />
           </Tooltip>
 
-          {authService.canEdit() && !record.locked && (
+          {authService.hasPermission("products", "edit") && !record.locked && (
             <Tooltip title="Chỉnh sửa">
               <Button
                 type="link"
@@ -396,7 +396,7 @@ const XeThucTe = () => {
             </Tooltip>
           )}
 
-          {authService.canDelete() &&
+          {authService.hasPermission("products", "delete") &&
             record.trang_thai === "TON_KHO" &&
             (record.locked ? (
               <Tooltip title="Mở khóa xe">
@@ -457,16 +457,28 @@ const XeThucTe = () => {
               sm={12}
               style={{ textAlign: isMobile ? "left" : "right" }}
             >
-              {activeTab === "danh-sach" && authService.canCreate() && (
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleCreate}
-                  block={isMobile}
-                >
-                  Nhập kho xe
-                </Button>
-              )}
+              <Space wrap>
+                {authService.hasPermission("inventory", "transfer") && (
+                  <Button
+                    icon={<ReloadOutlined />}
+                    onClick={() => navigate("/chuyen-kho/tao-moi")}
+                    block={isMobile}
+                  >
+                    Chuyển kho
+                  </Button>
+                )}
+                {activeTab === "danh-sach" &&
+                  authService.hasPermission("products", "create") && (
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={handleCreate}
+                      block={isMobile}
+                    >
+                      Nhập kho xe
+                    </Button>
+                  )}
+              </Space>
             </Col>
           </Row>
 
@@ -645,7 +657,7 @@ const XeThucTe = () => {
                       title="Danh sách xe"
                       params={filters}
                     />
-                    {authService.canCreate() && (
+                    {authService.hasPermission("products", "create") && (
                       <Button
                         type="primary"
                         icon={<PlusOutlined />}
@@ -661,7 +673,11 @@ const XeThucTe = () => {
 
             {/* Table */}
             <Table
-              rowSelection={authService.canEdit() ? rowSelection : null}
+              rowSelection={
+                authService.hasPermission("products", "edit")
+                  ? rowSelection
+                  : null
+              }
               columns={columns}
               dataSource={data}
               rowKey="xe_key"
@@ -704,8 +720,8 @@ const XeThucTe = () => {
           formMode === "create"
             ? "Nhập kho xe"
             : formMode === "edit"
-            ? "Chỉnh sửa xe"
-            : "Chi tiết xe"
+              ? "Chỉnh sửa xe"
+              : "Chi tiết xe"
         }
         width={isMobile ? "100%" : 800}
         open={formVisible}

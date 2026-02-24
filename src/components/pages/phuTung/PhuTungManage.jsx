@@ -301,7 +301,7 @@ const PhuTungManage = () => {
           </Tooltip>
           {record.status !== false ? (
             <>
-              {authService.canEdit() && (
+              {authService.hasPermission("products", "edit") && (
                 <Tooltip title="Sửa">
                   <Button
                     type="text"
@@ -310,7 +310,7 @@ const PhuTungManage = () => {
                   />
                 </Tooltip>
               )}
-              {authService.canDelete() && (
+              {authService.hasPermission("products", "delete") && (
                 <Popconfirm
                   title="Khóa phụ tùng"
                   description="Bạn có chắc muốn khóa phụ tùng này không?"
@@ -460,16 +460,17 @@ const PhuTungManage = () => {
                     />
                   </Space>
                 )}
-                {activeTab === "danh-sach" && authService.canCreate() && (
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleCreate}
-                    block={isMobile}
-                  >
-                    Thêm phụ tùng
-                  </Button>
-                )}
+                {activeTab === "danh-sach" &&
+                  authService.hasPermission("products", "create") && (
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={handleCreate}
+                      block={isMobile}
+                    >
+                      Thêm phụ tùng
+                    </Button>
+                  )}
               </Space>
             </Col>
           </Row>

@@ -145,7 +145,12 @@ const ChuyenKhoCreate = () => {
       }
 
       notificationService.success("Tạo phiếu chuyển kho thành công");
-      navigate("/chuyen-kho");
+      // Reset state to stay on page as requested
+      setCurrentStep(0);
+      form.resetFields();
+      setSelectedXe([]);
+      setSelectedPhuTung([]);
+      // navigate("/chuyen-kho");
     } catch (error) {
       notificationService.error(
         error?.response?.data?.message || "Lỗi tạo phiếu chuyển kho",

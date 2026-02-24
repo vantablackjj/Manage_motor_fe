@@ -1,13 +1,9 @@
 import { Navigate } from "react-router-dom";
 import { Spin } from "antd";
 import { useAuth } from "../contexts/AuthContext";
-import { useEffect } from "react";
 
-const PrivateRoute = ({ children, role }) => {
-  const { loading, isAuthenticated, hasPermission } = useAuth();
-  useEffect(() => {
-    console.log(isAuthenticated);
-  }, []);
+const PrivateRoute = ({ children, role, permissions }) => {
+  const { loading, isAuthenticated, hasPermission, hasRole } = useAuth();
 
   if (loading) {
     return (
@@ -28,7 +24,18 @@ const PrivateRoute = ({ children, role }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (role && !hasPermission(role)) {
+  // Check role (legacy – backward compat)
+  if (role && !hasRole(role)) {
+    return <Navigate to="/403" replace />;
+  }
+
+  // Check permission mới dạng "module.action"
+  if (permissions && !hasPermission(permissions)) {
+    if (import.meta.env.DEV) {
+      console.error(
+        `[Guard] Access denied for path ${window.location.pathname}. Missing permission: ${permissions}`,
+      );
+    }
     return <Navigate to="/403" replace />;
   }
 

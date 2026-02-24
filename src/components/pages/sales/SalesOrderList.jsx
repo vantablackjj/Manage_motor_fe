@@ -24,7 +24,11 @@ import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
 import { useNavigate } from "react-router-dom";
 import { orderAPI, khoAPI, khachHangAPI } from "../../../api";
-import { formatService, notificationService } from "../../../services";
+import {
+  formatService,
+  notificationService,
+  authService,
+} from "../../../services";
 import { TRANG_THAI_COLORS, LOAI_DON_HANG } from "../../../utils/constant";
 
 const { Option } = Select;
@@ -195,13 +199,22 @@ const SalesOrderList = () => {
               <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
                 Làm mới
               </Button>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => navigate("/sales/orders/create")}
-              >
-                Tạo mới
-              </Button>
+              {(authService.hasPermission("sales_orders", "create") ||
+                authService.hasRole([
+                  "ADMIN",
+                  "QUAN_LY",
+                  "BAN_HANG",
+                  "KHO",
+                  "NHAN_VIEN",
+                ])) && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => navigate("/sales/orders/create")}
+                >
+                  Tạo phiếu
+                </Button>
+              )}
             </Space>
           </Col>
         </Row>

@@ -178,12 +178,20 @@ const VehiclePurchaseCreate = () => {
       const ma_phieu = res.data?.id || res.id || res.data?.so_phieu;
 
       if (submitForApproval && ma_phieu) {
+        // Thêm độ trễ nhỏ để đảm bảo DB đã cập nhật trạng thái xong
+        // Tránh lỗi Race Condition: "Đơn phải ở trạng thái NHAP"
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         await donHangMuaXeAPI.guiDuyet(ma_phieu);
         notificationService.success("Đã tạo và gửi duyệt đơn hàng");
       } else {
         notificationService.success("Tạo đơn hàng mua xe thành công");
       }
-      navigate("/purchase/vehicles");
+
+      // Reset form and items to stay on page as requested
+      form.resetFields();
+      setItems([]);
+      // navigate("/purchase/vehicles"); // Removed redirection to list page
     } catch (error) {
       notificationService.error(
         error?.response?.data?.message || "Lỗi tạo đơn hàng",
@@ -434,23 +442,14 @@ const VehiclePurchaseCreate = () => {
                 Hủy
               </Button>
               <Button
+                type="primary"
                 icon={<SaveOutlined />}
                 loading={loading}
                 onClick={() =>
                   form.validateFields().then((v) => onFinish(v, false))
                 }
               >
-                Lưu nháp
-              </Button>
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                loading={loading}
-                onClick={() =>
-                  form.validateFields().then((v) => onFinish(v, true))
-                }
-              >
-                Lưu và Gửi duyệt
+                Lưu đơn hàng
               </Button>
             </Space>
           </div>

@@ -67,15 +67,24 @@ const SalesOrderCreate = () => {
 
   const loadMasterData = async () => {
     try {
-      const [khoRes, khRes] = await Promise.all([
-        khoAPI.getAll(),
-        khachHangAPI.getKhachHang(),
-      ]);
-      setKhoList(khoRes || []);
-      const customers = (khRes.data || khRes || []).filter((c) => c.status);
-      setCustomerList(customers);
+      // Gọi riêng biệt để nếu 1 cái lỗi (ví dụ không có quyền xem kho) thì vẫn chạy tiếp cái kia
+      try {
+        const khoRes = await khoAPI.getAll();
+        setKhoList(khoRes?.data || khoRes || []);
+      } catch (err) {
+        console.error("Thiếu quyền truy cập danh sách kho", err);
+        setKhoList([]); // Fallback về mảng rỗng
+      }
+
+      try {
+        const khRes = await khachHangAPI.getKhachHang();
+        const customers = (khRes.data || khRes || []).filter((c) => c.status);
+        setCustomerList(customers);
+      } catch (err) {
+        console.error("Lỗi tải danh sách khách hàng", err);
+      }
     } catch (error) {
-      console.error("Error loading master data", error);
+      console.error("Lỗi tổng quát khi tải master data", error);
     }
   };
 
@@ -202,7 +211,11 @@ const SalesOrderCreate = () => {
       } else {
         notificationService.success("Tạo đơn hàng thành công (Nháp)");
       }
-      navigate(`/sales/orders/${orderId}`);
+
+      // Reset form and items to stay on page as requested
+      form.resetFields();
+      setItems([]);
+      // navigate(`/sales/orders/${orderId}`);
     } catch (error) {
       notificationService.error(error?.response?.data?.message || "Lỗi xử lý");
     } finally {
@@ -456,23 +469,14 @@ const SalesOrderCreate = () => {
             <Space wrap>
               <Button onClick={() => navigate("/sales/orders")}>Hủy</Button>
               <Button
+                type="primary"
                 icon={<SaveOutlined />}
                 loading={loading}
                 onClick={() =>
                   form.validateFields().then((v) => onFinish(v, false))
                 }
               >
-                Lưu nháp
-              </Button>
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                loading={loading}
-                onClick={() =>
-                  form.validateFields().then((v) => onFinish(v, true))
-                }
-              >
-                Lưu và Gửi duyệt
+                Lưu đơn hàng
               </Button>
             </Space>
           </div>

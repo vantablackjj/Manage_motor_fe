@@ -209,7 +209,7 @@ const ChuyenKhoList = () => {
                 <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
                   Làm mới
                 </Button>
-                {authService.canCreate() && (
+                {authService.hasPermission("inventory", "transfer") && (
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}

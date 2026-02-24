@@ -6,16 +6,34 @@ export const API_BASE_URL =
 // Vai trò người dùng
 export const USER_ROLES = {
   ADMIN: "ADMIN",
-  QUAN_LY_CTY: "QUAN_LY_CTY",
-  QUAN_LY_CHI_NHANH: "QUAN_LY_CHI_NHANH",
-  NHAN_VIEN: "NHAN_VIEN",
+  BAN_HANG: "BAN_HANG",
+  KHO: "KHO",
+  KE_TOAN: "KE_TOAN",
+  QUAN_LY: "QUAN_LY",
+  // Legacy aliases (backward compat)
+  QUAN_LY_CTY: "QUAN_LY",
+  QUAN_LY_CHI_NHANH: "QUAN_LY",
+  NHAN_VIEN: "BAN_HANG",
 };
 
 export const USER_ROLE_LABELS = {
   ADMIN: "Quản trị viên",
-  QUAN_LY_CTY: "Giám đốc công ty",
-  QUAN_LY_CHI_NHANH: "Trưởng chi nhánh",
-  NHAN_VIEN: "Nhân viên",
+  BAN_HANG: "Nhân viên nghiệp vụ",
+  KHO: "Nhân viên kho",
+  KE_TOAN: "Kế toán",
+  QUAN_LY: "Quản lý",
+  // Legacy labels
+  QUAN_LY_CTY: "Quản lý",
+  QUAN_LY_CHI_NHANH: "Quản lý",
+  NHAN_VIEN: "Nhân viên nghiệp vụ",
+};
+
+export const USER_ROLE_COLORS = {
+  ADMIN: "red",
+  BAN_HANG: "blue",
+  KHO: "orange",
+  KE_TOAN: "purple",
+  QUAN_LY: "green",
 };
 
 // Trạng thái giao dịch
@@ -230,6 +248,8 @@ export const API_ENDPOINTS = {
   LOGIN: "/auth/login",
   LOGOUT: "/auth/logout",
   REFRESH_TOKEN: "/auth/refresh",
+  ME: "/auth/me",
+  CHANGE_PASSWORD: "/auth/change-password",
 
   //
   PHU_TUNG_KHOA_BY_KHO: (ma_kho) => `/phu-tung-khoa/${ma_kho}`,

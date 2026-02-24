@@ -62,10 +62,15 @@ export const publicRoutes = [
 ];
 
 export const privateRoutes = [
-  // Dashboard
+  // Dashboard - tất cả role đều xem được
   {
     path: "/",
     component: DashboardPage,
+    layout: MainLayout,
+  },
+  {
+    path: "/403",
+    component: AccessDenied,
     layout: MainLayout,
   },
 
@@ -75,16 +80,19 @@ export const privateRoutes = [
     path: "/purchase/vehicles",
     component: VehiclePurchaseList,
     layout: MainLayout,
+    permissions: "purchase_orders.view",
   },
   {
     path: "/purchase/vehicles/create",
     component: VehiclePurchaseCreate,
     layout: MainLayout,
+    permissions: "purchase_orders.create",
   },
   {
     path: "/purchase/vehicles/:ma_phieu",
     component: VehiclePurchaseDetail,
     layout: MainLayout,
+    permissions: "purchase_orders.view",
   },
 
   // 2. Mua Phụ Tùng
@@ -92,16 +100,19 @@ export const privateRoutes = [
     path: "/purchase/parts",
     component: PartPurchaseList,
     layout: MainLayout,
+    permissions: "purchase_orders.view",
   },
   {
     path: "/purchase/parts/create",
     component: PartPurchaseCreate,
     layout: MainLayout,
+    permissions: "purchase_orders.create",
   },
   {
     path: "/purchase/parts/:id",
     component: PartPurchaseDetail,
     layout: MainLayout,
+    permissions: "purchase_orders.view",
   },
   // ===================================
 
@@ -110,26 +121,31 @@ export const privateRoutes = [
     path: "/sales/orders",
     component: SalesOrderList,
     layout: MainLayout,
+    permissions: "sales_orders.view",
   },
   {
     path: "/sales/orders/create",
     component: SalesOrderCreate,
     layout: MainLayout,
+    permissions: "sales_orders.create",
   },
   {
     path: "/sales/orders/:id",
     component: SalesOrderDetail,
     layout: MainLayout,
+    permissions: "sales_orders.view",
   },
   {
     path: "/sales/invoices",
     component: HoaDonBanListPage,
     layout: MainLayout,
+    permissions: "invoices.view",
   },
   {
     path: "/sales/invoices/:so_hd",
     component: HoaDonBanDetail,
     layout: MainLayout,
+    permissions: "invoices.view",
   },
   // ===================================
 
@@ -138,34 +154,40 @@ export const privateRoutes = [
     path: "/thu-chi",
     component: ThuChiList,
     layout: MainLayout,
+    permissions: "payments.view",
   },
   {
     path: "/thu-chi/create",
     component: ThuChiCreate,
     layout: MainLayout,
+    permissions: "payments.create",
   },
   {
     path: "/thu-chi/:so_phieu",
     component: ThuChiDetail,
     layout: MainLayout,
+    permissions: "payments.view",
   },
   // ===================================
 
-  // Quản lý xe
+  // Quản lý xe (inventory)
   {
     path: "/xe/danh-sach",
     component: XeListPage,
     layout: MainLayout,
+    permissions: "inventory.view",
   },
   {
     path: "/xe/lich-su",
     component: XeLichSu,
     layout: MainLayout,
+    permissions: "inventory.view",
   },
   {
     path: "/xe/phe-duyet",
     component: VehicleApprovalList,
     layout: MainLayout,
+    permissions: "products.approve",
   },
 
   // Quản lý phụ tùng
@@ -173,16 +195,18 @@ export const privateRoutes = [
     path: "/phu-tung/danh-sach",
     component: PhuTungManage,
     layout: MainLayout,
+    permissions: "products.view",
   },
 
-  // Danh mục xe - Loại xe (chuyển từ /xe/model-car)
+  // Danh mục xe - Loại xe
   {
     path: "/danh-muc/loai-xe",
     component: XeLoai,
     layout: MainLayout,
+    permissions: "products.view",
   },
 
-  // Master data (legacy routes - giữ để backward compatibility)
+  // Master data (legacy routes)
   {
     path: "/master-data/:type",
     component: MasterDataPage,
@@ -219,26 +243,31 @@ export const privateRoutes = [
     path: "/danh-muc/kho",
     component: KhoManage,
     layout: MainLayout,
+    permissions: "warehouses.view",
   },
   {
     path: "/danh-muc/khach-hang",
     component: KhachHangManage,
     layout: MainLayout,
+    permissions: "partners.view",
   },
   {
     path: "/danh-muc/nha-cung-cap",
     component: KhachHangManage,
     layout: MainLayout,
+    permissions: "partners.view",
   },
   {
     path: "/danh-muc/doi-tac",
     component: KhachHangManage,
     layout: MainLayout,
+    permissions: "partners.view",
   },
   {
     path: "/danh-muc/ca-hai",
     component: KhachHangManage,
     layout: MainLayout,
+    permissions: "partners.view",
   },
 
   // Chuyển kho
@@ -246,16 +275,19 @@ export const privateRoutes = [
     path: "/chuyen-kho",
     component: ChuyenKhoList,
     layout: MainLayout,
+    permissions: "inventory.view",
   },
   {
     path: "/chuyen-kho/tao-moi",
     component: ChuyenKhoCreate,
     layout: MainLayout,
+    permissions: "inventory.transfer",
   },
   {
     path: "/chuyen-kho/:ma_phieu",
     component: ChuyenKhoDetail,
     layout: MainLayout,
+    permissions: "inventory.view",
   },
 
   // Công nợ
@@ -263,12 +295,13 @@ export const privateRoutes = [
     path: "/cong-no/quan-ly",
     component: CongNoManage,
     layout: MainLayout,
+    permissions: "debt.view",
   },
-
   {
     path: "/cong-no/chi-tiet/:ma_kho_no/:ma_kho_co",
     component: CongNoDetailView,
     layout: MainLayout,
+    permissions: "debt.view",
   },
 
   // === BÁO CÁO (REPORTS) ===
@@ -276,31 +309,37 @@ export const privateRoutes = [
     path: "/bao-cao/dashboard",
     component: DashboardReportPage,
     layout: MainLayout,
+    permissions: "reports.view",
   },
   {
     path: "/bao-cao/ton-kho",
     component: InventoryReportPage,
     layout: MainLayout,
+    permissions: "reports.view",
   },
   {
     path: "/bao-cao/doanh-thu",
     component: SalesReportPage,
     layout: MainLayout,
+    permissions: "reports.view",
   },
   {
     path: "/bao-cao/nhap-xuat",
     component: LogisticsReportPage,
     layout: MainLayout,
+    permissions: "reports.view",
   },
   {
     path: "/bao-cao/thu-chi",
     component: FinancialReportPage,
     layout: MainLayout,
+    permissions: "reports.view_financial",
   },
   {
     path: "/bao-cao/cong-no",
     component: FinancialReportPage,
     layout: MainLayout,
+    permissions: "reports.view_financial",
   },
 
   // Hệ thống
@@ -308,7 +347,7 @@ export const privateRoutes = [
     path: "/he-thong/nguoi-dung",
     component: UserListPage,
     layout: MainLayout,
-    role: ["ADMIN"],
+    permissions: "users.view",
   },
 
   // Legacy routes (giữ để không break existing links)
@@ -316,26 +355,35 @@ export const privateRoutes = [
     path: "/xe/thuc-te",
     component: XeListPage,
     layout: MainLayout,
+    permissions: "inventory.view",
   },
   {
     path: "/phu-tung/danh-muc",
     component: PhuTungManage,
     layout: MainLayout,
+    permissions: "products.view",
   },
   {
     path: "/xe/model-car",
     component: XeLoai,
     layout: MainLayout,
+    permissions: "products.view",
   },
   {
     path: "/user",
     component: UserListPage,
     layout: MainLayout,
-    role: ["ADMIN"],
+    permissions: "users.view",
+  },
+  {
+    path: "/profile",
+    component: UserProfilePage,
+    layout: MainLayout,
   },
   {
     path: "/don-hang",
     component: DonHang,
     layout: MainLayout,
+    permissions: "sales_orders.view",
   },
 ];

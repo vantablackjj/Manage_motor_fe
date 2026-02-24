@@ -60,12 +60,14 @@ const ThuChiCreate = () => {
       const res = await thuChiAPI.create(payload);
       if (res.success) {
         notificationService.success("Tạo phiếu thành công");
-        const so_phieu = res.data?.so_phieu;
-        if (so_phieu) {
-          navigate(`/thu-chi/${so_phieu}`);
-        } else {
-          navigate("/thu-chi");
-        }
+        // Reset form to stay on page as requested
+        form.resetFields();
+        // const so_phieu = res.data?.so_phieu;
+        // if (so_phieu) {
+        //   navigate(`/thu-chi/${so_phieu}`);
+        // } else {
+        //   navigate("/thu-chi");
+        // }
       }
     } catch (error) {
       notificationService.error(

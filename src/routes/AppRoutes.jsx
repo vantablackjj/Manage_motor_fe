@@ -1,5 +1,5 @@
 // src/routes/AppRoutes.jsx
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Suspense } from "react";
 import { publicRoutes, privateRoutes } from "./routeConfig";
 import PrivateRoute from "./PrivateRoutes";
@@ -10,6 +10,16 @@ const AppRoutes = () => {
   return (
     <Suspense fallback={<PageLoading />}>
       <Routes>
+        {/* Redirect /sales to /sales/orders as it's a parent menu key */}
+        <Route
+          path="/sales"
+          element={<Navigate to="/sales/orders" replace />}
+        />
+        <Route
+          path="/purchase"
+          element={<Navigate to="/purchase/vehicles" replace />}
+        />
+
         {/* Public routes */}
         {publicRoutes.map((route, index) => {
           const Page = route.component;
@@ -42,7 +52,7 @@ const AppRoutes = () => {
               key={index}
               path={route.path}
               element={
-                <PrivateRoute role={route.role}>
+                <PrivateRoute role={route.role} permissions={route.permissions}>
                   <Layout>
                     <Page />
                   </Layout>

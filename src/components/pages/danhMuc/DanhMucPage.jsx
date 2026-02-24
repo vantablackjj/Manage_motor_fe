@@ -308,7 +308,7 @@ const DanhMucPage = () => {
       <Space size="small">
         {record.status !== false ? (
           <>
-            {authService.canEdit() && (
+            {authService.hasPermission("products", "edit") && (
               <Button
                 type="link"
                 size="small"
@@ -316,7 +316,7 @@ const DanhMucPage = () => {
                 onClick={() => handleEdit(record)}
               />
             )}
-            {authService.canDelete() && (
+            {authService.hasPermission("products", "delete") && (
               <Popconfirm
                 title="Ngừng sử dụng?"
                 onConfirm={() => handleDelete(record)}
@@ -748,7 +748,7 @@ const DanhMucPage = () => {
               >
                 Tải lại
               </Button>
-              {authService.canCreate() && (
+              {authService.hasPermission("products", "create") && (
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}

@@ -1,5 +1,6 @@
 // src/services/auth.service.js
-import { STORAGE_KEYS, USER_ROLES } from '../utils/constant';
+import { STORAGE_KEYS, USER_ROLES } from "../utils/constant";
+import { getPermissionsForRole } from "../utils/rolePermissions";
 
 class AuthService {
   // Get current user from localStorage
@@ -8,7 +9,7 @@ class AuthService {
       const userStr = localStorage.getItem(STORAGE_KEYS.USER_INFO);
       return userStr ? JSON.parse(userStr) : null;
     } catch (error) {
-      console.error('Get current user error:', error);
+      console.error("Get current user error:", error);
       return null;
     }
   }
@@ -29,7 +30,7 @@ class AuthService {
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(user));
       return true;
     } catch (error) {
-      console.error('Set user error:', error);
+      console.error("Set user error:", error);
       return false;
     }
   }
@@ -43,7 +44,7 @@ class AuthService {
       }
       return true;
     } catch (error) {
-      console.error('Set tokens error:', error);
+      console.error("Set tokens error:", error);
       return false;
     }
   }
@@ -61,103 +62,200 @@ class AuthService {
     return !!this.getAccessToken();
   }
 
-  // Check user role
-  hasRole(role) {
-  const user = this.getCurrentUser();
-  if (!user) return false;
+  // ============================================================
+  // ROLE CHECKS
+  // ============================================================
 
-  if (Array.isArray(role)) {
-    return role.includes(user.vai_tro);
-  }
-
-  return user.vai_tro === role;
-}
-
-
-  // Check if user is admin
-  isAdmin() {
-    return this.hasRole(USER_ROLES.ADMIN);
-  }
-
-  // Check if user is company manager
-  isCompanyManager() {
-    return this.hasRole(USER_ROLES.QUAN_LY_CTY);
-  }
-
-  // Check if user is branch manager
-  isBranchManager() {
-    return this.hasRole(USER_ROLES.QUAN_LY_CHI_NHANH);
-  }
-
-  // Check if user is employee
-  isEmployee() {
-    return this.hasRole(USER_ROLES.NHAN_VIEN);
-  }
-
-  // Check if user has permission for an action
-  hasPermission(permission) {
+  /**
+   * Kiểm tra user có role(s) chỉ định không
+   * @param {string|string[]} roles - role name hoặc mảng role names
+   */
+  hasRole(roles) {
     const user = this.getCurrentUser();
     if (!user) return false;
 
-    // Admin has all permissions
-    if (this.isAdmin()) return true;
+    // Normalize user role
+    const roleMap = {
+      QUAN_LY_CTY: "QUAN_LY",
+      QUAN_LY_CHI_NHANH: "QUAN_LY",
+      NHAN_VIEN: "BAN_HANG",
+    };
+    const userRole = (user.vai_tro || "").toUpperCase();
+    const normalizedUserRole = roleMap[userRole] || userRole;
 
-    // Check specific permissions based on role
-    if (this.isCompanyManager()) {
-      // Company manager can do most things
-      return true;
+    if (Array.isArray(roles)) {
+      return roles.some((role) => {
+        const r = (role || "").toUpperCase();
+        const normalizedRole = roleMap[r] || r;
+        return normalizedUserRole === normalizedRole;
+      });
     }
 
-    if (this.isBranchManager()) {
-      // Branch manager has limited permissions
-      const branchManagerPermissions = [
-        'xe_view', 'xe_create',
-        'phu_tung_view', 'phu_tung_create',
-        'don_hang_view', 'don_hang_create',
-        'hoa_don_view', 'hoa_don_create',
-        'chuyen_kho_view', 'chuyen_kho_create'
-      ];
-      return branchManagerPermissions.includes(permission);
-    }
-
-    if (this.isEmployee()) {
-      // Employee has basic permissions
-      const employeePermissions = [
-        'xe_view',
-        'phu_tung_view',
-        'don_hang_view',
-        'hoa_don_view'
-      ];
-      return employeePermissions.includes(permission);
-    }
-
-    return false;
+    const targetRole = (roles || "").toUpperCase();
+    const normalizedTargetRole = roleMap[targetRole] || targetRole;
+    return normalizedUserRole === normalizedTargetRole;
   }
 
-  // Check if user can approve (phe duyet)
+  isAdmin() {
+    return this.hasRole("ADMIN");
+  }
+  isBanHang() {
+    return this.hasRole("BAN_HANG");
+  }
+  isKho() {
+    return this.hasRole("KHO");
+  }
+  isKeToan() {
+    return this.hasRole("KE_TOAN");
+  }
+  isQuanLy() {
+    return this.hasRole("QUAN_LY");
+  }
+
+  // Legacy aliases (backward compat)
+  isCompanyManager() {
+    return this.isQuanLy();
+  }
+  isBranchManager() {
+    return this.isQuanLy();
+  }
+  isEmployee() {
+    return this.isBanHang();
+  }
+
+  // ============================================================
+  // PERMISSION CHECKS (JSONB-based)
+  // ============================================================
+
+  /**
+   * Kiểm tra permission dạng "module.action" hoặc (module, action)
+   *
+   * Cách dùng:
+   *   hasPermission("products.view")          → true/false
+   *   hasPermission("products", "view")       → true/false
+   *
+   * Ưu tiên lấy permissions từ user object (server trả về),
+   * fallback về map cứng trong rolePermissions.js
+   *
+   * @param {string} moduleOrPermStr - tên module hoặc chuỗi "module.action"
+   * @param {string|null} action     - tên action (nếu không encode trong param 1)
+   */
+  hasPermission(moduleOrPermStr, action = null) {
+    const user = this.getCurrentUser();
+    if (!user) return false;
+
+    // Normalize user role mapping
+    const userRole = (user.vai_tro || "").toUpperCase();
+
+    // ADMIN luôn có tất cả quyền
+    if (userRole === "ADMIN") return true;
+
+    // Special Case: Allow sales_orders.create for all staff roles regardless of granular permission object
+    // This is a safety measure to ensure the "Create Slip" functionality is always available to authorized staff.
+    if (
+      moduleOrPermStr === "sales_orders.create" ||
+      (moduleOrPermStr === "sales_orders" && action === "create")
+    ) {
+      if (this.hasRole(["ADMIN", "QUAN_LY", "BAN_HANG", "KHO", "NHAN_VIEN"])) {
+        return true;
+      }
+    }
+
+    // Lấy permissions mặc định cho role
+    const defaultPermissions = getPermissionsForRole(userRole);
+
+    // Merge default permissions with user permissions
+    // Cần merge sâu ít nhất 1 cấp để không làm mất các action khi module bị ghi đè
+    const permissions = { ...defaultPermissions };
+
+    if (user.permissions && typeof user.permissions === "object") {
+      Object.keys(user.permissions).forEach((modKey) => {
+        if (
+          permissions[modKey] &&
+          typeof user.permissions[modKey] === "object" &&
+          user.permissions[modKey] !== null
+        ) {
+          permissions[modKey] = {
+            ...permissions[modKey],
+            ...user.permissions[modKey],
+          };
+        } else {
+          permissions[modKey] = user.permissions[modKey];
+        }
+      });
+    }
+
+    let hasPerm = false;
+    // Dạng gọi: hasPermission("products.view")
+    if (
+      (action === null || action === undefined) &&
+      typeof moduleOrPermStr === "string" &&
+      moduleOrPermStr.includes(".")
+    ) {
+      const [mod, act] = moduleOrPermStr.split(".");
+      const modPerms = permissions[mod];
+      if (typeof modPerms === "boolean") {
+        hasPerm = modPerms;
+      } else {
+        hasPerm = !!(modPerms && modPerms[act]);
+      }
+    }
+    // Dạng gọi: hasPermission("products", "view")
+    else if (action !== null && action !== undefined) {
+      const modPerms = permissions[moduleOrPermStr];
+      if (typeof modPerms === "boolean") {
+        hasPerm = modPerms;
+      } else {
+        hasPerm = !!(modPerms && modPerms[action]);
+      }
+    }
+
+    if (!hasPerm && import.meta.env.DEV) {
+      console.warn(
+        `[Permission Check] Access to "${moduleOrPermStr}${action ? "." + action : ""}" denied for role: ${user.vai_tro}`,
+      );
+    }
+
+    return hasPerm;
+  }
+
+  // ============================================================
+  // SHORTCUT HELPERS
+  // ============================================================
+
+  /** Có thể phê duyệt đơn hàng không */
   canApprove() {
-    return this.isAdmin() || this.isCompanyManager() || this.isBranchManager();
+    return this.hasRole(["ADMIN", "QUAN_LY", "KE_TOAN"]);
   }
 
-  // Check if user can create
+  /** Có thể xem báo cáo tài chính không */
+  canViewFinancial() {
+    return this.hasPermission("reports", "view_financial");
+  }
+
+  /** Có thể xem giá nhập (giá vốn) không */
+  canViewCost() {
+    return this.hasPermission("products", "view_cost");
+  }
+
+  /** Có thể tạo mới không (legacy, dùng hasPermission thay thế) */
   canCreate() {
-  return !!(
-    this.isAdmin() ||
-    this.isCompanyManager() ||
-    this.isBranchManager()
-  );
-}
+    return this.hasRole(["ADMIN", "QUAN_LY", "BAN_HANG", "KHO", "KE_TOAN"]);
+  }
 
-
-  // Check if user can edit
+  /** Có thể chỉnh sửa không (legacy) */
   canEdit() {
-    return this.isAdmin() || this.isCompanyManager() || this.isBranchManager();
+    return this.hasRole(["ADMIN", "QUAN_LY", "KE_TOAN"]);
   }
 
-  // Check if user can delete
+  /** Có thể xóa không (legacy) */
   canDelete() {
-    return this.isAdmin() || this.isCompanyManager();
+    return this.hasRole(["ADMIN", "QUAN_LY"]);
   }
+
+  // ============================================================
+  // UTILITY
+  // ============================================================
 
   // Get user's default warehouse
   getDefaultWarehouse() {
@@ -176,12 +274,11 @@ class AuthService {
     if (!token) return true;
 
     try {
-      // Decode JWT token (base64)
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const exp = payload.exp * 1000; // Convert to milliseconds
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const exp = payload.exp * 1000;
       return Date.now() >= exp;
     } catch (error) {
-      console.error('Token validation error:', error);
+      console.error("Token validation error:", error);
       return true;
     }
   }
@@ -189,7 +286,7 @@ class AuthService {
   // Get user display name
   getUserDisplayName() {
     const user = this.getCurrentUser();
-    return user?.ho_ten || user?.username || 'User';
+    return user?.ho_ten || user?.username || "User";
   }
 
   // Get user avatar (if exists)
