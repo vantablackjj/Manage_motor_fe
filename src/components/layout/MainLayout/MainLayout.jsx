@@ -9,6 +9,7 @@ import HeaderBar from "../Header/Header";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useResponsive } from "../../../hooks/useResponsive";
 import GlobalSearch from "../../common/GlobalSearch/GlobalSearch";
+import PushNotificationBanner from "../../common/PushNotificationBanner/PushNotificationBanner";
 
 import {
   DashboardOutlined,
@@ -339,6 +340,7 @@ const MainLayout = ({ children }) => {
           onOpenSearch={() => setSearchVisible(true)}
         />
 
+        <PushNotificationBanner />
         <Content className="layout-content">
           <div className="content-wrapper">{children}</div>
         </Content>

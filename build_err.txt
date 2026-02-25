@@ -1,0 +1,49 @@
+
+> manage_motor_fe@0.0.0 build
+> vite build
+
+[36mvite v6.4.1 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 3903 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mregisterSW.js              [39m[1m[2m    0.14 kB[22m[1m[22m
+[2mdist/[22m[32mindex.html                 [39m[1m[2m    0.58 kB[22m[1m[22m[2m │ gzip:   0.35 kB[22m
+[2mdist/[22m[32mmanifest.webmanifest       [39m[1m[2m    0.76 kB[22m[1m[22m
+[2mdist/[22m[35massets/index-BpPQ_oa9.css  [39m[1m[2m   22.37 kB[22m[1m[22m[2m │ gzip:   5.01 kB[22m
+[2mdist/[22m[36massets/index-C2qE9ZUU.js   [39m[1m[2m    1.46 kB[22m[1m[22m[2m │ gzip:   0.66 kB[22m
+[2mdist/[22m[36massets/index-BTodSyOZ.js   [39m[1m[2m  334.99 kB[22m[1m[22m[2m │ gzip: 100.10 kB[22m
+[2mdist/[22m[36massets/index-CLBFUE5N.js   [39m[1m[33m2,367.54 kB[39m[22m[2m │ gzip: 696.71 kB[22m
+[33m
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 53.51s[39m
+
+PWA v1.2.0
+Building src/sw-custom.js service worker ("es" format)...
+[36mvite v6.4.1 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 82 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[36msw-custom.mjs  [39m[1m[2m26.74 kB[22m[1m[22m[2m │ gzip: 8.91 kB[22m
+[32m✓ built in 940ms[39m
+[31merror during build:
+Error: 
+  Configure "injectManifest.maximumFileSizeToCacheInBytes" to change the limit: the default value is 2 MiB.
+  Check https://vite-pwa-org.netlify.app/guide/faq.html#missing-assets-from-sw-precache-manifest for more information.
+  Assets exceeding the limit:
+  - assets/index-CLBFUE5N.js is 2.37 MB, and won't be precached.
+
+    at logWorkboxResult (file:///C:/Users/admin/Documents/Motor_manage_fe/node_modules/vite-plugin-pwa/dist/chunk-G4TAN34B.js:44:13)
+    at buildSW (file:///C:/Users/admin/Documents/Motor_manage_fe/node_modules/vite-plugin-pwa/dist/vite-build-BGK4YAIU.js:50:3)
+    at async generateInjectManifest (file:///C:/Users/admin/Documents/Motor_manage_fe/node_modules/vite-plugin-pwa/dist/index.js:224:3)
+    at async _generateSW (file:///C:/Users/admin/Documents/Motor_manage_fe/node_modules/vite-plugin-pwa/dist/index.js:232:5)
+    at async Object.handler (file:///C:/Users/admin/Documents/Motor_manage_fe/node_modules/vite-plugin-pwa/dist/index.js:427:13)
+    at async PluginDriver.hookParallel (file:///C:/Users/admin/Documents/Motor_manage_fe/node_modules/rollup/dist/es/shared/node-entry.js:22426:17)
+    at async Object.close (file:///C:/Users/admin/Documents/Motor_manage_fe/node_modules/rollup/dist/es/shared/node-entry.js:23445:13)
+    at async buildEnvironment (file:///C:/Users/admin/Documents/Motor_manage_fe/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46258:17)
+    at async Object.defaultBuildApp [as buildApp] (file:///C:/Users/admin/Documents/Motor_manage_fe/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46713:5)
+    at async CAC.<anonymous> (file:///C:/Users/admin/Documents/Motor_manage_fe/node_modules/vite/dist/node/cli.js:863:7)[39m

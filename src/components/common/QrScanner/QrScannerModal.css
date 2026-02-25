@@ -1,0 +1,108 @@
+/* QrScannerModal.css */
+
+.qr-scanner-modal .ant-modal-body {
+  padding: 0 24px 24px;
+}
+
+/* === Viewport === */
+.scanner-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 320px;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-reader-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Ẩn video default border của html5-qrcode */
+.qr-reader-container video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.qr-reader-container img {
+  display: none !important;
+}
+
+/* === Placeholder khi camera chưa bật === */
+.scanner-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  border-radius: 12px;
+}
+
+/* === Overlay khi đang quét === */
+.scanner-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* === Scan line animation === */
+.scan-line {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 15%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #4096ff, #00d4ff, #4096ff, transparent);
+  border-radius: 2px;
+  animation: scanMove 2s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(64, 150, 255, 0.8);
+}
+
+@keyframes scanMove {
+  0% { top: 15%; }
+  50% { top: 80%; }
+  100% { top: 15%; }
+}
+
+/* === Corner decorations === */
+.scan-corners {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 15%;
+  bottom: 15%;
+}
+
+.corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: #4096ff;
+  border-style: solid;
+}
+
+.corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-top-left-radius: 4px; }
+.corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-top-right-radius: 4px; }
+.corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-bottom-left-radius: 4px; }
+.corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-bottom-right-radius: 4px; }
+
+/* === Camera Tab === */
+.scanner-camera-tab {
+  padding-top: 4px;
+}
+
+/* === Manual Tab === */
+.scanner-manual-tab {
+  padding: 8px 0;
+  min-height: 200px;
+}

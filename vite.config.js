@@ -50,45 +50,15 @@ export default defineConfig({
           },
         ],
       },
-      workbox: {
-        // Cache chiến lược: Network first cho API, Cache first cho static assets
-        runtimeCaching: [
-          {
-            // Cache API calls với Network-first
-            urlPattern: /^https:\/\/motor-manage\.onrender\.com\/api\/.*/i,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "motor-api-cache",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60, // 1 giờ
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-              networkTimeoutSeconds: 10,
-            },
-          },
-          {
-            // Cache fonts
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 năm
-              },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
-        // Fallback cho offline
-        navigateFallback: "/",
-        navigateFallbackDenylist: [/^\/api/],
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw-custom.js",
+      injectManifest: {
+        injectionPoint: "self.__WB_MANIFEST",
+        maximumFileSizeToCacheInBytes: 5000000, // 5MB
       },
       devOptions: {
-        enabled: true, // Enable PWA trong dev mode để test
+        enabled: true,
         type: "module",
       },
     }),

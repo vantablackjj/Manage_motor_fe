@@ -97,6 +97,8 @@ const VehiclePurchaseCreate = () => {
   };
 
   const handleRowChange = (key, field, value) => {
+    const vatPct = form.getFieldValue("vat_percentage") || 0;
+
     const newItems = items.map((item) => {
       if (item.key === key) {
         const updatedItem = { ...item, [field]: value };
@@ -114,8 +116,10 @@ const VehiclePurchaseCreate = () => {
           field === "don_gia" ||
           field === "ma_loai_xe"
         ) {
-          updatedItem.thanh_tien =
+          const subtotal =
             (updatedItem.so_luong || 0) * (updatedItem.don_gia || 0);
+          // Thanh tiền = subtotal * (1 + VAT/100)
+          updatedItem.thanh_tien = subtotal * (1 + vatPct / 100);
         }
         return updatedItem;
       }
@@ -154,19 +158,23 @@ const VehiclePurchaseCreate = () => {
         }
       });
 
+      const vatPct = Number(values.vat_percentage || 0);
+      const chietKhau = Number(values.chiet_khau || 0);
+
       // Atomic Create
       const payload = {
         ma_kho_nhap: values.ma_kho_nhap,
         ma_ncc: values.ma_ncc,
         ngay_dat_hang: values.ngay_dat_hang.toISOString(),
         dien_giai: values.dien_giai,
-        vat_percentage: values.vat_percentage || 0,
-        chiet_khau: values.chiet_khau || 0,
+        vat_percentage: vatPct,
+        chiet_khau: chietKhau,
         chi_tiet: explodedItems.map((item) => ({
           ma_loai_xe: item.ma_loai_xe,
-          ma_mau: item.mau_sac || null, // Ensure null if empty/undefined
-          so_luong: 1, // Always 1
+          ma_mau: item.mau_sac || null,
+          so_luong: 1,
           don_gia: Number(item.don_gia),
+          vat_percentage: vatPct, // Gửi VAT cho từng dòng chi tiết
         })),
       };
 
@@ -270,10 +278,14 @@ const VehiclePurchaseCreate = () => {
       ),
     },
     {
-      title: "Thành tiền",
+      title: "Thành tiền (có VAT)",
       dataIndex: "thanh_tien",
       align: "right",
-      render: (val) => val?.toLocaleString("vi-VN"),
+      render: (val) => (
+        <strong style={{ color: "#1677ff" }}>
+          {val?.toLocaleString("vi-VN")} đ
+        </strong>
+      ),
     },
     {
       title: "",
@@ -417,20 +429,48 @@ const VehiclePurchaseCreate = () => {
               scroll={{ x: 800 }}
               locale={{ emptyText: "Chưa có dữ liệu" }}
               summary={(pageData) => {
-                let totalAmt = 0;
-                pageData.forEach(({ thanh_tien }) => {
-                  totalAmt += thanh_tien;
-                });
+                const totalAmt = pageData.reduce(
+                  (sum, { thanh_tien }) => sum + (thanh_tien || 0),
+                  0,
+                );
+                const chietKhau = form.getFieldValue("chiet_khau") || 0;
+                const thanhTienSauCK = Math.max(0, totalAmt - chietKhau);
                 return (
-                  <Table.Summary.Row>
-                    <Table.Summary.Cell index={0} colSpan={4} align="right">
-                      <strong>Tổng cộng:</strong>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={1} align="right">
-                      <strong>{totalAmt.toLocaleString("vi-VN")}</strong>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={2} />
-                  </Table.Summary.Row>
+                  <>
+                    <Table.Summary.Row>
+                      <Table.Summary.Cell index={0} colSpan={4} align="right">
+                        <span style={{ color: "#595959" }}>Tổng (có VAT):</span>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={1} align="right">
+                        {totalAmt.toLocaleString("vi-VN")} đ
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={2} />
+                    </Table.Summary.Row>
+                    {chietKhau > 0 && (
+                      <Table.Summary.Row>
+                        <Table.Summary.Cell index={0} colSpan={4} align="right">
+                          <span style={{ color: "#faad14" }}>Chiết khấu:</span>
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell index={1} align="right">
+                          <span style={{ color: "#faad14" }}>
+                            - {Number(chietKhau).toLocaleString("vi-VN")} đ
+                          </span>
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell index={2} />
+                      </Table.Summary.Row>
+                    )}
+                    <Table.Summary.Row>
+                      <Table.Summary.Cell index={0} colSpan={4} align="right">
+                        <strong>Thành tiền:</strong>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={1} align="right">
+                        <strong style={{ color: "#1677ff", fontSize: 15 }}>
+                          {thanhTienSauCK.toLocaleString("vi-VN")} đ
+                        </strong>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={2} />
+                    </Table.Summary.Row>
+                  </>
                 );
               }}
             />
