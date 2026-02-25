@@ -323,6 +323,11 @@ export const API_ENDPOINTS = {
   MODEL_CAR: "/model-car",
   CAR_COLOR: "/car-color",
   NHOM_HANG: "/nhom-hang",
+
+  // Notifications
+  NOTIFICATIONS: "/notifications",
+  NOTIFICATIONS_READ: (id) => `/notifications/${id}/read`,
+  NOTIFICATIONS_READ_ALL: "/notifications/read-all",
 };
 
 // Messages

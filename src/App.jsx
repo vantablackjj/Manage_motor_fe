@@ -4,12 +4,15 @@ import { BrowserRouter } from "react-router-dom";
 import { ConfigProvider } from "antd";
 import viVN from "antd/locale/vi_VN";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
 import { AuthProvider } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import AppRoutes from "./routes/AppRoutes";
 import "./App.css";
 
 // Configure dayjs locale
+dayjs.extend(relativeTime);
 dayjs.locale("vi");
 
 // Ant Design theme configuration
@@ -59,9 +62,11 @@ function App() {
     <ConfigProvider locale={viVN} theme={theme}>
       <BrowserRouter>
         <AuthProvider>
-          <div className="App">
-            <AppRoutes />
-          </div>
+          <NotificationProvider>
+            <div className="App">
+              <AppRoutes />
+            </div>
+          </NotificationProvider>
         </AuthProvider>
       </BrowserRouter>
     </ConfigProvider>

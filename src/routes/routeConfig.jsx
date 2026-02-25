@@ -21,6 +21,7 @@ import CongNoDetailView from "../components/pages/congNo/CongNoDetailView";
 import AccessDenied from "../components/common/Error/AccessDenied";
 import NotFound from "../components/common/Error/NotFound";
 import UserProfilePage from "../components/pages/user/UserProfilePage";
+import NotificationPage from "../components/pages/user/NotificationPage";
 
 // Purchase - Xe
 import VehiclePurchaseList from "../components/pages/purchase/vehicles/VehiclePurchaseList";
@@ -378,6 +379,11 @@ export const privateRoutes = [
   {
     path: "/profile",
     component: UserProfilePage,
+    layout: MainLayout,
+  },
+  {
+    path: "/notifications",
+    component: NotificationPage,
     layout: MainLayout,
   },
   {
