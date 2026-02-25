@@ -8,6 +8,7 @@ import HeaderBar from "../Header/Header";
 
 import { useAuth } from "../../../contexts/AuthContext";
 import { useResponsive } from "../../../hooks/useResponsive";
+import GlobalSearch from "../../common/GlobalSearch/GlobalSearch";
 
 import {
   DashboardOutlined,
@@ -38,11 +39,25 @@ const { Content } = Layout;
 const MainLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileDrawerVisible, setMobileDrawerVisible] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, hasPermission, hasRole } = useAuth();
   const { isMobile, isTablet } = useResponsive();
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl + K or Cmd + K
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchVisible((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     if (isTablet) setCollapsed(true);
@@ -304,7 +319,7 @@ const MainLayout = ({ children }) => {
           placement="left"
           open={mobileDrawerVisible}
           onClose={() => setMobileDrawerVisible(false)}
-          bodyStyle={{ padding: 0, background: "#001529" }}
+          bodyStyle={{ padding: 0 }}
           width={250}
         >
           <Sidebar
@@ -321,12 +336,18 @@ const MainLayout = ({ children }) => {
           onToggleSidebar={toggleSidebar}
           user={user}
           userMenuItems={userMenuItems}
+          onOpenSearch={() => setSearchVisible(true)}
         />
 
         <Content className="layout-content">
           <div className="content-wrapper">{children}</div>
         </Content>
       </Layout>
+
+      <GlobalSearch
+        visible={searchVisible}
+        onClose={() => setSearchVisible(false)}
+      />
     </Layout>
   );
 };

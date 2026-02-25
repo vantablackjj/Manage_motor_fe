@@ -1,6 +1,6 @@
 .layout-header {
   padding: 0 16px;
-  background: #fff;
+  background: var(--bg-primary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -37,7 +37,7 @@
 
 .header-icon:hover {
   color: #1890ff;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border-radius: 4px;
 }
 
@@ -50,7 +50,7 @@
 }
 
 .user-info:hover {
-  background: #f5f5f5;
+  background: var(--bg-secondary);
 }
 
 .user-details {
@@ -61,12 +61,12 @@
 .user-name {
   font-size: 14px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.85);
+  color: var(--text-primary);
 }
 
 .user-role {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--text-secondary);
 }
 
 /* Notification Styles */
@@ -75,5 +75,5 @@
 }
 
 :global(.notification-item):hover {
-  background-color: #f5f5f5 !important;
+  background-color: var(--bg-secondary) !important;
 }

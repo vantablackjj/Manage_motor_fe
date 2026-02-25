@@ -1,4 +1,4 @@
-// src/components/pages/khachHang/KhachHangManage.jsx
+﻿// src/components/pages/khachHang/KhachHangManage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -300,7 +300,7 @@ const KhachHangManage = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
     >
       <Card size="small">
         <Row
@@ -510,7 +510,7 @@ const KhachHangManage = () => {
       </Modal>
       <style>{`
         .inactive-row {
-          background-color: #fafafa !important;
+          background-color: var(--bg-secondary, #fafafa) !important;
           color: #bfbfbf !important;
         }
         .inactive-row td {

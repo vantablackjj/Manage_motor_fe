@@ -35,6 +35,16 @@ import dayjs from "dayjs";
 
 const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const DashboardPage = () => {
   const { user } = useAuth();
@@ -54,6 +64,7 @@ const DashboardPage = () => {
     customer_debt: 0,
   });
 
+  const [revenueChart, setRevenueChart] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
@@ -69,10 +80,15 @@ const DashboardPage = () => {
         den_ngay: dateRange[1].format("YYYY-MM-DD"),
       };
 
-      // Gọi API dashboard tổng quan
-      const response = await reportAPI.dashboard.getOverview(params);
-      const overview = response?.data || response;
-      console.log("Dashboard overview data:", overview);
+      // Gọi API dashboard tổng quan và biểu đồ doanh thu
+      const [overviewRes, revenueRes] = await Promise.all([
+        reportAPI.dashboard.getOverview(params),
+        reportAPI.dashboard.getRevenueChart(params),
+      ]);
+
+      const overview = overviewRes?.data || overviewRes;
+      const revenueData =
+        revenueRes?.data || (Array.isArray(revenueRes) ? revenueRes : []);
 
       if (overview) {
         setStats((prev) => ({
@@ -80,6 +96,7 @@ const DashboardPage = () => {
           ...overview,
         }));
         setRecentActivities(overview.giao_dich_gan_day || []);
+        setRevenueChart(revenueData);
       }
     } catch (error) {
       console.error(error);
@@ -149,7 +166,26 @@ const DashboardPage = () => {
       dataIndex: "so_phieu",
       key: "so_phieu",
       width: 120,
-      render: (text) => <strong>{text}</strong>,
+      render: (text, record) => {
+        let link = "#";
+        if (record.loai_giao_dich === "BAN_HANG")
+          link = `/sales/orders/${record.id}`;
+        else if (record.loai_giao_dich === "NHAP_KHO")
+          link = `/purchase/vehicles/${text}`;
+        else if (record.loai_giao_dich === "CHUYEN_KHO")
+          link = `/chuyen-kho/${text}`;
+
+        return (
+          <Button
+            type="link"
+            size="small"
+            style={{ padding: 0 }}
+            onClick={() => navigate(link)}
+          >
+            {text}
+          </Button>
+        );
+      },
     },
     {
       title: "Loại",
@@ -188,7 +224,13 @@ const DashboardPage = () => {
   ];
 
   return (
-    <div style={{ padding: "16px", background: "#f5f7fa", minHeight: "100vh" }}>
+    <div
+      style={{
+        padding: "16px",
+        background: "var(--bg-layout)",
+        minHeight: "100vh",
+      }}
+    >
       {/* Header & Filter */}
       <Row
         justify="space-between"
@@ -292,24 +334,63 @@ const DashboardPage = () => {
               </Button>
             }
           >
-            <div
-              style={{
-                height: 350,
-                background: "#fcfcfc",
-                borderRadius: 8,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1px dashed #d9d9d9",
-              }}
-            >
-              <div style={{ textAlign: "center" }}>
-                <Text type="secondary">Biểu đồ đang được thiết kế...</Text>
-                <br />
-                <Text type="secondary" size="small">
-                  Gợi ý: Cài đặt "recharts" để hiển thị biểu đồ
-                </Text>
-              </div>
+            <div style={{ height: 350, width: "100%", padding: "10px 0" }}>
+              {revenueChart.length === 0 ? (
+                <div
+                  style={{
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "var(--bg-secondary)",
+                    borderRadius: 8,
+                    border: "1px dashed var(--border-color)",
+                  }}
+                >
+                  <Text type="secondary">Không có dữ liệu biểu đồ</Text>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={revenueChart}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="var(--border-color)"
+                    />
+                    <XAxis
+                      dataKey="thang"
+                      tick={{ fill: "var(--text-secondary)" }}
+                      label={{
+                        value: "Tháng",
+                        position: "insideBottom",
+                        offset: -5,
+                        fill: "var(--text-secondary)",
+                      }}
+                    />
+                    <YAxis
+                      tick={{ fill: "var(--text-secondary)" }}
+                      tickFormatter={(value) => `${value / 1000000}M`}
+                      width={60}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "var(--bg-primary)",
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-primary)",
+                      }}
+                      itemStyle={{ color: "var(--text-primary)" }}
+                      formatter={(value) => formatService.formatCurrency(value)}
+                    />
+                    <Legend />
+                    <Bar
+                      name="Doanh thu"
+                      dataKey="doanh_thu"
+                      fill="#1890ff"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </Card>
         </Col>

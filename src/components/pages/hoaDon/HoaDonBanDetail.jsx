@@ -401,7 +401,7 @@ const HoaDonBanDetail = () => {
 
             {/* Summary */}
             <Card
-              style={{ marginTop: 16, backgroundColor: "#f5f5f5" }}
+              style={{ marginTop: 16, backgroundColor: "rgba(0,0,0,0.04)" }}
               size="small"
             >
               <Row gutter={[16, 8]} justify="end">

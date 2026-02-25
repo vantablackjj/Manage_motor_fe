@@ -3,6 +3,11 @@ import axiosInstance from "./axios.config";
 import { API_ENDPOINTS } from "../utils/constant";
 
 export const xeAPI = {
+  // Get all xe
+  getAll: async (params) => {
+    return axiosInstance.get(API_ENDPOINTS.XE, { params });
+  },
+
   // Get xe ton kho
   getTonKho: async (ma_kho, params) => {
     return axiosInstance.get(API_ENDPOINTS.XE_TON_KHO(ma_kho), { params });

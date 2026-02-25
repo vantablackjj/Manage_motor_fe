@@ -1,4 +1,4 @@
-// src/pages/donHang/DonHangCreatePage.jsx
+﻿// src/pages/donHang/DonHangCreatePage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Form,
@@ -530,7 +530,7 @@ const DonHangCreatePage = () => {
             <div
               style={{
                 padding: "12px",
-                background: "#f5f5f5",
+                background: "var(--bg-secondary, #f5f5f5)",
                 borderRadius: "4px",
                 marginBottom: "16px",
               }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
   Modal,
   Table,
@@ -214,7 +214,7 @@ const OrderReceiveModal = ({ visible, onCancel, orderId, onSuccess }) => {
               <div
                 style={{
                   padding: "16px",
-                  background: "#fafafa",
+                  background: "var(--bg-secondary, #fafafa)",
                   border: "1px solid #f0f0f0",
                   borderRadius: 4,
                 }}

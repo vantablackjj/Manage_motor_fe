@@ -1,4 +1,4 @@
-// src/components/pages/user/NotificationPage.jsx
+﻿// src/components/pages/user/NotificationPage.jsx
 import React, { useState } from "react";
 import {
   Card,
@@ -227,7 +227,7 @@ const NotificationPage = () => {
           background-color: #1890ff;
         }
         .clickable-item:hover {
-          background-color: #fafafa !important;
+          background-color: var(--bg-secondary, #fafafa) !important;
           transform: translateX(4px);
         }
         .custom-shadow-card {

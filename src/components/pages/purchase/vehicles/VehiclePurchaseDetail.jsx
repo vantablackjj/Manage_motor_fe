@@ -388,7 +388,7 @@ const VehiclePurchaseDetail = () => {
 
         {/* Summary Box */}
         <Card
-          style={{ marginTop: 16, backgroundColor: "#f5f5f5" }}
+          style={{ marginTop: 16, backgroundColor: "rgba(0,0,0,0.04)" }}
           size="small"
           title={
             <div

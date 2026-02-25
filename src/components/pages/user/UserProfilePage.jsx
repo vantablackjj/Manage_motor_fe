@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
   Card,
   Form,
@@ -171,7 +171,7 @@ const UserProfilePage = () => {
             }}
             headStyle={{
               borderBottom: "1px solid #f0f0f0",
-              backgroundColor: "#fafafa",
+              backgroundColor: "var(--bg-secondary, #fafafa)",
             }}
           >
             <List

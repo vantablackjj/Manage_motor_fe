@@ -13,6 +13,7 @@ import {
   Divider,
   Empty,
   Tooltip,
+  Switch,
 } from "antd";
 import {
   MenuOutlined,
@@ -20,9 +21,13 @@ import {
   BellOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
+  SearchOutlined,
+  MoonOutlined,
+  SunOutlined,
 } from "@ant-design/icons";
 import { USER_ROLE_LABELS } from "../../../utils/constant";
 import { useNotification } from "../../../contexts/NotificationContext";
+import { useTheme } from "../../../contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import "./Header.module.css";
@@ -30,10 +35,17 @@ import "./Header.module.css";
 const { Header } = Layout;
 const { Text } = Typography;
 
-const HeaderBar = ({ isMobile, onToggleSidebar, user, userMenuItems }) => {
+const HeaderBar = ({
+  isMobile,
+  onToggleSidebar,
+  user,
+  userMenuItems,
+  onOpenSearch,
+}) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, loading } =
     useNotification();
   const navigate = useNavigate();
+  const { isDarkMode, toggleTheme } = useTheme();
 
   const handleNotificationClick = (item) => {
     if (!item.is_read) {
@@ -135,6 +147,28 @@ const HeaderBar = ({ isMobile, onToggleSidebar, user, userMenuItems }) => {
 
       <div className="header-right">
         <Space size={isMobile ? "middle" : "large"}>
+          {!isMobile && (
+            <Tooltip title={isDarkMode ? "Chế độ sáng" : "Chế độ tối"}>
+              <Switch
+                checkedChildren={<MoonOutlined />}
+                unCheckedChildren={<SunOutlined />}
+                checked={isDarkMode}
+                onChange={toggleTheme}
+                size="small"
+              />
+            </Tooltip>
+          )}
+
+          {!isMobile && (
+            <Tooltip title="Tìm kiếm nhanh (Ctrl + K)">
+              <SearchOutlined
+                className="header-icon"
+                style={{ fontSize: 20, cursor: "pointer" }}
+                onClick={onOpenSearch}
+              />
+            </Tooltip>
+          )}
+
           <Popover
             content={notificationContent}
             trigger="click"

@@ -69,7 +69,7 @@ const ThanhToanModal = ({ visible, onCancel, onSuccess, initData }) => {
       onSuccess();
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Lỗi tạo thanh toán"
+        error?.response?.data?.message || "Lỗi tạo thanh toán",
       );
     } finally {
       setLoading(false);
@@ -89,7 +89,7 @@ const ThanhToanModal = ({ visible, onCancel, onSuccess, initData }) => {
           style={{
             marginBottom: 16,
             padding: 12,
-            background: "#fff1f0",
+            background: "rgba(255,77,79,0.08)",
             border: "1px solid #ffa39e",
             borderRadius: 4,
           }}

@@ -1,4 +1,4 @@
-// src/pages/xe/XeLichSuPage.jsx
+﻿// src/pages/xe/XeLichSuPage.jsx
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -159,7 +159,7 @@ const XeLichSuPage = () => {
   ];
   return (
     <div
-      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
     >
       {/* Header */}
       <div style={{ marginBottom: 16 }}>

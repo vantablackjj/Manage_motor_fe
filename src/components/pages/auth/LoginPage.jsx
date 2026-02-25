@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Form, Input, Button, Card, Checkbox } from "antd";
 import { UserOutlined, LockOutlined, LoginOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -214,7 +214,7 @@ const LoginPage = () => {
             style={{
               marginTop: "24px",
               padding: "16px",
-              background: "#f5f5f5",
+              background: "var(--bg-secondary, #f5f5f5)",
               borderRadius: "8px",
               fontSize: "13px",
               color: "#595959",

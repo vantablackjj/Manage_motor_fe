@@ -1,4 +1,4 @@
-// src/pages/xe/XeThucTe.jsx
+﻿// src/pages/xe/XeThucTe.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -433,7 +433,7 @@ const XeThucTe = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
     >
       <Card size="small">
         {/* Header */}
@@ -569,7 +569,7 @@ const XeThucTe = () => {
               size="small"
               style={{
                 marginBottom: 16,
-                background: "#fafafa",
+                background: "var(--bg-secondary, #fafafa)",
               }}
             >
               <Row gutter={[8, 8]}>

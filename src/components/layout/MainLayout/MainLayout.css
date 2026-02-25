@@ -63,7 +63,7 @@
 /* ===== HEADER ===== */
 .layout-header {
   padding: 0 24px;
-  background: #fff;
+  background: var(--bg-primary, #fff);
   display: flex;
   justify-content: space-between;
   align-items: center;

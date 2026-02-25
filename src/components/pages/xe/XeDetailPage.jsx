@@ -1,4 +1,4 @@
-// src/pages/xe/XeDetailPage.jsx
+﻿// src/pages/xe/XeDetailPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -164,7 +164,7 @@ const XeDetailPage = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
     >
       {/* Header */}
       <div style={{ marginBottom: 16 }}>

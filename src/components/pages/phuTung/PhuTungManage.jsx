@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
   Table,
   Card,
@@ -423,7 +423,7 @@ const PhuTungManage = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
     >
       <Card size="small">
         <div style={{ marginBottom: 16 }}>
@@ -532,7 +532,7 @@ const PhuTungManage = () => {
           style={{
             marginBottom: 16,
             padding: isMobile ? 8 : 16,
-            background: "#fafafa",
+            background: "var(--bg-secondary, #fafafa)",
             borderRadius: 8,
           }}
         >
@@ -665,7 +665,7 @@ const PhuTungManage = () => {
       <style>{`
         .low-stock-row { background-color: #fff1f0 !important; }
         .low-stock-row:hover { background-color: #ffe7e7 !important; }
-        .inactive-row { background-color: #fafafa !important; opacity: 0.6; }
+        .inactive-row { background-color: var(--bg-secondary, #fafafa) !important; opacity: 0.6; }
         .inactive-row td { color: #bfbfbf !important; }
       `}</style>
     </div>

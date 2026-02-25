@@ -1,4 +1,4 @@
-// src/components/pages/reports/InventoryReportPage.jsx
+﻿// src/components/pages/reports/InventoryReportPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -272,7 +272,7 @@ const InventoryReportPage = () => {
           ]}
         />
 
-        <Card size="small" style={{ marginBottom: 16, background: "#fafafa" }}>
+        <Card size="small" style={{ marginBottom: 16, background: "var(--bg-secondary, #fafafa)" }}>
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={8} md={4}>
               <Text strong>Chọn kho:</Text>

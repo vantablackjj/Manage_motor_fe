@@ -1,4 +1,4 @@
-// src/pages/khachHang/KhachHangListPage.jsx
+﻿// src/pages/khachHang/KhachHangListPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -259,7 +259,7 @@ const KhachHangListPage = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
     >
       <div style={{ marginBottom: 16 }}>
         <Row justify="space-between" align="middle" gutter={[8, 16]}>

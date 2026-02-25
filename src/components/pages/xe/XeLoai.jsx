@@ -1,4 +1,4 @@
-// src/pages/xe/XeLoaiPage.jsx
+﻿// src/pages/xe/XeLoaiPage.jsx
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -358,7 +358,7 @@ const XeLoaiPage = () => {
         />
         <style>{`
           .inactive-row {
-            background-color: #fafafa !important;
+            background-color: var(--bg-secondary, #fafafa) !important;
             color: #bfbfbf !important;
           }
           .inactive-row td {

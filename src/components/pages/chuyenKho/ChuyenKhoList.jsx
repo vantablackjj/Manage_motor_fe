@@ -1,4 +1,4 @@
-// src/components/pages/chuyenKho/ChuyenKhoList.jsx
+﻿// src/components/pages/chuyenKho/ChuyenKhoList.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -181,7 +181,7 @@ const ChuyenKhoList = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
     >
       <Card size="small">
         <div style={{ marginBottom: 16 }}>

@@ -338,7 +338,7 @@ const XeForm = ({
             <div
               style={{
                 padding: "12px",
-                background: "#fff2e8",
+                background: "rgba(250,173,20,0.1)",
                 border: "1px solid #ffbb96",
                 borderRadius: "4px",
                 marginBottom: "16px",

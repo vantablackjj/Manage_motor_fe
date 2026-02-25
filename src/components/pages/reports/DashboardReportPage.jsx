@@ -25,6 +25,21 @@ import { reportAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import dayjs from "dayjs";
 import { useResponsive } from "../../../hooks/useResponsive";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  Cell,
+  PieChart,
+  Pie,
+} from "recharts";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -202,116 +217,90 @@ const DashboardReportPage = () => {
         <Row gutter={[16, 16]}>
           <Col xs={24} md={16}>
             <Card title="Diễn biến doanh thu theo tháng" size="small">
-              <div
-                style={{
-                  height: 300,
-                  display: "flex",
-                  alignItems: "flex-end",
-                  justifyContent: "space-around",
-                  background: "#f9f9f9",
-                  padding: "20px 40px",
-                  borderRadius: 8,
-                }}
-              >
+              <div style={{ height: 350, width: "100%", padding: "10px 0" }}>
                 {data.revenueChart.length === 0 ? (
-                  <Text type="secondary">Không có dữ liệu biểu đồ</Text>
+                  <div className="flex-center h-100">
+                    <Text type="secondary">Không có dữ liệu biểu đồ</Text>
+                  </div>
                 ) : (
-                  data.revenueChart.map((item, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        textAlign: "center",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        flex: 1,
-                      }}
-                    >
-                      <div
-                        style={{
-                          height: 200,
-                          width: "60%",
-                          maxWidth: 40,
-                          background: "#1890ff",
-                          borderRadius: "4px 4px 0 0",
-                          position: "relative",
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data.revenueChart}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis
+                        dataKey="thang"
+                        label={{
+                          value: "Tháng",
+                          position: "insideBottom",
+                          offset: -5,
                         }}
-                      >
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: -25,
-                            width: "100%",
-                            textAlign: "center",
-                            fontSize: 10,
-                          }}
-                        >
-                          {Math.round(item.doanh_thu / 1000000)}M
-                        </div>
-                      </div>
-                      <Text size="small" style={{ marginTop: 8 }}>
-                        Tháng {item.thang}
-                      </Text>
-                    </div>
-                  ))
+                      />
+                      <YAxis
+                        tickFormatter={(value) => `${value / 1000000}M`}
+                        width={60}
+                      />
+                      <Tooltip
+                        formatter={(value) =>
+                          formatService.formatCurrency(value)
+                        }
+                        labelStyle={{ fontWeight: "bold" }}
+                      />
+                      <Legend verticalAlign="top" height={36} />
+                      <Bar
+                        name="Doanh thu"
+                        dataKey="doanh_thu"
+                        fill="#1890ff"
+                        radius={[4, 4, 0, 0]}
+                        barSize={isMobile ? 20 : 40}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
                 )}
               </div>
             </Card>
           </Col>
           <Col xs={24} md={8}>
-            <Card title="Tồn kho theo kho" size="small">
-              <div
-                style={{
-                  height: 300,
-                  overflowY: "auto",
-                  padding: 16,
-                  background: "#f9f9f9",
-                  borderRadius: 8,
-                }}
-              >
+            <Card title="Cơ cấu tồn kho (Xe)" size="small">
+              <div style={{ height: 350, width: "100%" }}>
                 {data.inventoryChart.length === 0 ? (
-                  <div
-                    style={{
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+                  <div className="flex-center h-100">
                     <Text type="secondary">Không có dữ liệu</Text>
                   </div>
                 ) : (
-                  data.inventoryChart.map((item, idx) => (
-                    <div key={idx} style={{ marginBottom: 16 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          marginBottom: 4,
-                        }}
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={data.inventoryChart}
+                        dataKey="so_luong"
+                        nameKey="ten_kho"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        innerRadius={isMobile ? 40 : 60}
+                        fill="#8884d8"
+                        paddingAngle={5}
+                        label={({ name, percent }) =>
+                          `${name} (${(percent * 100).toFixed(0)}%)`
+                        }
                       >
-                        <Text strong>{item.ten_kho}</Text>
-                        <Text>{item.so_luong} xe</Text>
-                      </div>
-                      <div
-                        style={{
-                          height: 8,
-                          width: "100%",
-                          background: "#e8e8e8",
-                          borderRadius: 4,
-                        }}
-                      >
-                        <div
-                          style={{
-                            height: "100%",
-                            width: `${Math.min((item.so_luong / data.overview.stock_xe) * 100, 100)}%`,
-                            background: idx % 2 === 0 ? "#faad14" : "#ff7a45",
-                            borderRadius: 4,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))
+                        {data.inventoryChart.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={
+                              [
+                                "#1890ff",
+                                "#52c41a",
+                                "#faad14",
+                                "#ff4d4f",
+                                "#722ed1",
+                              ][index % 5]
+                            }
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend iconType="circle" />
+                    </PieChart>
+                  </ResponsiveContainer>
                 )}
               </div>
             </Card>

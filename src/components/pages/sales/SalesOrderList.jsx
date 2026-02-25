@@ -19,9 +19,13 @@ import {
   ShoppingOutlined,
   ReloadOutlined,
   SearchOutlined,
+  TableOutlined,
+  ProjectOutlined,
 } from "@ant-design/icons";
+import { Segmented } from "antd";
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
+import OrderKanban from "../../features/OrderKanban/OrderKanban";
 import { useNavigate } from "react-router-dom";
 import { orderAPI, khoAPI, khachHangAPI } from "../../../api";
 import {
@@ -40,6 +44,7 @@ const SalesOrderList = () => {
   const [data, setData] = useState([]);
   const [khoList, setKhoList] = useState([]);
   const [customerList, setCustomerList] = useState([]);
+  const [viewMode, setViewMode] = useState("table"); // 'table' or 'kanban'
 
   const [filters, setFilters] = useState({
     ma_ben_xuat: null,
@@ -180,9 +185,23 @@ const SalesOrderList = () => {
           style={{ marginBottom: 16 }}
         >
           <Col xs={24} md={12}>
-            <h2 style={{ margin: 0 }}>
-              <ExportOutlined /> Xuất Kho (Bán)
-            </h2>
+            <Space align="center" size="large">
+              <h2 style={{ margin: 0 }}>
+                <ExportOutlined /> Xuất Kho (Bán)
+              </h2>
+              <Segmented
+                options={[
+                  { label: "Bảng", value: "table", icon: <TableOutlined /> },
+                  {
+                    label: "Kanban",
+                    value: "kanban",
+                    icon: <ProjectOutlined />,
+                  },
+                ]}
+                value={viewMode}
+                onChange={setViewMode}
+              />
+            </Space>
           </Col>
           <Col xs={24} md={12} style={{ textAlign: "right" }}>
             <Space wrap>
@@ -271,22 +290,26 @@ const SalesOrderList = () => {
           </Space>
         </div>
 
-        <Table
-          dataSource={data}
-          columns={columns}
-          rowKey="id"
-          loading={loading}
-          size="small"
-          scroll={{ x: 800 }}
-          pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
-            size: "small",
-            showTotal: (total) => `Tổng: ${total}`,
-            onChange: (page, pageSize) => fetchData(page, pageSize),
-          }}
-        />
+        {viewMode === "table" ? (
+          <Table
+            dataSource={data}
+            columns={columns}
+            rowKey="id"
+            loading={loading}
+            size="small"
+            scroll={{ x: 800 }}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              size: "small",
+              showTotal: (total) => `Tổng: ${total}`,
+              onChange: (page, pageSize) => fetchData(page, pageSize),
+            }}
+          />
+        ) : (
+          <OrderKanban data={data} loading={loading} />
+        )}
       </Card>
     </div>
   );

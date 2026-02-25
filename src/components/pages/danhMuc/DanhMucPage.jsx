@@ -1,4 +1,4 @@
-// src/pages/danhMuc/DanhMucPage.jsx
+﻿// src/pages/danhMuc/DanhMucPage.jsx
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -682,7 +682,7 @@ const DanhMucPage = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "#f0f2f5", minHeight: "100vh" }}
+      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
     >
       <div style={{ marginBottom: 16 }}>
         <Row justify="space-between" align="middle" gutter={[8, 16]}>
@@ -905,7 +905,7 @@ const DanhMucPage = () => {
       </Modal>
       <style>{`
         .inactive-row {
-          background-color: #fafafa !important;
+          background-color: var(--bg-secondary, #fafafa) !important;
           color: #bfbfbf !important;
         }
         .inactive-row td {
