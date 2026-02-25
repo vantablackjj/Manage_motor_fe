@@ -17,6 +17,8 @@ import {
   Checkbox,
   InputNumber,
   Select,
+  Skeleton,
+  Empty,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -119,7 +121,30 @@ const HoaDonBanDetail = () => {
     });
   };
 
-  if (!data) return null;
+  if (loading) {
+    return (
+      <div style={{ padding: "24px" }}>
+        <Card>
+          <Skeleton active paragraph={{ rows: 10 }} />
+        </Card>
+      </div>
+    );
+  }
+
+  if (!data && !loading) {
+    return (
+      <div style={{ padding: "100px 0", textAlign: "center" }}>
+        <Empty description="Không tìm thấy thông tin hóa đơn" />
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate("/sales/invoices")}
+          style={{ marginTop: 16 }}
+        >
+          Quay lại danh sách
+        </Button>
+      </div>
+    );
+  }
 
   const {
     trang_thai,

@@ -22,6 +22,7 @@ import AccessDenied from "../components/common/Error/AccessDenied";
 import NotFound from "../components/common/Error/NotFound";
 import UserProfilePage from "../components/pages/user/UserProfilePage";
 import NotificationPage from "../components/pages/user/NotificationPage";
+import OrderRedirect from "../components/common/OrderRedirect";
 
 // Purchase - Xe
 import VehiclePurchaseList from "../components/pages/purchase/vehicles/VehiclePurchaseList";
@@ -391,5 +392,10 @@ export const privateRoutes = [
     component: DonHang,
     layout: MainLayout,
     permissions: "sales_orders.view",
+  },
+  {
+    path: "/orders/view/:id",
+    component: OrderRedirect,
+    layout: MainLayout,
   },
 ];

@@ -12,6 +12,7 @@ import {
   Button,
   Divider,
   Empty,
+  Tooltip,
 } from "antd";
 import {
   MenuOutlined,
@@ -141,12 +142,24 @@ const HeaderBar = ({ isMobile, onToggleSidebar, user, userMenuItems }) => {
             arrow={{ pointAtCenter: true }}
             overlayClassName="notification-popover"
           >
-            <Badge count={unreadCount} size="small" offset={[-2, 4]}>
-              <BellOutlined
-                className="header-icon"
-                style={{ fontSize: 20, cursor: "pointer" }}
-              />
-            </Badge>
+            <Tooltip title={`${unreadCount} thông báo chưa đọc`}>
+              <Badge
+                count={unreadCount}
+                size="small"
+                offset={[-2, 4]}
+                showZero={false}
+                overflowCount={99}
+              >
+                <BellOutlined
+                  className="header-icon"
+                  style={{
+                    fontSize: 22,
+                    cursor: "pointer",
+                    color: unreadCount > 0 ? "#1890ff" : "inherit",
+                  }}
+                />
+              </Badge>
+            </Tooltip>
           </Popover>
 
           <Dropdown

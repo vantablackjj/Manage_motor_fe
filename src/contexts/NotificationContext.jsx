@@ -25,10 +25,17 @@ export const NotificationProvider = ({ children }) => {
   const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await notificationApi.getNotifications({ limit: 20 });
-      if (res && res.data) {
-        setNotifications(res.data);
-        setUnreadCount(res.unreadCount || 0);
+      const res = await notificationApi.getNotifications({ limit: 50 });
+      if (res) {
+        // Handle both { data: [], unreadCount: 0 } and [...] structures
+        const items = Array.isArray(res) ? res : res.data || [];
+        const count =
+          res.unreadCount !== undefined
+            ? res.unreadCount
+            : items.filter((n) => !n.is_read).length;
+
+        setNotifications(items);
+        setUnreadCount(count);
       }
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
@@ -90,6 +97,12 @@ export const NotificationProvider = ({ children }) => {
           description: data.content,
           icon: <BellOutlined style={{ color: "#1890ff" }} />,
           placement: "topRight",
+          duration: 5,
+          onClick: () => {
+            if (data.link) {
+              window.location.href = data.link;
+            }
+          },
         });
       });
 

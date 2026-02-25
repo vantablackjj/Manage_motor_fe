@@ -13,6 +13,8 @@ import {
   InputNumber,
   Row,
   Col,
+  Skeleton,
+  Empty,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -151,7 +153,30 @@ const PartPurchaseDetail = () => {
     }
   };
 
-  if (!data) return null;
+  if (loading) {
+    return (
+      <div style={{ padding: "24px" }}>
+        <Card>
+          <Skeleton active paragraph={{ rows: 10 }} />
+        </Card>
+      </div>
+    );
+  }
+
+  if (!data && !loading) {
+    return (
+      <div style={{ padding: "100px 0", textAlign: "center" }}>
+        <Empty description="Không tìm thấy thông tin đơn hàng phụ tùng" />
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate("/purchase/parts")}
+          style={{ marginTop: 16 }}
+        >
+          Quay lại danh sách
+        </Button>
+      </div>
+    );
+  }
 
   const {
     id: orderId,
