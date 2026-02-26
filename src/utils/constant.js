@@ -224,6 +224,19 @@ export const LOAI_HANG = {
   PHU_TUNG: "PHU_TUNG",
 };
 
+// Loại bảo trì
+export const LOAI_BAO_TRI = {
+  TINH_PHI: "TINH_PHI",
+  MIEN_PHI: "MIEN_PHI",
+  BAO_HANH: "BAO_HANH",
+};
+
+export const LOAI_BAO_TRI_LABELS = {
+  TINH_PHI: "Tính phí",
+  MIEN_PHI: "Miễn phí (Ưu đãi)",
+  BAO_HANH: "Bảo hành (Lỗi KT)",
+};
+
 // Pagination
 export const DEFAULT_PAGE_SIZE = 10;
 export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];

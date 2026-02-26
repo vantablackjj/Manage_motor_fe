@@ -21,7 +21,7 @@ const ImportModal = ({
   open,
   onCancel,
   module,
-  title = "Import Dữ Liệu",
+  title = "Nhập Dữ Liệu",
   onSuccess,
 }) => {
   const [fileList, setFileList] = useState([]);
@@ -45,7 +45,7 @@ const ImportModal = ({
 
   const handleImport = async () => {
     if (fileList.length === 0) {
-      message.warning("Vui lòng chọn file cần import");
+      message.warning("Vui lòng chọn file cần nhập");
       return;
     }
 
@@ -58,7 +58,7 @@ const ImportModal = ({
 
       setProgress(100);
       setResult(res.data);
-      message.success("Import hoàn tất");
+      message.success("Nhập dữ liệu hoàn tất");
 
       if (onSuccess) {
         onSuccess(res.data);
@@ -136,12 +136,12 @@ const ImportModal = ({
           loading={importing}
           disabled={fileList.length === 0}
         >
-          Bắt đầu Import
+          Bắt đầu Nhập dữ liệu
         </Button>,
       ]}
       width={700}
     >
-      <Space direction="vertical" style={{ width: "100%" }} size="large">
+      <Space orientation="vertical" style={{ width: "100%" }} size="large">
         <Dragger {...uploadProps} disabled={importing}>
           <p className="ant-upload-drag-icon">
             <InboxOutlined />
@@ -153,7 +153,7 @@ const ImportModal = ({
         </Dragger>
 
         <div>
-          <Text strong>Chế độ Import:</Text>
+          <Text strong>Chế độ Nhập:</Text>
           <Radio.Group
             value={mode}
             onChange={(e) => setMode(e.target.value)}
@@ -182,9 +182,9 @@ const ImportModal = ({
         {result && (
           <div style={{ marginTop: 16 }}>
             <Alert
-              message="Kết quả Import"
+              message="Kết quả Nhập dữ liệu"
               description={
-                <Space direction="vertical">
+                <Space orientation="vertical">
                   <div>
                     Tổng số: <Text strong>{result.summary?.total || 0}</Text> |
                     Thành công:{" "}

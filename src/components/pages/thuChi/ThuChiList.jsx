@@ -240,7 +240,7 @@ const ThuChiList = () => {
               title="Tổng Thu"
               value={summary.tong_thu}
               precision={0}
-              valueStyle={{ color: "#3f8600", fontSize: "18px" }}
+              styles={{ content: { color: "#3f8600", fontSize: "18px" } }}
               prefix={<ArrowUpOutlined />}
               suffix="₫"
             />
@@ -252,7 +252,7 @@ const ThuChiList = () => {
               title="Tổng Chi"
               value={summary.tong_chi}
               precision={0}
-              valueStyle={{ color: "#cf1322", fontSize: "18px" }}
+              styles={{ content: { color: "#cf1322", fontSize: "18px" } }}
               prefix={<ArrowDownOutlined />}
               suffix="₫"
             />
@@ -264,9 +264,11 @@ const ThuChiList = () => {
               title="Chênh lệch"
               value={summary.chenh_lech}
               precision={0}
-              valueStyle={{
-                color: summary.chenh_lech >= 0 ? "#3f8600" : "#cf1322",
-                fontSize: "18px",
+              styles={{
+                content: {
+                  color: summary.chenh_lech >= 0 ? "#3f8600" : "#cf1322",
+                  fontSize: "18px",
+                },
               }}
               suffix="₫"
             />
@@ -322,7 +324,7 @@ const ThuChiList = () => {
         </Row>
 
         <div style={{ marginBottom: 16 }}>
-          <Space direction="vertical" style={{ width: "100%" }} size="middle">
+          <Space orientation="vertical" style={{ width: "100%" }} size="middle">
             <Row gutter={[8, 8]}>
               <Col xs={24} sm={12} md={6}>
                 <Radio.Group

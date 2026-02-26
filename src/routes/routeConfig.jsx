@@ -1,4 +1,4 @@
-// src/routes/routes.config.js
+// src/routes/routeConfig.jsx
 import LoginPage from "../components/pages/auth/LoginPage";
 import DashboardPage from "../components/pages/DashboardPage/DashboardPage";
 import XeListPage from "../components/pages/xe/XeThucTe";
@@ -19,10 +19,15 @@ import ChuyenKhoDetail from "../components/pages/chuyenKho/ChuyenKhoDetail";
 import CongNoManage from "../components/pages/congNo/CongNoManage";
 import CongNoDetailView from "../components/pages/congNo/CongNoDetailView";
 import AccessDenied from "../components/common/Error/AccessDenied";
-import NotFound from "../components/common/Error/NotFound";
 import UserProfilePage from "../components/pages/user/UserProfilePage";
 import NotificationPage from "../components/pages/user/NotificationPage";
 import OrderRedirect from "../components/common/OrderRedirect";
+
+// Maintenance
+import MaintenanceListPage from "../components/pages/maintenance/MaintenanceListPage";
+import MaintenanceFormPage from "../components/pages/maintenance/MaintenanceFormPage";
+import MaintenanceDetailPage from "../components/pages/maintenance/MaintenanceDetailPage";
+import PostSaleManagePage from "../components/pages/postSale/PostSaleManagePage";
 
 // Purchase - Xe
 import VehiclePurchaseList from "../components/pages/purchase/vehicles/VehiclePurchaseList";
@@ -116,7 +121,6 @@ export const privateRoutes = [
     layout: MainLayout,
     permissions: "purchase_orders.view",
   },
-  // ===================================
 
   // === QUẢN LÝ BÁN HÀNG (SALES) ===
   {
@@ -149,7 +153,6 @@ export const privateRoutes = [
     layout: MainLayout,
     permissions: "invoices.view",
   },
-  // ===================================
 
   // === QUẢN LÝ THU CHI (FINANCE) ===
   {
@@ -170,7 +173,6 @@ export const privateRoutes = [
     layout: MainLayout,
     permissions: "payments.view",
   },
-  // ===================================
 
   // Quản lý xe (inventory)
   {
@@ -208,7 +210,7 @@ export const privateRoutes = [
     permissions: "products.view",
   },
 
-  // Master data (legacy routes)
+  // Master data
   {
     path: "/master-data/:type",
     component: MasterDataPage,
@@ -292,6 +294,26 @@ export const privateRoutes = [
     permissions: "inventory.view",
   },
 
+  // Bảo trì
+  {
+    path: "/maintenance",
+    component: MaintenanceListPage,
+    layout: MainLayout,
+    permissions: "maintenance.view",
+  },
+  {
+    path: "/maintenance/create",
+    component: MaintenanceFormPage,
+    layout: MainLayout,
+    permissions: "maintenance.create",
+  },
+  {
+    path: "/maintenance/:id",
+    component: MaintenanceDetailPage,
+    layout: MainLayout,
+    permissions: "maintenance.view",
+  },
+
   // Công nợ
   {
     path: "/cong-no/quan-ly",
@@ -352,7 +374,7 @@ export const privateRoutes = [
     permissions: "users.view",
   },
 
-  // Legacy routes (giữ để không break existing links)
+  // Legacy routes
   {
     path: "/xe/thuc-te",
     component: XeListPage,
@@ -397,5 +419,11 @@ export const privateRoutes = [
     path: "/orders/view/:id",
     component: OrderRedirect,
     layout: MainLayout,
+  },
+  {
+    path: "/post-sale",
+    component: PostSaleManagePage,
+    layout: MainLayout,
+    permissions: "sales_orders.view",
   },
 ];

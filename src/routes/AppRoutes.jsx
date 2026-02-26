@@ -1,4 +1,4 @@
-// src/routes/AppRoutes.jsx
+// src/routes/AppRoutes.jsx - Updated to refresh routes configuration
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Suspense } from "react";
 import { publicRoutes, privateRoutes } from "./routeConfig";

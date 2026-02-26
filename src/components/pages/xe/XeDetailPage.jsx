@@ -19,9 +19,11 @@ import {
   HistoryOutlined,
   CarOutlined,
   InfoCircleOutlined,
+  ToolOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
-import { xeAPI } from "../../api";
+import { maintenanceAPI, xeAPI } from "../../api";
 import { useResponsive } from "../../hooks/useResponsive";
 import {
   formatService,
@@ -40,6 +42,8 @@ const XeDetailPage = () => {
   const [xe, setXe] = useState(null);
   const [lichSu, setLichSu] = useState([]);
   const [loadingLichSu, setLoadingLichSu] = useState(false);
+  const [maintainHistory, setMaintainHistory] = useState([]);
+  const [loadingMaintain, setLoadingMaintain] = useState(false);
 
   useEffect(() => {
     fetchXeDetail();
@@ -67,6 +71,20 @@ const XeDetailPage = () => {
       notificationService.error("Không thể tải lịch sử");
     } finally {
       setLoadingLichSu(false);
+    }
+  };
+
+  const fetchMaintainHistory = async () => {
+    if (!xe?.ma_serial && !xe?.xe_key) return;
+    setLoadingMaintain(true);
+    try {
+      const ma_serial = xe.ma_serial || xe.xe_key;
+      const res = await maintenanceAPI.getVehicleMaintenanceHistory(ma_serial);
+      setMaintainHistory(res.data || []);
+    } catch (error) {
+      notificationService.error("Không thể tải lịch sử bảo trì");
+    } finally {
+      setLoadingMaintain(false);
     }
   };
 
@@ -162,9 +180,50 @@ const XeDetailPage = () => {
     },
   ];
 
+  const maintainColumns = [
+    {
+      title: "Mã phiếu",
+      dataIndex: "ma_phieu",
+      key: "ma_phieu",
+      render: (text, record) => (
+        <a onClick={() => navigate(`/maintenance/${record.id}`)}>
+          <b>{text}</b>
+        </a>
+      ),
+    },
+    {
+      title: "Ngày",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (text) => formatService.formatDate(text),
+    },
+    {
+      title: "Số KM",
+      dataIndex: "so_km_hien_tai",
+      key: "so_km_hien_tai",
+      render: (text) => formatService.formatNumber(text),
+    },
+    {
+      title: "Tổng tiền",
+      dataIndex: "tong_tien",
+      key: "tong_tien",
+      align: "right",
+      render: (text) => formatService.formatCurrency(text),
+    },
+    {
+      title: "Ghi chú",
+      dataIndex: "ghi_chu",
+      key: "ghi_chu",
+    },
+  ];
+
   return (
     <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
+      style={{
+        padding: "16px 8px",
+        background: "var(--bg-layout, #f0f2f5)",
+        minHeight: "100vh",
+      }}
     >
       {/* Header */}
       <div style={{ marginBottom: 16 }}>
@@ -275,6 +334,17 @@ const XeDetailPage = () => {
 
               <Descriptions.Item label="Phân khối">
                 {xe.thong_so_ky_thuat?.phan_khoi || "-"}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Số KM hiện tại">
+                <Tag
+                  color="blue"
+                  style={{ fontSize: "14px", padding: "4px 8px" }}
+                >
+                  <strong>
+                    {formatService.formatNumber(xe.so_km_hien_tai || 0)} KM
+                  </strong>
+                </Tag>
               </Descriptions.Item>
             </Descriptions>
 
@@ -445,6 +515,40 @@ const XeDetailPage = () => {
               pagination={{ pageSize: 10, size: "small" }}
               scroll={{ x: 1000 }}
               locale={{ emptyText: "Chưa có lịch sử" }}
+            />
+          </Card>
+        </TabPane>
+
+        {/* Tab Bảo trì */}
+        <TabPane
+          tab={
+            <span>
+              <ToolOutlined />
+              Lịch sử bảo trì
+            </span>
+          }
+          key="maintenance"
+        >
+          <Card size="small">
+            <div style={{ marginBottom: 16 }}>
+              <Button
+                size="small"
+                icon={<ReloadOutlined />}
+                onClick={fetchMaintainHistory}
+                loading={loadingMaintain}
+              >
+                Làm mới
+              </Button>
+            </div>
+            <Table
+              dataSource={maintainHistory}
+              columns={maintainColumns}
+              rowKey="id"
+              size="small"
+              loading={loadingMaintain}
+              pagination={{ pageSize: 10, size: "small" }}
+              scroll={{ x: 800 }}
+              locale={{ emptyText: "Chưa có lịch sử bảo trì" }}
             />
           </Card>
         </TabPane>

@@ -1,5 +1,5 @@
 function Loading() {
-  return <div>loading</div>;
+  return <div>Đang tải...</div>;
 }
 
 export default Loading;

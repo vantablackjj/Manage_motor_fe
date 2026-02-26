@@ -140,9 +140,9 @@ const VehicleApprovalList = () => {
       title: "Thông tin xe",
       key: "xe_info",
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Typography.Text strong>{record.xe_key}</Typography.Text>
-          <Typography.Text type="secondary" size="small">
+          <Typography.Text type="secondary" style={{ fontSize: "12px" }}>
             {record.ten_loai} - {record.ten_mau}
           </Typography.Text>
         </Space>
@@ -152,11 +152,11 @@ const VehicleApprovalList = () => {
       title: "Số khung / Số máy",
       key: "numbers",
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
-          <Typography.Text small>
+        <Space orientation="vertical" size={0}>
+          <Typography.Text style={{ fontSize: "12px" }}>
             {formatService.formatSoKhung(record.so_khung)}
           </Typography.Text>
-          <Typography.Text type="secondary" small>
+          <Typography.Text type="secondary" style={{ fontSize: "12px" }}>
             {formatService.formatSoMay(record.so_may)}
           </Typography.Text>
         </Space>
@@ -171,11 +171,11 @@ const VehicleApprovalList = () => {
       title: "Người tạo/Ngày tạo",
       key: "creator",
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
-          <Typography.Text small>
+        <Space orientation="vertical" size={0}>
+          <Typography.Text style={{ fontSize: "12px" }}>
             {record.nguoi_tao_ten || record.created_by}
           </Typography.Text>
-          <Typography.Text type="secondary" small>
+          <Typography.Text type="secondary" style={{ fontSize: "12px" }}>
             {formatService.formatDateTime(record.created_at || record.ngay_tao)}
           </Typography.Text>
         </Space>
@@ -328,7 +328,7 @@ const VehicleApprovalList = () => {
         open={formVisible}
         onCancel={() => setFormVisible(false)}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <XeForm
           mode="edit"
@@ -350,7 +350,7 @@ const VehicleApprovalList = () => {
         onOk={confirmReject}
         okText="Xác nhận từ chối"
         okType="danger"
-        destroyOnClose
+        destroyOnHidden
       >
         <div style={{ marginBottom: 8 }}>Lý do từ chối:</div>
         <TextArea

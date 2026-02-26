@@ -122,6 +122,65 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [fetchNotifications, user]);
 
+  // === WEB PUSH NOTIFICATIONS ===
+  const subscribeToPush = useCallback(async () => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      console.warn("Push notifications are not supported in this browser");
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+
+      // Request permission
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        console.warn("Notification permission denied");
+        return;
+      }
+
+      // VAPID Public Key from ENV
+      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      if (!vapidPublicKey) {
+        console.error("VITE_VAPID_PUBLIC_KEY is not defined in .env");
+        return;
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      });
+
+      // Send subscription to backend
+      const pushApi = (await import("../api/push.api")).default;
+      await pushApi.subscribe(subscription);
+      console.log("Successfully subscribed to Web Push");
+    } catch (error) {
+      console.error("Failed to subscribe to Web Push:", error);
+    }
+  }, []);
+
+  // Utility to convert VAPID key
+  function urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  useEffect(() => {
+    if (user) {
+      subscribeToPush();
+    }
+  }, [user, subscribeToPush]);
+  // ===============================
+
   return (
     <NotificationContext.Provider
       value={{
@@ -131,6 +190,7 @@ export const NotificationProvider = ({ children }) => {
         markAsRead,
         markAllAsRead,
         refresh: fetchNotifications,
+        subscribeToPush, // Export if needed manually
       }}
     >
       {children}

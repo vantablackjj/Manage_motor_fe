@@ -92,6 +92,26 @@ const HeaderBar = ({
               className="notification-item"
             >
               <List.Item.Meta
+                avatar={
+                  <div style={{ marginTop: 4 }}>
+                    {item.type === "MAINTENANCE" ||
+                    item.content?.includes("bảo trì") ? (
+                      <BellOutlined
+                        style={{ color: "#faad14", fontSize: 20 }}
+                      />
+                    ) : item.type === "BIRTHDAY" ||
+                      item.content?.includes("sinh nhật") ? (
+                      <SunOutlined style={{ color: "#ff4d4f", fontSize: 20 }} />
+                    ) : (
+                      <BellOutlined
+                        style={{
+                          color: item.is_read ? "#8c8c8c" : "#1890ff",
+                          fontSize: 20,
+                        }}
+                      />
+                    )}
+                  </div>
+                }
                 title={
                   <Space
                     style={{ width: "100%", justifyContent: "space-between" }}

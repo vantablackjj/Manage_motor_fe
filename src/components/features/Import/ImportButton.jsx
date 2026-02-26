@@ -8,13 +8,13 @@ const ImportButton = ({ module, title, onSuccess, ...props }) => {
 
   return (
     <>
-      <Tooltip title={`Import ${title || module}`}>
+      <Tooltip title={`Nhập ${title || module}`}>
         <Button
           icon={<ImportOutlined />}
           onClick={() => setOpen(true)}
           {...props}
         >
-          Import
+          Nhập file
         </Button>
       </Tooltip>
 
@@ -22,7 +22,7 @@ const ImportButton = ({ module, title, onSuccess, ...props }) => {
         open={open}
         onCancel={() => setOpen(false)}
         module={module}
-        title={`Import ${title || module}`}
+        title={`Nhập ${title || module}`}
         onSuccess={(data) => {
           if (onSuccess) onSuccess(data);
           setOpen(false);

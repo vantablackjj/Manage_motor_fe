@@ -31,6 +31,7 @@ import {
   ExportOutlined,
   InboxOutlined,
   ShopOutlined,
+  AuditOutlined,
 } from "@ant-design/icons";
 
 import "./MainLayout.css";
@@ -74,7 +75,7 @@ const MainLayout = ({ children }) => {
     const items = [];
 
     // Dashboard - tất cả role đều xem
-    items.push({ key: "/", icon: <DashboardOutlined />, label: "Dashboard" });
+    items.push({ key: "/", icon: <DashboardOutlined />, label: "Tổng quan" });
 
     // === KHO / NHẬP KHO (PURCHASE) ===
     // purchase_orders.view: KHO, QUAN_LY, ADMIN, KE_TOAN
@@ -158,6 +159,24 @@ const MainLayout = ({ children }) => {
         icon: <ToolOutlined />,
         label: "Quản lý phụ tùng",
         children: [{ key: "/phu-tung/danh-sach", label: "Danh sách phụ tùng" }],
+      });
+    }
+
+    // === BẢO TRÌ (maintenance.view) ===
+    if (hasPermission("maintenance", "view")) {
+      items.push({
+        key: "/maintenance",
+        icon: <CustomerServiceOutlined />,
+        label: "Dịch vụ Bảo trì",
+      });
+    }
+
+    // === DỊCH VỤ SAU BÁN (sales_orders.view) ===
+    if (hasPermission("sales_orders", "view")) {
+      items.push({
+        key: "/post-sale",
+        icon: <AuditOutlined />,
+        label: "Dịch vụ Sau bán",
       });
     }
 

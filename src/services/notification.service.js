@@ -2,6 +2,8 @@
 // Notification service using Ant Design message and notification
 
 import { message, notification } from "antd";
+import { BellOutlined, GiftOutlined } from "@ant-design/icons";
+import React from "react";
 
 class NotificationService {
   constructor() {
@@ -193,7 +195,7 @@ class NotificationService {
   loginError(error = null) {
     return this.operationError(
       "Đăng nhập",
-      error || "Tên đăng nhập hoặc mật khẩu không đúng"
+      error || "Tên đăng nhập hoặc mật khẩu không đúng",
     );
   }
 
@@ -215,7 +217,7 @@ class NotificationService {
     this.notifyWarning(
       "Cảnh báo tồn kho thấp",
       `${itemName} chỉ còn ${quantity} trong kho`,
-      { duration: 6 }
+      { duration: 6 },
     );
   }
 
@@ -225,6 +227,34 @@ class NotificationService {
 
   stockLocked(itemName) {
     return this.warning(`${itemName} đang bị khóa`);
+  }
+
+  // ===== MAINTENANCE NOTIFICATIONS =====
+
+  maintenanceReminder(xeSerial, km) {
+    this.notifyWarning(
+      "Nhắc nhở bảo trì",
+      `Xe [${xeSerial}] đã đến hạn bảo trì (${km} km)`,
+      {
+        duration: 10,
+        icon: React.createElement(BellOutlined, {
+          style: { color: "#faad14" },
+        }),
+      },
+    );
+  }
+
+  birthdayReminder(customerName) {
+    this.notifyInfo(
+      "Chúc mừng sinh nhật",
+      `Hôm nay là sinh nhật khách hàng [${customerName}]`,
+      {
+        duration: 8,
+        icon: React.createElement(GiftOutlined, {
+          style: { color: "#ff4d4f" },
+        }),
+      },
+    );
   }
 
   // ===== PAYMENT NOTIFICATIONS =====

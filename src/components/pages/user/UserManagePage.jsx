@@ -238,7 +238,7 @@ const UserManagePage = () => {
       render: (_, __, index) => index + 1,
     },
     {
-      title: "Username",
+      title: "Tên đăng nhập",
       dataIndex: "username",
       key: "username",
       width: 120,

@@ -18,16 +18,37 @@ cleanupOutdatedCaches();
 
 // ===== CACHE STRATEGIES ===== //
 
-// HTML pages: Network first với fallback
+// HTML pages: SPA routing - serve index.html for any navigation request
+// Điều này giúp tránh lỗi "No route found" khi refresh ở các sub-route như /maintenance/create
 registerRoute(
-  ({ request }) => request.mode === "navigate",
-  new NetworkFirst({
-    cacheName: "pages-cache",
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 }),
-    ],
-  }),
+  ({ request, url }) => {
+    // Chỉ xử lý navigation mode và không thuộc API hoặc Vite internal
+    return (
+      request.mode === "navigate" &&
+      !url.pathname.startsWith("/api/") &&
+      !url.pathname.startsWith("/@vite/") &&
+      !url.pathname.startsWith("/@fs/")
+    );
+  },
+  async ({ event }) => {
+    try {
+      // Thử lấy từ mạng trước (NetworkFirst)
+      const response = await new NetworkFirst({
+        cacheName: "pages-cache",
+        plugins: [
+          new CacheableResponsePlugin({ statuses: [0, 200] }),
+          new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 }),
+        ],
+      }).handle({ event });
+
+      if (response) return response;
+    } catch (error) {
+      // Nếu mạng lỗi, fallback về index.html (App Shell) đã được precache
+      return caches.match("/index.html");
+    }
+    // Fallback cuối cùng nếu everything fails
+    return caches.match("/index.html");
+  },
 );
 
 // API: Network first với 10s timeout
@@ -45,11 +66,15 @@ registerRoute(
 
 // Static assets: Cache first
 registerRoute(
-  ({ request }) =>
-    request.destination === "image" ||
-    request.destination === "font" ||
-    request.destination === "style" ||
-    request.destination === "script",
+  ({ request, url }) =>
+    (request.destination === "image" ||
+      request.destination === "font" ||
+      request.destination === "style" ||
+      request.destination === "script") &&
+    !url.pathname.startsWith("/@vite/") &&
+    !url.pathname.startsWith("/@fs/") &&
+    !url.pathname.startsWith("/@id/") &&
+    !url.pathname.includes("hot-update"),
   new CacheFirst({
     cacheName: "static-assets",
     plugins: [

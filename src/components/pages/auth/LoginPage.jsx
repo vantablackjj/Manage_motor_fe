@@ -48,7 +48,7 @@ const LoginPage = () => {
         login(
           result.data.user,
           result.data.access_token,
-          result.data.refresh_token
+          result.data.refresh_token,
         );
         navigate("/", { replace: true });
         notificationService.loginSuccess();
@@ -181,7 +181,7 @@ const LoginPage = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   notificationService.info(
-                    "Vui lòng liên hệ quản trị viên để được hỗ trợ"
+                    "Vui lòng liên hệ quản trị viên để được hỗ trợ",
                   );
                 }}
               >
@@ -242,7 +242,7 @@ const LoginPage = () => {
           textAlign: "center",
         }}
       >
-        © 2025 Motor Management System. All rights reserved.
+        © 2025 Hệ thống Quản lý Motor. Tất cả quyền được bảo lưu.
       </div>
     </div>
   );
