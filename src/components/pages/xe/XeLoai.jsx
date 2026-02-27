@@ -27,6 +27,7 @@ import {
 } from "@ant-design/icons";
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 import { danhMucAPI } from "../../../api";
 import { notificationService, authService } from "../../../services";
@@ -61,9 +62,11 @@ const XeLoaiPage = () => {
     fetchData();
   }, []);
 
+  const debouncedFilters = useDebounce(filters, 500);
+
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, [debouncedFilters]);
 
   const handleSoftDelete = (record) => {
     Modal.confirm({
@@ -333,6 +336,7 @@ const XeLoaiPage = () => {
             size="small"
             style={{ width: "100%", maxWidth: isMobile ? "100%" : 250 }}
             onSearch={(v) => setFilters({ ...filters, search: v })}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           />
         </Space>
       </Card>

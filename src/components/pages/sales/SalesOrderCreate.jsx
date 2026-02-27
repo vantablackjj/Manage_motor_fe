@@ -435,7 +435,7 @@ const SalesOrderCreate = () => {
             </Col>
           </Row>
 
-          <Divider orientation="left">Chi tiết hàng hóa</Divider>
+          <Divider titlePlacement="left">Chi tiết hàng hóa</Divider>
           <div style={{ marginBottom: 16 }}>
             <Button
               type="dashed"

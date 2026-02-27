@@ -27,6 +27,7 @@ import {
   ShoppingCartOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { donHangAPI, khoAPI } from "../../../api";
 import {
   formatService,
@@ -71,9 +72,11 @@ const DonHangListPage = () => {
     fetchKhoList();
   }, []);
 
+  const debouncedFilters = useDebounce(filters, 500);
+
   useEffect(() => {
     fetchData();
-  }, [page, pageSize, filters]);
+  }, [page, pageSize, debouncedFilters]);
 
   const fetchKhoList = async () => {
     try {
@@ -118,7 +121,7 @@ const DonHangListPage = () => {
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
-    setPage(1);
+    if (key !== "search") setPage(1); // Optional: reset page on filter change, but maybe keep on search to avoid jumpy UI
     storageService.saveFilterSettings("don-hang-list", newFilters);
   };
 
@@ -440,6 +443,7 @@ const DonHangListPage = () => {
             placeholder="Tìm số phiếu, NCC..."
             style={{ width: 300 }}
             onSearch={(value) => handleFilterChange("search", value)}
+            onChange={(e) => handleFilterChange("search", e.target.value)}
             allowClear
           />
 

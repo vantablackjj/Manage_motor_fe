@@ -52,6 +52,11 @@ export const TRANG_THAI = {
   TU_CHOI: "TU_CHOI",
   DA_HUY: "DA_HUY",
 
+  // Trạng thái Bảo trì/Dịch vụ mới
+  TIEP_NHAN: "TIEP_NHAN",
+  DANG_SUA: "DANG_SUA",
+  CHO_THANH_TOAN: "CHO_THANH_TOAN",
+
   // Trạng thái phê duyệt XE
   XE_NHAP: "NHAP",
   XE_CHO_DUYET: "CHO_DUYET",
@@ -73,6 +78,11 @@ export const TRANG_THAI_LABELS = {
   TU_CHOI: "Đã từ chối",
   DA_HUY: "Đã hủy",
 
+  // Labels Bảo trì/Dịch vụ mới
+  TIEP_NHAN: "Tiếp nhận",
+  DANG_SUA: "Đang sửa",
+  CHO_THANH_TOAN: "Chờ thanh toán",
+
   // Labels phê duyệt XE
   NHAP: "Nháp",
   CHO_DUYET: "Chờ duyệt",
@@ -93,6 +103,11 @@ export const TRANG_THAI_COLORS = {
   DA_THANH_TOAN: "green",
   TU_CHOI: "error",
   DA_HUY: "error",
+
+  // Colors Bảo trì/Dịch vụ mới
+  TIEP_NHAN: "blue",
+  DANG_SUA: "orange",
+  CHO_THANH_TOAN: "gold",
 
   // Colors phê duyệt XE
   CHO_DUYET: "gold",
@@ -125,6 +140,25 @@ export const XE_TRANG_THAI_COLORS = {
   DA_BAN: "default",
   BAO_HANH: "warning",
   HU_HONG: "error",
+};
+
+// Trạng thái bàn nâng
+export const BAN_NANG_TRANG_THAI = {
+  TRONG: "TRONG",
+  DANG_SUA: "DANG_SUA",
+  BAO_TRI: "BAO_TRI",
+};
+
+export const BAN_NANG_TRANG_THAI_LABELS = {
+  TRONG: "Trống",
+  DANG_SUA: "Đang sửa",
+  BAO_TRI: "Bảo trì bàn",
+};
+
+export const BAN_NANG_TRANG_THAI_COLORS = {
+  TRONG: "#52c41a",
+  DANG_SUA: "#f5222d",
+  BAO_TRI: "#faad14",
 };
 
 // Loại giao dịch (Warehouse Transaction Types)

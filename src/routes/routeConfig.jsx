@@ -27,6 +27,7 @@ import OrderRedirect from "../components/common/OrderRedirect";
 import MaintenanceListPage from "../components/pages/maintenance/MaintenanceListPage";
 import MaintenanceFormPage from "../components/pages/maintenance/MaintenanceFormPage";
 import MaintenanceDetailPage from "../components/pages/maintenance/MaintenanceDetailPage";
+import WorkshopBoard from "../components/pages/maintenance/WorkshopBoard";
 import PostSaleManagePage from "../components/pages/postSale/PostSaleManagePage";
 
 // Purchase - Xe
@@ -294,9 +295,14 @@ export const privateRoutes = [
     permissions: "inventory.view",
   },
 
-  // Bảo trì
   {
     path: "/maintenance",
+    component: WorkshopBoard,
+    layout: MainLayout,
+    permissions: "maintenance.view",
+  },
+  {
+    path: "/maintenance/list",
     component: MaintenanceListPage,
     layout: MainLayout,
     permissions: "maintenance.view",

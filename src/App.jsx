@@ -1,7 +1,7 @@
 // src/App.jsx
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
-import { ConfigProvider, theme as antdTheme } from "antd";
+import { ConfigProvider, App as AntdApp, theme as antdTheme } from "antd";
 import viVN from "antd/locale/vi_VN";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -105,15 +105,17 @@ function ThemedApp() {
 
   return (
     <ConfigProvider locale={viVN} theme={themeConfig}>
-      <BrowserRouter>
-        <AuthProvider>
-          <NotificationProvider>
-            <div className="App">
-              <AppRoutes />
-            </div>
-          </NotificationProvider>
-        </AuthProvider>
-      </BrowserRouter>
+      <AntdApp>
+        <BrowserRouter>
+          <AuthProvider>
+            <NotificationProvider>
+              <div className="App">
+                <AppRoutes />
+              </div>
+            </NotificationProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </AntdApp>
     </ConfigProvider>
   );
 }

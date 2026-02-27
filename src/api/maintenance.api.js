@@ -31,6 +31,16 @@ const maintenanceApi = {
   getVehicleMaintenanceHistory: (ma_serial) => {
     return axiosInstance.get(`/maintenance/vehicle/${ma_serial}`);
   },
+
+  // Lấy danh sách bàn nâng (Workshop Board)
+  getWorkshopBoard: () => {
+    return axiosInstance.get("/maintenance/ban-nang/list");
+  },
+
+  // Cập nhật trạng thái phiếu (Tiếp nhận -> Đang sửa -> Thanh toán -> Hoàn thành)
+  updateStatus: (id, payload) => {
+    return axiosInstance.put(`/maintenance/${id}/status`, payload);
+  },
 };
 
 export default maintenanceApi;

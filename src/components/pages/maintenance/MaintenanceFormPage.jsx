@@ -15,6 +15,10 @@ import {
   Divider,
   Badge,
   Alert,
+  Typography,
+  Tag,
+  AutoComplete,
+  Modal,
 } from "antd";
 import {
   PlusOutlined,
@@ -24,18 +28,27 @@ import {
   SearchOutlined,
   CarOutlined,
   UserOutlined,
+  InfoCircleOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
 import {
-  maintenanceAPI,
-  xeAPI,
-  khachHangAPI,
   phuTungAPI,
   userAPI,
   productsAPI,
+  khachHangAPI,
+  maintenanceAPI,
+  khoAPI,
+  xeAPI,
 } from "../../../api";
+import { useDebouncedCallback } from "../../../hooks";
+import { useLocation, useNavigate } from "react-router-dom";
 import { notificationService, formatService } from "../../../services";
-import { LOAI_BAO_TRI, LOAI_BAO_TRI_LABELS } from "../../../utils/constant";
+import {
+  LOAI_BAO_TRI,
+  LOAI_BAO_TRI_LABELS,
+  LOAI_DOI_TAC,
+} from "../../../utils/constant";
 
 const { Option } = Select;
 
@@ -49,69 +62,180 @@ const MaintenanceFormPage = () => {
   const [userList, setUserList] = useState([]);
   const [productList, setProductList] = useState([]); // For external vehicle product selection
   const [partnerList, setPartnerList] = useState([]); // For external vehicle partner selection
+  const [liftList, setLiftList] = useState([]); // List of lifts
+  const [khoList, setKhoList] = useState([]); // List of warehouses
 
-  // Extra state for vehicle identification
   const [isExternal, setIsExternal] = useState(false);
   const [warrantyInfo, setWarrantyInfo] = useState(null);
 
-  // Table Rows (Chi tiết bảo trì)
+  // States for Quick Add Customer
+  const [isAddCustomerModalVisible, setIsAddCustomerModalVisible] =
+    useState(false);
+  const [customerForm] = Form.useForm();
+  const [addingCustomer, setAddingCustomer] = useState(false);
+
+  // Common services templates for quick selection
+  const COMMON_SERVICES = [
+    { value: "Rửa xe bọt tuyết", price: 30000 },
+    { value: "Rửa xe siêu cấp", price: 50000 },
+    { value: "Thay nhớt máy", price: 120000 },
+    { value: "Thay nhớt láp", price: 50000 },
+    { value: "Bảo dưỡng định kỳ", price: 150000 },
+    { value: "Vá lốp không sâm", price: 30000 },
+    { value: "Bơm lốp", price: 10000 },
+    { value: "Vệ sinh kim phun buồng đốt", price: 200000 },
+  ];
+
   const [items, setItems] = useState([]);
+  const location = useLocation();
 
   useEffect(() => {
     loadMasterData();
+    if (location.state?.ma_ban_nang) {
+      form.setFieldsValue({ ma_ban_nang: location.state.ma_ban_nang });
+    }
   }, []);
 
   const loadMasterData = async () => {
     try {
-      const [ptRes, userRes, prodRes, partnerRes] = await Promise.all([
+      const settle = await Promise.allSettled([
         phuTungAPI.getAll({ limit: 100 }),
-        userAPI.getAllUsers(),
+        userAPI.getAll(),
         productsAPI.getAll({ type: "XE", limit: 50 }),
         khachHangAPI.getAll({ limit: 100 }),
+        maintenanceAPI.getWorkshopBoard(),
+        khoAPI.getAll(),
       ]);
-      setPhuTungList(ptRes?.data?.data || ptRes?.data || []);
-      setUserList(userRes?.data || []);
-      setProductList(prodRes?.data?.data || prodRes?.data || []);
-      setPartnerList(partnerRes?.data?.data || partnerRes?.data || []);
+
+      const [ptRes, userRes, prodRes, partnerRes, liftRes, khoRes] = settle.map(
+        (s) => (s.status === "fulfilled" ? s.value : null),
+      );
+
+      // 1. Phụ tùng
+      const ptList = ptRes?.data || ptRes || [];
+      setPhuTungList(Array.isArray(ptList) ? ptList : []);
+
+      // 2. Kỹ thuật viên (User)
+      const allUsers = userRes?.data || userRes || [];
+      const technicians = Array.isArray(allUsers)
+        ? allUsers.filter(
+            (u) =>
+              u.status &&
+              (u.vai_tro === "BAN_HANG" || u.vai_tro === "NHAN_VIEN"),
+          )
+        : [];
+      setUserList(technicians);
+
+      // 3. Loại xe
+      const pList = prodRes?.data || prodRes || [];
+      setProductList(Array.isArray(pList) ? pList : []);
+
+      // 4. Khách hàng
+      const kList = partnerRes?.data || partnerRes || [];
+      setPartnerList(Array.isArray(kList) ? kList : []);
+
+      // 5. Bàn nâng
+      setLiftList(liftRes?.data || liftRes || []);
+
+      // 6. Kho
+      setKhoList(khoRes?.data || khoRes || []);
+
+      console.log("Master Data loaded:", {
+        ptCount: ptList.length,
+        userCount: technicians.length,
+        prodCount: pList.length,
+        partnerCount: kList.length,
+        liftCount: (liftRes?.data || liftRes || []).length,
+      });
     } catch (error) {
-      console.error("Error loading master data", error);
+      console.error("Error in loadMasterData", error);
     }
   };
 
-  const handleSearchXe = async (value) => {
-    if (!value || value.length < 3) return;
+  const handleAddCustomer = async (values) => {
+    setAddingCustomer(true);
+    try {
+      const payload = {
+        ...values,
+        loai_doi_tac: LOAI_DOI_TAC.KHACH_HANG,
+      };
+      const res = await khachHangAPI.create(payload);
+
+      const newCustomer = res.data?.data || res.data;
+      notificationService.success("Thêm mới khách hàng thành công");
+
+      // Update the local list
+      setPartnerList((prev) => [...prev, newCustomer]);
+
+      // Auto-select the newly created customer
+      form.setFieldsValue({
+        ma_doi_tac: newCustomer.ma_doi_tac || newCustomer.ma_kh,
+      });
+
+      setIsAddCustomerModalVisible(false);
+      customerForm.resetFields();
+    } catch (error) {
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi tạo khách hàng",
+      );
+    } finally {
+      setAddingCustomer(false);
+    }
+  };
+
+  const debouncedSearchXe = useDebouncedCallback(async (value) => {
+    if (!value || value.length < 2) return;
     setSearchingXe(true);
     try {
       const res = await xeAPI.getAll({ search: value, limit: 10 });
-      setXeList(res.data?.data || []);
+      setXeList(res.data?.data || res.data || []);
     } catch (error) {
       console.error("Error searching vehicle", error);
     } finally {
       setSearchingXe(false);
     }
+  }, 500);
+
+  const handleSearchXe = (value) => {
+    debouncedSearchXe(value);
   };
 
   const onSelectXe = async (value) => {
     // If user picks from list, it's a known vehicle
-    const xe = xeList.find((x) => x.ma_serial === value);
+    const xe = xeList.find((x) => x.xe_key === value);
     if (xe) {
       setIsExternal(false);
       // Try fetching detail for warranty info
       try {
         const detail = await xeAPI.getDetail(value);
         const fullXe = detail.data || detail;
-        setWarrantyInfo(fullXe.warranty || null);
+
+        // Cập nhật thông tin từ chi tiết xe
+        const monthsSinceSale = fullXe.ngay_ban
+          ? dayjs().diff(dayjs(fullXe.ngay_ban), "month")
+          : 100;
+        const currentKm = fullXe.so_km_hien_tai || 0;
+        const isEligibleFree = monthsSinceSale < 6 && currentKm < 10000;
+
+        setWarrantyInfo({
+          ...fullXe.warranty,
+          is_eligible: isEligibleFree,
+          monthsSinceSale,
+          currentKm,
+        });
 
         form.setFieldsValue({
           ma_doi_tac: fullXe.ma_doi_tac,
           so_km_hien_tai: fullXe.so_km_hien_tai || 0,
-          loai_bao_tri: fullXe.warranty?.is_eligible
+          loai_bao_tri: isEligibleFree
             ? LOAI_BAO_TRI.MIEN_PHI
             : LOAI_BAO_TRI.TINH_PHI,
         });
 
-        if (fullXe.warranty?.is_eligible) {
-          notificationService.info("Xe cửa hàng - Trong hạn bảo trì miễn phí");
+        if (isEligibleFree) {
+          notificationService.info(
+            `Xe ưu đãi: Mới mua ${monthsSinceSale} tháng & ${currentKm} km. Gợi ý bảo trì MIỄN PHÍ.`,
+          );
         }
       } catch (err) {
         form.setFieldsValue({
@@ -123,25 +247,13 @@ const MaintenanceFormPage = () => {
   };
 
   const detectExternalVehicle = () => {
-    const serial = form.getFieldValue("ma_serial");
-    if (!serial) {
-      notificationService.warning("Vui lòng nhập số khung/số máy trước");
-      return;
-    }
-
-    // If not in list, assume external
-    const exists = xeList.some((x) => x.ma_serial === serial);
-    if (!exists) {
-      setIsExternal(true);
-      setWarrantyInfo(null);
-      form.setFieldsValue({
-        ma_doi_tac: null,
-        loai_bao_tri: LOAI_BAO_TRI.TINH_PHI,
-      });
-      notificationService.info("Đã chuyển sang chế độ khai báo Xe Ngoài");
-    } else {
-      onSelectXe(serial);
-    }
+    setIsExternal(true);
+    setWarrantyInfo(null);
+    form.setFieldsValue({
+      ma_doi_tac: null,
+      loai_bao_tri: LOAI_BAO_TRI.TINH_PHI,
+    });
+    notificationService.info("Đã chuyển sang chế độ khai báo Xe Ngoài");
   };
 
   const handleAddItem = () => {
@@ -220,13 +332,14 @@ const MaintenanceFormPage = () => {
 
   const onFinish = async (values) => {
     if (items.length === 0) {
-      notificationService.error("Vui lòng thêm ít nhất 1 hạng mục bảo trì");
+      notificationService.error("Vui lòng thêm ít nhất 1 hạng mục dịch vụ");
       return;
     }
 
     setLoading(true);
     try {
       const payload = {
+        ma_phieu: values.ma_phieu,
         ma_serial: values.ma_serial,
         ma_doi_tac: values.ma_doi_tac,
         so_km_hien_tai: values.so_km_hien_tai,
@@ -245,14 +358,18 @@ const MaintenanceFormPage = () => {
           ghi_chu: item.ghi_chu,
         })),
         performer: values.performer,
+        ma_ban_nang: values.ma_ban_nang,
+        ma_kho: values.ma_kho,
       };
 
       await maintenanceAPI.createMaintenance(payload);
-      notificationService.success("Tạo phiếu bảo trì thành công");
+      notificationService.success(
+        "Tạo phiếu dịch vụ thành công. Đã cập nhật lịch sử cho xe.",
+      );
       navigate("/maintenance");
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Lỗi tạo phiếu bảo trì",
+        error?.response?.data?.message || "Lỗi tạo phiếu dịch vụ",
       );
     } finally {
       setLoading(false);
@@ -298,11 +415,26 @@ const MaintenanceFormPage = () => {
           );
         }
         return (
-          <Input
-            placeholder="Tên dịch vụ/hạng mục"
+          <AutoComplete
+            options={COMMON_SERVICES}
             value={val}
-            onChange={(e) =>
-              handleRowChange(record.key, "ten_hang_muc", e.target.value)
+            onChange={(v) => handleRowChange(record.key, "ten_hang_muc", v)}
+            onSelect={(v, option) => {
+              // When a common service is selected, auto-fill the suggested price
+              // (if not free maintenance)
+              handleRowChange(record.key, "ten_hang_muc", v);
+              if (
+                form.getFieldValue("loai_bao_tri") !== LOAI_BAO_TRI.MIEN_PHI &&
+                option.price
+              ) {
+                handleRowChange(record.key, "don_gia", option.price);
+              }
+            }}
+            placeholder="Gõ hoặc chọn nhanh dịch vụ..."
+            style={{ width: "100%" }}
+            filterOption={(inputValue, option) =>
+              option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !==
+              -1
             }
           />
         );
@@ -392,7 +524,9 @@ const MaintenanceFormPage = () => {
               onClick={() => navigate("/maintenance")}
               type="text"
             />
-            <span>Lập Phiếu Bảo Trì Mới</span>
+            <span>
+              <ToolOutlined /> Lập Phiếu Dịch Vụ / Sửa Chữa Mới
+            </span>
           </Space>
         }
         size="small"
@@ -403,190 +537,331 @@ const MaintenanceFormPage = () => {
           onFinish={onFinish}
           initialValues={{ loai_bao_tri: LOAI_BAO_TRI.TINH_PHI }}
         >
-          <Row gutter={16} align="bottom">
-            <Col xs={24} md={8}>
-              <Form.Item
-                name="ma_serial"
-                label="Tìm Xe (Số khung/Số máy)"
-                rules={[{ required: true, message: "Vui lòng chọn xe" }]}
-                extra={
-                  isExternal ? (
-                    <Badge status="warning" text="Xe ngoài hệ thống" />
-                  ) : warrantyInfo?.is_eligible ? (
-                    <Badge
-                      status="success"
-                      text="Xe cửa đặt - Ưu đãi bảo trì"
-                    />
-                  ) : null
-                }
+          <Row gutter={24}>
+            {/* Cột trái: Thông tin chung */}
+            <Col xs={24} lg={16}>
+              <Card
+                type="inner"
+                title="Thông tin xe & Khách hàng"
+                size="small"
+                style={{ marginBottom: 16 }}
               >
-                <Select
-                  showSearch
-                  placeholder="Nhập số khung/số máy để tìm..."
-                  onSearch={handleSearchXe}
-                  onChange={onSelectXe}
-                  loading={searchingXe}
-                  filterOption={false}
-                  style={{ width: "100%" }}
-                  onBlur={(e) => {
-                    // Auto-detect if user typed full serial not in list
-                    if (
-                      !xeList.some(
-                        (x) => x.ma_serial === form.getFieldValue("ma_serial"),
-                      )
-                    ) {
-                      // Optional: can trigger detection here
-                    }
-                  }}
-                >
-                  {xeList.map((x) => (
-                    <Option key={x.ma_serial} value={x.ma_serial}>
-                      {x.ma_serial} - {x.ten_xe} (
-                      {x.Partner?.ho_ten || "Chưa có chủ"})
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={4}>
-              <Form.Item label=" ">
-                <Button
-                  icon={<SearchOutlined />}
-                  onClick={detectExternalVehicle}
-                  disabled={isExternal}
-                >
-                  Xác nhận xe ngoài
-                </Button>
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              {warrantyInfo && (
-                <Alert
-                  message={
-                    warrantyInfo.is_eligible
-                      ? "Xe cửa hàng - Trong hạn bảo trì miễn phí"
-                      : "Xe cửa hàng - Hết hạn ưu đãi"
-                  }
-                  type={warrantyInfo.is_eligible ? "success" : "info"}
-                  showIcon
-                  style={{ marginBottom: 24 }}
-                />
-              )}
-              {isExternal && (
-                <Alert
-                  message="Xe ngoài hệ thống"
-                  type="warning"
-                  showIcon
-                  style={{ marginBottom: 24 }}
-                />
-              )}
-            </Col>
-          </Row>
+                <Row gutter={16}>
+                  <Col span={18}>
+                    <Form.Item
+                      name="ma_serial"
+                      label={
+                        isExternal
+                          ? "Biển số / Số khung ngoài"
+                          : "Số khung/Số máy (Trong hệ thống)"
+                      }
+                      rules={[
+                        {
+                          required: true,
+                          message: "Vui lòng cung cấp định danh xe",
+                        },
+                      ]}
+                      extra={
+                        isExternal ? (
+                          <Tag color="warning">
+                            Xe ngoài hệ thống (Sẽ tự động đăng ký)
+                          </Tag>
+                        ) : warrantyInfo?.is_eligible ? (
+                          <Tag color="success">
+                            Ưu đãi: {warrantyInfo.monthsSinceSale} tháng /{" "}
+                            {warrantyInfo.currentKm} km
+                          </Tag>
+                        ) : null
+                      }
+                    >
+                      {isExternal ? (
+                        <Input placeholder="Nhập biển số hoặc số khung xe ngoài..." />
+                      ) : (
+                        <Select
+                          showSearch
+                          placeholder="Quét mã hoặc nhập số khung..."
+                          onSearch={handleSearchXe}
+                          onChange={onSelectXe}
+                          loading={searchingXe}
+                          filterOption={false}
+                          optionLabelProp="label"
+                        >
+                          {xeList.map((x) => (
+                            <Option
+                              key={x.xe_key}
+                              value={x.xe_key}
+                              label={`${x.so_khung || x.so_may} - ${x.ten_loai}`}
+                            >
+                              <Space size="small">
+                                <CarOutlined style={{ color: "#1890ff" }} />
+                                <span style={{ fontWeight: 500 }}>
+                                  {x.so_khung || x.so_may}
+                                </span>
+                                <span style={{ color: "#8c8c8c" }}>
+                                  | {x.ten_loai} ({x.ten_mau})
+                                </span>
+                                {x.ho_ten && <Tag color="blue">{x.ho_ten}</Tag>}
+                              </Space>
+                            </Option>
+                          ))}
+                        </Select>
+                      )}
+                    </Form.Item>
+                  </Col>
+                  <Col span={6} style={{ paddingTop: 30 }}>
+                    <Button
+                      block
+                      icon={<PlusOutlined />}
+                      onClick={() => {
+                        if (isExternal) {
+                          setIsExternal(false);
+                          form.setFieldsValue({ ma_serial: null });
+                        } else {
+                          detectExternalVehicle();
+                        }
+                      }}
+                      danger={isExternal}
+                    >
+                      {isExternal ? "Hủy xe ngoài" : "Xe ngoài"}
+                    </Button>
+                  </Col>
+                </Row>
 
-          {isExternal && (
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
+                {isExternal && (
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        name="ma_hang_hoa_xe"
+                        label="Loại xe"
+                        rules={[
+                          { required: isExternal, message: "Chọn loại xe" },
+                        ]}
+                      >
+                        <AutoComplete
+                          options={productList.map((p) => ({
+                            value: p.ten_hang_hoa, // Use name since users don't know the code, backend will handle it based on name/code
+                            key: p.ma_hang_hoa,
+                          }))}
+                          placeholder="Tìm hoặc gõ model xe mới..."
+                          filterOption={(inputValue, option) =>
+                            (option?.value ?? "")
+                              .toLowerCase()
+                              .includes(inputValue.toLowerCase())
+                          }
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        name="so_khung_thuc_te"
+                        label="Số khung xác thực"
+                        rules={[
+                          { required: isExternal, message: "Nhập số khung" },
+                        ]}
+                      >
+                        <Input placeholder="Xác nhận lại số khung" />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                )}
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="ma_doi_tac"
+                      label="Chủ xe / Khách hàng"
+                      rules={[{ required: true, message: "Chọn khách hàng" }]}
+                    >
+                      <Select
+                        showSearch
+                        placeholder="Tìm chọn khách hàng..."
+                        filterOption={(input, option) =>
+                          (option?.children ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                        dropdownRender={(menu) => (
+                          <>
+                            {menu}
+                            <Divider style={{ margin: "8px 0" }} />
+                            <Space
+                              align="center"
+                              style={{ padding: "0 8px 4px" }}
+                            >
+                              <Button
+                                type="text"
+                                icon={<PlusOutlined />}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setIsAddCustomerModalVisible(true);
+                                }}
+                              >
+                                Thêm mới khách hàng
+                              </Button>
+                            </Space>
+                          </>
+                        )}
+                      >
+                        {partnerList.map((p) => (
+                          <Option
+                            key={p.ma_doi_tac || p.ma_kh}
+                            value={p.ma_doi_tac || p.ma_kh}
+                          >
+                            {p.ho_ten} - {p.dien_thoai}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item name="performer" label="Kỹ thuật viên thực hiện">
+                      <Select placeholder="Chọn người làm">
+                        {userList.map((u) => (
+                          <Option key={u.id} value={u.id}>
+                            {u.ho_ten} ({u.username})
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item name="ma_ban_nang" label="Bàn nâng điều phối">
+                      <Select placeholder="Chọn bàn nâng (nếu có)">
+                        {liftList.map((l) => (
+                          <Option key={l.ma_ban_nang} value={l.ma_ban_nang}>
+                            {l.ten_ban_nang} (
+                            {l.trang_thai === "TRONG" ? "Sẵn sàng" : "Đang bận"}
+                            )
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item name="ma_kho" label="Kho xuất phụ tùng">
+                      <Select placeholder="Chọn kho xuất mặc định">
+                        {khoList.map((k) => (
+                          <Option key={k.ma_kho} value={k.ma_kho}>
+                            {k.ten_kho}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Form.Item name="ghi_chu" label="Ghi chú">
+                  <Input.TextArea
+                    rows={2}
+                    placeholder="Tình trạng xe khi tiếp nhận..."
+                  />
+                </Form.Item>
+              </Card>
+            </Col>
+
+            {/* Cột phải: Tóm tắt và Loại hình */}
+            <Col xs={24} lg={8}>
+              <Card
+                type="inner"
+                title="Chi phí & Phân loại"
+                size="small"
+                style={{ marginBottom: 16 }}
+              >
                 <Form.Item
-                  name="ma_hang_hoa_xe"
-                  label="Loại xe (Danh mục hàng hóa)"
-                  rules={[{ required: isExternal, message: "Chọn loại xe" }]}
+                  name="loai_bao_tri"
+                  label="Phân loại dịch vụ"
+                  rules={[{ required: true }]}
                 >
-                  <Select
-                    placeholder="Chọn model xe từ danh mục"
-                    showSearch
-                    optionFilterProp="children"
-                  >
-                    {productList.map((p) => (
-                      <Option key={p.id} value={p.id}>
-                        {p.sku} - {p.name}
-                      </Option>
-                    ))}
+                  <Select onChange={handleMaintenanceTypeChange} size="large">
+                    {Object.keys(LOAI_BAO_TRI).map((key) => {
+                      const color =
+                        key === "MIEN_PHI"
+                          ? "green"
+                          : key === "BAO_HANH"
+                            ? "orange"
+                            : "blue";
+                      return (
+                        <Option key={key} value={LOAI_BAO_TRI[key]}>
+                          <Tag color={color}>{LOAI_BAO_TRI_LABELS[key]}</Tag>
+                        </Option>
+                      );
+                    })}
                   </Select>
                 </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
+
                 <Form.Item
-                  name="so_khung_thuc_te"
-                  label="Số khung thực tế"
+                  name="so_km_hien_tai"
+                  label="Số KM hiện tại"
                   rules={[
-                    { required: isExternal, message: "Nhập số khung thực tế" },
+                    { required: true, message: "Nhập số KM" },
+                    {
+                      validator: (_, value) => {
+                        const prevKm = warrantyInfo?.currentKm || 0;
+                        if (value && value < prevKm) {
+                          return Promise.reject(
+                            `Số KM phải >= số KM cũ (${prevKm})`,
+                          );
+                        }
+                        return Promise.resolve();
+                      },
+                    },
                   ]}
                 >
-                  <Input placeholder="Nhập lại số khung để xác thực" />
+                  <InputNumber
+                    style={{ width: "100%" }}
+                    min={0}
+                    size="large"
+                    addonAfter="km"
+                    formatter={(v) =>
+                      `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                    }
+                    parser={(v) => v.replace(/,/g, "")}
+                  />
                 </Form.Item>
-              </Col>
-            </Row>
-          )}
 
-          <Row gutter={16}>
-            <Col xs={24} md={8}>
-              <Form.Item
-                name="ma_doi_tac"
-                label="Khách hàng"
-                rules={[
-                  { required: true, message: "Khách hàng không được để trống" },
-                ]}
-              >
-                <Select
-                  placeholder="Chọn khách hàng"
-                  disabled={!isExternal && !form.getFieldValue("ma_serial")}
-                  showSearch
-                  optionFilterProp="children"
+                <Divider style={{ margin: "12px 0" }} />
+
+                <div
+                  style={{
+                    padding: "12px",
+                    background: "#f5f5f5",
+                    borderRadius: "8px",
+                  }}
                 >
-                  {partnerList.map((p) => (
-                    <Option key={p.ma_kh} value={p.ma_kh}>
-                      {p.ho_ten} - {p.so_dien_thoai}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={8}>
-              <Form.Item
-                name="so_km_hien_tai"
-                label="Số KM hiện tại"
-                rules={[{ required: true, message: "Nhập số KM" }]}
-              >
-                <InputNumber style={{ width: "100%" }} min={0} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={8}>
-              <Form.Item
-                name="loai_bao_tri"
-                label="Loại hình bảo trì"
-                rules={[{ required: true }]}
-              >
-                <Select onChange={handleMaintenanceTypeChange}>
-                  {Object.keys(LOAI_BAO_TRI).map((key) => (
-                    <Option key={key} value={LOAI_BAO_TRI[key]}>
-                      {LOAI_BAO_TRI_LABELS[key]}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Typography.Text type="secondary">
+                      Số lượng hạng mục:
+                    </Typography.Text>
+                    <Typography.Text>{items.length}</Typography.Text>
+                  </div>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography.Text strong style={{ fontSize: 16 }}>
+                      Tổng thanh toán:
+                    </Typography.Text>
+                    <Typography.Text
+                      strong
+                      style={{ fontSize: 18, color: "#f5222d" }}
+                    >
+                      {formatService.formatCurrency(totalAmount)}
+                    </Typography.Text>
+                  </div>
+                </div>
+              </Card>
             </Col>
           </Row>
 
-          <Row gutter={16}>
-            <Col xs={24} md={8}>
-              <Form.Item name="performer" label="Người thực hiện">
-                <Select placeholder="Chọn kỹ thuật viên">
-                  {userList.map((u) => (
-                    <Option key={u.id} value={u.id}>
-                      {u.fullname}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={16}>
-              <Form.Item name="ghi_chu" label="Ghi chú chung">
-                <Input placeholder="Ghi chú cho phiếu bảo trì này" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider orientation="left">Chi tiết hạng mục bảo trì</Divider>
+          <Divider titlePlacement="left">Chi tiết hạng mục bảo trì</Divider>
 
           <Table
             dataSource={items}
@@ -609,10 +884,10 @@ const MaintenanceFormPage = () => {
               <Table.Summary fixed>
                 <Table.Summary.Row>
                   <Table.Summary.Cell index={0} colSpan={4} align="right">
-                    <strong>Tổng cộng:</strong>
+                    <strong>Tổng tiền quyết toán:</strong>
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={1} align="right">
-                    <strong style={{ color: "#1677ff", fontSize: "16px" }}>
+                    <strong style={{ color: "#f5222d", fontSize: "18px" }}>
                       {formatService.formatCurrency(totalAmount)}
                     </strong>
                   </Table.Summary.Cell>
@@ -637,6 +912,35 @@ const MaintenanceFormPage = () => {
           </div>
         </Form>
       </Card>
+
+      {/* Modal Thêm Khách Hàng Nhanh */}
+      <Modal
+        title="Thêm mới khách hàng"
+        open={isAddCustomerModalVisible}
+        onCancel={() => setIsAddCustomerModalVisible(false)}
+        onOk={() => customerForm.submit()}
+        confirmLoading={addingCustomer}
+      >
+        <Form
+          form={customerForm}
+          layout="vertical"
+          onFinish={handleAddCustomer}
+        >
+          <Form.Item
+            name="ho_ten"
+            label="Họ tên khách hàng"
+            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+          >
+            <Input placeholder="Nhập họ tên" />
+          </Form.Item>
+          <Form.Item name="dien_thoai" label="Số điện thoại">
+            <Input placeholder="Nhập số điện thoại" />
+          </Form.Item>
+          <Form.Item name="dia_chi" label="Địa chỉ">
+            <Input placeholder="Nhập địa chỉ" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

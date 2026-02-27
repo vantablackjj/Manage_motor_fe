@@ -19,7 +19,7 @@ export const userAPI = {
   // Get all users
   getAll: async (params) => {
     const res = await axiosInstance.get(USER_ENDPOINTS.BASE, { params });
-    return res.data;
+    return res;
   },
 
   // Get user by id

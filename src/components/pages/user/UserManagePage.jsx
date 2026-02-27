@@ -35,12 +35,13 @@ import {
   SwapOutlined,
 } from "@ant-design/icons";
 import { userAPI, khoAPI } from "../../../api";
-import { notificationService, authService } from "../../../services";
+import { authService, notificationService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
+import { useDebounce } from "../../../hooks/useDebounce";
 import {
+  USER_ROLE_COLORS,
   USER_ROLE_LABELS,
   USER_ROLES,
-  USER_ROLE_COLORS,
 } from "../../../utils/constant";
 
 const { Text, Title } = Typography;
@@ -67,6 +68,7 @@ const UserManagePage = () => {
 
   const [userWarehouses, setUserWarehouses] = useState([]);
   const [warehouseLoading, setWarehouseLoading] = useState(false);
+  const debouncedSearchText = useDebounce(searchText, 500);
 
   useEffect(() => {
     fetchData();
@@ -220,8 +222,8 @@ const UserManagePage = () => {
   };
 
   const filteredData = data.filter((item) => {
-    if (!searchText) return true;
-    const search = searchText.toLowerCase();
+    if (!debouncedSearchText) return true;
+    const search = debouncedSearchText.toLowerCase();
     return (
       item.username?.toLowerCase().includes(search) ||
       item.ho_ten?.toLowerCase().includes(search) ||

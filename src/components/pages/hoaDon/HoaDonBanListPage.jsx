@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { hoaDonAPI, khoAPI, khachHangAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { TRANG_THAI_COLORS, TRANG_THAI_LABELS } from "../../../utils/constant";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 const { Option } = Select;
 
@@ -32,10 +33,16 @@ const HoaDonBanListPage = () => {
     keyword: "",
   });
 
+  const debouncedFilters = useDebounce(filters, 500);
+
   useEffect(() => {
     fetchMasterData();
     fetchData();
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [debouncedFilters]);
 
   const fetchMasterData = async () => {
     try {
@@ -247,7 +254,6 @@ const HoaDonBanListPage = () => {
                   onChange={(e) =>
                     handleFilterChange("keyword", e.target.value)
                   }
-                  onPressEnter={() => fetchData()}
                 />
               </Col>
               <Col xs={6} sm={4} md={4}>

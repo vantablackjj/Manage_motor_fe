@@ -348,7 +348,7 @@ const XeDetailPage = () => {
               </Descriptions.Item>
             </Descriptions>
 
-            <Divider orientation="left" style={{ margin: "16px 0" }}>
+            <Divider titlePlacement="left" style={{ margin: "16px 0" }}>
               Số máy & Số khung
             </Divider>
 
@@ -390,7 +390,7 @@ const XeDetailPage = () => {
               )}
             </Descriptions>
 
-            <Divider orientation="left" style={{ margin: "16px 0" }}>
+            <Divider titlePlacement="left" style={{ margin: "16px 0" }}>
               Giá bán
             </Divider>
 
@@ -422,7 +422,7 @@ const XeDetailPage = () => {
 
             {xe.da_ban && xe.khach_hang && (
               <>
-                <Divider orientation="left" style={{ margin: "16px 0" }}>
+                <Divider titlePlacement="left" style={{ margin: "16px 0" }}>
                   Khách hàng
                 </Divider>
                 <Descriptions
@@ -449,7 +449,7 @@ const XeDetailPage = () => {
 
             {xe.locked && (
               <>
-                <Divider orientation="left" style={{ margin: "16px 0" }}>
+                <Divider titlePlacement="left" style={{ margin: "16px 0" }}>
                   Thông tin khóa
                 </Divider>
                 <Descriptions
@@ -476,7 +476,7 @@ const XeDetailPage = () => {
 
             {xe.ghi_chu && (
               <>
-                <Divider orientation="left" style={{ margin: "16px 0" }}>
+                <Divider titlePlacement="left" style={{ margin: "16px 0" }}>
                   Ghi chú
                 </Divider>
                 <p style={{ margin: 0 }}>{xe.ghi_chu}</p>

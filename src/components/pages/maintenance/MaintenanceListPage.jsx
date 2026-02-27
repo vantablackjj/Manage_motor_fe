@@ -18,8 +18,11 @@ import {
   ToolOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { maintenanceAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
+import { TRANG_THAI_LABELS, TRANG_THAI_COLORS } from "../../../utils/constant";
+import { Tag } from "antd";
 
 const { RangePicker } = DatePicker;
 
@@ -34,9 +37,11 @@ const MaintenanceListPage = () => {
     den_ngay: null,
   });
 
+  const debouncedFilters = useDebounce(filters, 500);
+
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(debouncedFilters);
+  }, [debouncedFilters]);
 
   const fetchData = async (currentFilters = filters) => {
     setLoading(true);
@@ -47,7 +52,7 @@ const MaintenanceListPage = () => {
         params.den_ngay = params.den_ngay.format("YYYY-MM-DD");
 
       const res = await maintenanceAPI.getMaintenanceList(params);
-      setData(res.data?.data || []);
+      setData(res.data || res || []);
     } catch (error) {
       notificationService.error("Lỗi tải danh sách phiếu bảo trì");
     } finally {
@@ -68,20 +73,26 @@ const MaintenanceListPage = () => {
     },
     {
       title: "Ngày bảo trì",
-      dataIndex: "createdAt",
-      key: "createdAt",
+      dataIndex: "ngay_bao_tri",
+      key: "ngay_bao_tri",
       render: (val) => formatService.formatDate(val),
     },
     {
-      title: "Biển số/Số khung",
-      dataIndex: "ma_serial",
-      key: "ma_serial",
+      title: "Xe (Số khung)",
+      dataIndex: "so_khung",
+      key: "so_khung",
+      render: (text, record) => text || record.ma_serial,
     },
     {
       title: "Khách hàng",
-      dataIndex: "Partner",
-      key: "Partner",
-      render: (partner) => partner?.ho_ten || "N/A",
+      dataIndex: "ten_khach_hang",
+      key: "ten_khach_hang",
+      render: (text, record) => (
+        <Space direction="vertical" size={0}>
+          <span>{text || "N/A"}</span>
+          <small style={{ color: "#8c8c8c" }}>{record.dien_thoai}</small>
+        </Space>
+      ),
     },
     {
       title: "Số KM",
@@ -97,10 +108,20 @@ const MaintenanceListPage = () => {
       render: (val) => formatService.formatCurrency(val),
     },
     {
+      title: "Trạng thái",
+      dataIndex: "trang_thai",
+      key: "trang_thai",
+      align: "center",
+      render: (val) => (
+        <Tag color={TRANG_THAI_COLORS[val] || "default"}>
+          {TRANG_THAI_LABELS[val] || val}
+        </Tag>
+      ),
+    },
+    {
       title: "Người lập",
-      dataIndex: "User",
-      key: "User",
-      render: (user) => user?.fullname || "N/A",
+      dataIndex: "nguoi_lap_phieu",
+      key: "nguoi_lap_phieu",
     },
     {
       title: "Thao tác",
@@ -112,7 +133,7 @@ const MaintenanceListPage = () => {
             <Button
               icon={<EyeOutlined />}
               size="small"
-              onClick={() => navigate(`/maintenance/${record.id}`)}
+              onClick={() => navigate(`/maintenance/${record.ma_phieu}`)}
             />
           </Tooltip>
         </Space>
@@ -131,7 +152,7 @@ const MaintenanceListPage = () => {
         >
           <Col xs={24} md={12}>
             <h2 style={{ margin: 0 }}>
-              <ToolOutlined /> Quản lý Bảo trì
+              <ToolOutlined /> Quản lý Dịch vụ & Sửa chữa
             </h2>
           </Col>
           <Col xs={24} md={12} style={{ textAlign: "right" }}>
@@ -144,7 +165,7 @@ const MaintenanceListPage = () => {
                 icon={<PlusOutlined />}
                 onClick={() => navigate("/maintenance/create")}
               >
-                Tạo phiếu bảo trì
+                Tạo phiếu dịch vụ
               </Button>
             </Space>
           </Col>

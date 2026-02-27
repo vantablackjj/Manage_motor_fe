@@ -244,7 +244,7 @@ const XeForm = ({
           </Col>
         </Row>
 
-        <Divider orientation="left">Thông tin giá</Divider>
+        <Divider titlePlacement="left">Thông tin giá</Divider>
 
         <Row gutter={16}>
           {/* Giá nhập */}
@@ -336,7 +336,7 @@ const XeForm = ({
         {/* Display info for edit/view mode */}
         {(isEdit || isView) && initialData && (
           <>
-            <Divider orientation="left">Thông tin trạng thái</Divider>
+            <Divider titlePlacement="left">Thông tin trạng thái</Divider>
 
             <Row gutter={16}>
               <Col xs={24} md={8}>

@@ -39,6 +39,7 @@ import {
 } from "../../../services";
 import { XE_TRANG_THAI_COLORS } from "../../../utils/constant";
 import { useResponsive } from "../../../hooks/useResponsive";
+import { useDebounce } from "../../../hooks/useDebounce";
 import XeForm from "./XeForm";
 import DanhSachXeBiKhoa from "./DanhSachXeBiKhoa";
 import TonKhoXe from "./TonKhoXe";
@@ -88,6 +89,8 @@ const XeThucTe = () => {
     biKhoa: 0,
   });
 
+  const debouncedFilters = useDebounce(filters, 500);
+
   useEffect(() => {
     fetchFilterOptions();
   }, []);
@@ -96,7 +99,7 @@ const XeThucTe = () => {
     if (activeTab === "danh-sach") {
       fetchData();
     }
-  }, [page, pageSize, filters, activeTab]);
+  }, [page, pageSize, debouncedFilters, activeTab]);
 
   const handleLockXe = (record) => {
     Modal.confirm({
@@ -433,7 +436,11 @@ const XeThucTe = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
+      style={{
+        padding: "16px 8px",
+        background: "var(--bg-layout, #f0f2f5)",
+        minHeight: "100vh",
+      }}
     >
       <Card size="small">
         {/* Header */}
@@ -642,6 +649,7 @@ const XeThucTe = () => {
                   <Search
                     placeholder="Tìm kiếm xe, số khung, số máy..."
                     onSearch={handleSearch}
+                    onChange={(e) => handleSearch(e.target.value)}
                     allowClear
                   />
                 </Col>

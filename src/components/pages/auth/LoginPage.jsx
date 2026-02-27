@@ -80,7 +80,7 @@ const LoginPage = () => {
           boxShadow: isMobile ? "none" : "0 10px 40px rgba(0, 0, 0, 0.2)",
           borderRadius: isMobile ? "8px" : "12px",
         }}
-        bodyStyle={{ padding: isMobile ? "24px 16px" : "40px" }}
+        styles={{ body: { padding: isMobile ? "24px 16px" : "40px" } }}
       >
         {/* Logo & Title */}
         <div

@@ -1,18 +1,26 @@
 ﻿import React from "react";
 import { Tabs } from "antd";
 import CongNoListPage from "./CongNoListPage";
+import PartnerDebtList from "./PartnerDebtList";
 
 const { TabPane } = Tabs;
 
 const CongNoManage = () => {
   return (
     <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
+      style={{
+        padding: "16px 8px",
+        background: "var(--bg-layout, #f0f2f5)",
+        minHeight: "100vh",
+      }}
     >
       <h2 style={{ marginBottom: 16, paddingLeft: 8 }}>Quản lý Công Nợ</h2>
       <Tabs defaultActiveKey="1" type="card">
-        <TabPane tab="Tổng hợp công nợ" key="1">
+        <TabPane tab="Công nợ nội bộ" key="1">
           <CongNoListPage />
+        </TabPane>
+        <TabPane tab="Công nợ Khách hàng & NCC" key="2">
+          <PartnerDebtList />
         </TabPane>
       </Tabs>
     </div>

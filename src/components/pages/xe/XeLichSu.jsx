@@ -21,6 +21,7 @@ import {
 import { xeAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 const { Option } = Select;
 const { Search } = Input;
@@ -41,9 +42,11 @@ const XeLichSuPage = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
 
+  const debouncedXeKey = useDebounce(xeKey, 500);
+
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(debouncedXeKey);
+  }, [debouncedXeKey]);
 
   const fetchData = async (key = xeKey) => {
     setLoading(true);
@@ -159,7 +162,11 @@ const XeLichSuPage = () => {
   ];
   return (
     <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
+      style={{
+        padding: "16px 8px",
+        background: "var(--bg-layout, #f0f2f5)",
+        minHeight: "100vh",
+      }}
     >
       {/* Header */}
       <div style={{ marginBottom: 16 }}>
@@ -200,8 +207,8 @@ const XeLichSuPage = () => {
           size="small"
           onSearch={(value) => {
             setXeKey(value);
-            fetchData(value);
           }}
+          onChange={(e) => setXeKey(e.target.value)}
           style={{ width: "100%", maxWidth: isMobile ? "100%" : 400 }}
         />
       </Card>

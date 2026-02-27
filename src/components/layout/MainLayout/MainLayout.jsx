@@ -162,12 +162,15 @@ const MainLayout = ({ children }) => {
       });
     }
 
-    // === BẢO TRÌ (maintenance.view) ===
     if (hasPermission("maintenance", "view")) {
       items.push({
-        key: "/maintenance",
+        key: "/maintenance-parent",
         icon: <CustomerServiceOutlined />,
-        label: "Dịch vụ Bảo trì",
+        label: "Dịch vụ & Sửa chữa",
+        children: [
+          { key: "/maintenance", label: "Điều hành bàn nâng" },
+          { key: "/maintenance/list", label: "Danh sách phiếu" },
+        ],
       });
     }
 
@@ -339,7 +342,7 @@ const MainLayout = ({ children }) => {
           placement="left"
           open={mobileDrawerVisible}
           onClose={() => setMobileDrawerVisible(false)}
-          bodyStyle={{ padding: 0 }}
+          styles={{ body: { padding: 0 } }}
           width={250}
         >
           <Sidebar

@@ -10,15 +10,20 @@ import {
   Col,
   Divider,
   Spin,
+  Modal,
+  Select,
+  Form,
 } from "antd";
 import {
   ArrowLeftOutlined,
   PrinterOutlined,
-  ToolOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
-import { maintenanceAPI } from "../../../api";
+import { maintenanceAPI, khoAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
+import { TRANG_THAI_LABELS, TRANG_THAI_COLORS } from "../../../utils/constant";
 
 const MaintenanceDetailPage = () => {
   const { id } = useParams();
@@ -26,19 +31,64 @@ const MaintenanceDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
 
+  const [khoList, setKhoList] = useState([]);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [form] = Form.useForm();
+
   useEffect(() => {
     fetchDetail();
+    fetchWarehouses();
   }, [id]);
+
+  const fetchWarehouses = async () => {
+    try {
+      const res = await khoAPI.getAll({ limit: 100 });
+      setKhoList(res.data?.data || res.data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchDetail = async () => {
     try {
       const res = await maintenanceAPI.getMaintenanceDetail(id);
       setData(res.data || res);
     } catch (error) {
-      notificationService.error("Lỗi tải chi tiết phiếu bảo trì");
+      notificationService.error("Lỗi tải chi tiết phiếu dịch vụ");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpdateStatus = async (newStatus, ma_kho = null) => {
+    setStatusLoading(true);
+    try {
+      await maintenanceAPI.updateStatus(id, { trang_thai: newStatus, ma_kho });
+      notificationService.success(
+        `Cập nhật trạng thái [${TRANG_THAI_LABELS[newStatus]}] thành công`,
+      );
+      setIsApproveModalOpen(false);
+      fetchDetail();
+    } catch (error) {
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi cập nhật trạng thái",
+      );
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+
+  const confirmCancel = () => {
+    Modal.confirm({
+      title: "Xác nhận hủy phiếu dịch vụ",
+      content:
+        "Bạn có chắc chắn muốn hủy phiếu này không? Mọi thông tin gắn vào bàn nâng sẽ bị xóa.",
+      okText: "Hủy phiếu",
+      okType: "danger",
+      onOk: () => handleUpdateStatus("DA_HUY"),
+    });
   };
 
   const columns = [
@@ -103,13 +153,56 @@ const MaintenanceDetailPage = () => {
               onClick={() => navigate("/maintenance")}
               type="text"
             />
-            <span>Chi tiết phiếu bảo trì {data.ma_phieu}</span>
+            <span>Chi tiết phiếu dịch vụ {data.ma_phieu}</span>
+            <Tag color={TRANG_THAI_COLORS[data.trang_thai] || "default"}>
+              {TRANG_THAI_LABELS[data.trang_thai] || data.trang_thai}
+            </Tag>
           </Space>
         }
         extra={
-          <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
-            In phiếu
-          </Button>
+          <Space>
+            {data.trang_thai === "TIEP_NHAN" && (
+              <Button
+                type="primary"
+                onClick={() => handleUpdateStatus("DANG_SUA")}
+                loading={statusLoading}
+              >
+                Bắt đầu sửa (Lên bàn nâng)
+              </Button>
+            )}
+            {data.trang_thai === "DANG_SUA" && (
+              <Button
+                type="primary"
+                onClick={() => handleUpdateStatus("CHO_THANH_TOAN")}
+                loading={statusLoading}
+              >
+                Hoàn thành sửa {"->"} Chờ thanh toán
+              </Button>
+            )}
+            {data.trang_thai === "CHO_THANH_TOAN" && (
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                onClick={() => setIsApproveModalOpen(true)}
+                loading={statusLoading}
+              >
+                Hoàn thành & Xuất kho
+              </Button>
+            )}
+            {!["HOAN_THANH", "DA_HUY"].includes(data.trang_thai) && (
+              <Button
+                danger
+                icon={<CloseCircleOutlined />}
+                onClick={confirmCancel}
+                loading={statusLoading}
+              >
+                Hủy phiếu
+              </Button>
+            )}
+            <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
+              In phiếu
+            </Button>
+          </Space>
         }
         size="small"
       >
@@ -119,48 +212,53 @@ const MaintenanceDetailPage = () => {
           column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}
         >
           <Descriptions.Item label="Mã phiếu">
-            {data.ma_phieu}
+            <strong>{data.ma_phieu}</strong>
           </Descriptions.Item>
           <Descriptions.Item label="Ngày lập">
-            {formatService.formatDate(data.createdAt)}
+            {formatService.formatDate(data.ngay_bao_tri)}
           </Descriptions.Item>
           <Descriptions.Item label="Nhân viên">
-            {data.User?.fullname || "N/A"}
+            {data.nguoi_lap_phieu || "N/A"}
           </Descriptions.Item>
           <Descriptions.Item label="Xe (Số khung)">
-            {data.ma_serial}
+            {data.so_khung} ({data.ten_loai_xe})
           </Descriptions.Item>
           <Descriptions.Item label="Khách hàng">
-            {data.Partner?.ho_ten || "N/A"}
+            {data.ten_khach_hang} - {data.dien_thoai}
           </Descriptions.Item>
           <Descriptions.Item label="Số KM">
             {formatService.formatNumber(data.so_km_hien_tai)}
           </Descriptions.Item>
-          <Descriptions.Item label="Ghi chú" span={3}>
+          <Descriptions.Item label="Phân loại">
+            <Tag color={data.loai_bao_tri === "MIEN_PHI" ? "green" : "blue"}>
+              {data.loai_bao_tri}
+            </Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="Ghi chú" span={2}>
             {data.ghi_chu || "Không có"}
           </Descriptions.Item>
         </Descriptions>
 
-        <Divider orientation="left">Danh sách hạng mục</Divider>
+        <Divider titlePlacement="left">Danh sách hạng mục</Divider>
 
         <Table
-          dataSource={data.MaintenanceDetails || []}
+          dataSource={data.chi_tiet || []}
           columns={columns}
           rowKey="id"
           pagination={false}
           size="small"
           summary={(pageData) => {
             const total = pageData.reduce(
-              (sum, item) => sum + (item.thanh_tien || 0),
+              (sum, item) => sum + Number(item.thanh_tien || 0),
               0,
             );
             return (
               <Table.Summary.Row>
                 <Table.Summary.Cell index={0} colSpan={4} align="right">
-                  <strong>Tổng cộng:</strong>
+                  <strong>Tổng thanh toán:</strong>
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={1} align="right">
-                  <strong style={{ color: "#1677ff", fontSize: "16px" }}>
+                  <strong style={{ color: "#f5222d", fontSize: "16px" }}>
                     {formatService.formatCurrency(total)}
                   </strong>
                 </Table.Summary.Cell>
@@ -169,6 +267,38 @@ const MaintenanceDetailPage = () => {
           }}
         />
       </Card>
+
+      <Modal
+        title="Hoàn thành & Xuất kho phụ tùng"
+        open={isApproveModalOpen}
+        onCancel={() => setIsApproveModalOpen(false)}
+        confirmLoading={statusLoading}
+        onOk={() => form.submit()}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{ ma_kho: data.ma_kho }}
+          onFinish={(values) => handleUpdateStatus("HOAN_THANH", values.ma_kho)}
+        >
+          <Form.Item
+            name="ma_kho"
+            label="Chọn Kho xuất phụ tùng"
+            rules={[
+              { required: true, message: "Vui lòng chọn kho để trừ phụ tùng" },
+            ]}
+            extra="* Toàn bộ phụ tùng trong phiếu sẽ được tự động xuất trừ kho từ kho này."
+          >
+            <Select placeholder="-- Chọn kho xuất --">
+              {khoList.map((k) => (
+                <Select.Option key={k.ma_kho} value={k.ma_kho}>
+                  {k.ma_kho} - {k.ten_kho}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

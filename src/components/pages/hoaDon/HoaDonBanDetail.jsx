@@ -552,7 +552,7 @@ const HoaDonBanDetail = () => {
             />
           </Form.Item>
 
-          <Divider orientation="left">Thông tin thanh toán</Divider>
+          <Divider titlePlacement="left">Thông tin thanh toán</Divider>
           <Form.Item
             name={["payment_info", "should_pay"]}
             valuePropName="checked"

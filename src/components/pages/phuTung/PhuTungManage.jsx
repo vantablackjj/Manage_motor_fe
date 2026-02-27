@@ -39,6 +39,7 @@ import LichSuModal from "./PhuTungLichSu";
 import DanhSachKhoaTab from "./DanhSachKhoa";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { notificationService } from "../../../services";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 const PhuTungManage = () => {
   const { isMobile, isTablet } = useResponsive();
@@ -64,13 +65,15 @@ const PhuTungManage = () => {
 
   const ma_kho = authService.getDefaultWarehouse();
 
+  const debouncedSearchText = useDebounce(searchText, 500);
+
   useEffect(() => {
     if (activeTab === "danh-sach") {
       loadDanhSach();
     } else if (activeTab === "ton-kho") {
       loadTonKho();
     }
-  }, [activeTab, nhomPT, searchText, trangThaiTon]);
+  }, [activeTab, nhomPT, debouncedSearchText, trangThaiTon]);
 
   useEffect(() => {
     fetchFilters();
@@ -92,7 +95,7 @@ const PhuTungManage = () => {
     try {
       const response = await phuTungAPI.getAll({
         ma_nh: nhomPT,
-        search: searchText,
+        search: debouncedSearchText,
         status: "all",
       });
       if (response.success) {
@@ -123,7 +126,7 @@ const PhuTungManage = () => {
     setLoading(true);
     try {
       const res = await tonKhoAPI.getAll({
-        ma_pt: searchText || undefined,
+        ma_pt: debouncedSearchText || undefined,
       });
       if (res.success) {
         setTonKhoData(res.data);
@@ -423,7 +426,11 @@ const PhuTungManage = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
+      style={{
+        padding: "16px 8px",
+        background: "var(--bg-layout, #f0f2f5)",
+        minHeight: "100vh",
+      }}
     >
       <Card size="small">
         <div style={{ marginBottom: 16 }}>

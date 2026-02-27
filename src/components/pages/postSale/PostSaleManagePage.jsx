@@ -30,6 +30,7 @@ import {
 import { postSaleAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import dayjs from "dayjs";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 const { Option } = Select;
 const { Text, Title } = Typography;
@@ -56,10 +57,15 @@ const PostSaleManagePage = () => {
   const [regForm] = Form.useForm();
   const [inspForm] = Form.useForm();
 
+  const debouncedFilters = useDebounce(filters, 500);
+
   useEffect(() => {
     fetchStats();
-    fetchData();
   }, []);
+
+  useEffect(() => {
+    fetchData(debouncedFilters);
+  }, [debouncedFilters]);
 
   const fetchStats = async () => {
     try {
@@ -89,7 +95,6 @@ const PostSaleManagePage = () => {
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
-    fetchData(newFilters);
   };
 
   const handleOpenRegModal = (record) => {

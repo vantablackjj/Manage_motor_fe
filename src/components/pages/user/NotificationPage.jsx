@@ -124,7 +124,7 @@ const NotificationPage = () => {
         </Space>
       </div>
 
-      <Card bodyStyle={{ padding: 0 }} className="custom-shadow-card">
+      <Card styles={{ body: { padding: 0 } }} className="custom-shadow-card">
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}

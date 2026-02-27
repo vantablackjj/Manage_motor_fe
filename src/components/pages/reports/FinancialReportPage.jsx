@@ -233,9 +233,9 @@ const FinancialReportPage = () => {
       width: 120,
     },
     {
-      title: "Tổng phải trả",
-      dataIndex: "tong_phai_tra",
-      key: "tong_phai_tra",
+      title: "Tổng nợ",
+      dataIndex: "tong_no",
+      key: "tong_no",
       align: "right",
       width: 150,
       render: (val) => formatService.formatCurrency(val),
@@ -415,7 +415,13 @@ const FinancialReportPage = () => {
           </Row>
         )}
 
-        <Card size="small" style={{ marginBottom: 16, background: "var(--bg-secondary, #fafafa)" }}>
+        <Card
+          size="small"
+          style={{
+            marginBottom: 16,
+            background: "var(--bg-secondary, #fafafa)",
+          }}
+        >
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={12} md={6}>
               <Text strong>Thời gian:</Text>

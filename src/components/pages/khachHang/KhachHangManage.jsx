@@ -32,6 +32,7 @@ import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
 import { notificationService, authService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LOAI_DOI_TAC,
@@ -62,6 +63,7 @@ const KhachHangManage = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [searchText, setSearchText] = useState("");
+  const debouncedSearchText = useDebounce(searchText, 500);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -187,8 +189,8 @@ const KhachHangManage = () => {
   };
 
   const filteredData = data.filter((item) => {
-    if (!searchText) return true;
-    const search = searchText.toLowerCase();
+    if (!debouncedSearchText) return true;
+    const search = debouncedSearchText.toLowerCase();
     return (
       item.ho_ten?.toLowerCase().includes(search) ||
       item.dien_thoai?.toLowerCase().includes(search) ||
@@ -300,7 +302,11 @@ const KhachHangManage = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
+      style={{
+        padding: "16px 8px",
+        background: "var(--bg-layout, #f0f2f5)",
+        minHeight: "100vh",
+      }}
     >
       <Card size="small">
         <Row

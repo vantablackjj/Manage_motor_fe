@@ -30,6 +30,7 @@ import {
   authService,
 } from "../../../services";
 import { TRANG_THAI_COLORS, TRANG_THAI_LABELS } from "../../../utils/constant";
+import { useDebounce } from "../../../hooks/useDebounce";
 import XeForm from "./XeForm";
 
 const { Option } = Select;
@@ -51,10 +52,12 @@ const VehicleApprovalList = () => {
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
+  const debouncedFilters = useDebounce(filters, 500);
+
   useEffect(() => {
     fetchKhoList();
     fetchData();
-  }, [filters]);
+  }, [debouncedFilters]);
 
   const fetchKhoList = async () => {
     try {

@@ -32,6 +32,7 @@ import { useNavigate } from "react-router-dom";
 import { thuChiAPI, khoAPI, khachHangAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { TRANG_THAI_COLORS, LOAI_THU_CHI } from "../../../utils/constant";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -65,10 +66,15 @@ const ThuChiList = () => {
     keyword: "",
   });
 
+  const debouncedFilters = useDebounce(filters, 500);
+
   useEffect(() => {
     fetchInitialData();
-    fetchData();
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [debouncedFilters]);
 
   const fetchInitialData = async () => {
     try {
@@ -399,7 +405,6 @@ const ThuChiList = () => {
                   onChange={(e) =>
                     handleFilterChange("keyword", e.target.value)
                   }
-                  onPressEnter={() => fetchData()}
                 />
               </Col>
               <Col xs={6} sm={4} md={4}>
