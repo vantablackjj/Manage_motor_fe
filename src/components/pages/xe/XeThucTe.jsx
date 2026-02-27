@@ -529,7 +529,7 @@ const XeThucTe = () => {
                     title="Tổng"
                     value={stats.total}
                     prefix={<CarOutlined />}
-                    valueStyle={{ fontSize: isMobile ? 16 : 24 }}
+                    styles={{ content: { fontSize: isMobile ? 16 : 24 } }}
                   />
                 </Card>
               </Col>
@@ -538,9 +538,11 @@ const XeThucTe = () => {
                   <Statistic
                     title="Tồn kho"
                     value={stats.tonKho}
-                    valueStyle={{
-                      color: "#3f8600",
-                      fontSize: isMobile ? 16 : 24,
+                    styles={{
+                      content: {
+                        color: "#3f8600",
+                        fontSize: isMobile ? 16 : 24,
+                      },
                     }}
                   />
                 </Card>
@@ -550,9 +552,11 @@ const XeThucTe = () => {
                   <Statistic
                     title="Đã bán"
                     value={stats.daBan}
-                    valueStyle={{
-                      color: "#cf1322",
-                      fontSize: isMobile ? 16 : 24,
+                    styles={{
+                      content: {
+                        color: "#cf1322",
+                        fontSize: isMobile ? 16 : 24,
+                      },
                     }}
                   />
                 </Card>
@@ -562,9 +566,11 @@ const XeThucTe = () => {
                   <Statistic
                     title="Chuyển"
                     value={stats.dangChuyen}
-                    valueStyle={{
-                      color: "#1890ff",
-                      fontSize: isMobile ? 16 : 24,
+                    styles={{
+                      content: {
+                        color: "#1890ff",
+                        fontSize: isMobile ? 16 : 24,
+                      },
                     }}
                   />
                 </Card>
@@ -735,7 +741,7 @@ const XeThucTe = () => {
         open={formVisible}
         onCancel={handleCloseForm}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <XeForm
           mode={formMode}

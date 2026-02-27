@@ -19,15 +19,11 @@ import {
 } from "antd";
 import {
   ArrowLeftOutlined,
-  CheckCircleOutlined,
-  SendOutlined,
-  ImportOutlined,
-  CloseCircleOutlined,
-  DeleteOutlined,
-  PlusOutlined,
   PrinterOutlined,
-  EditOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
+import PrintTemplate from "../../../features/Print/PrintTemplate";
 import { donHangMuaXeAPI } from "../../../../api";
 import {
   formatService,
@@ -48,6 +44,25 @@ const VehiclePurchaseDetail = () => {
 
   // Receipt Modal State
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+
+  const [printModalVisible, setPrintModalVisible] = useState(false);
+  const [printType, setPrintType] = useState("ORDER");
+
+  const handlePrintLocal = (type) => {
+    setPrintType(type);
+    setPrintModalVisible(true);
+    setTimeout(() => {
+      const printContent = document.getElementById("print-content");
+      if (printContent) {
+        const originalContents = document.body.innerHTML;
+        const printContents = printContent.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload();
+      }
+    }, 500);
+  };
 
   // Master Data
   const [vehicleTypes, setVehicleTypes] = useState([]);
@@ -337,7 +352,7 @@ const VehiclePurchaseDetail = () => {
                 Nhập kho
               </Button>
             )}
-            <Button icon={<PrinterOutlined />} onClick={handlePrint}>
+            <Button icon={<PrinterOutlined />} onClick={() => handlePrintLocal("ORDER")}>
               In đơn hàng
             </Button>
           </Space>
@@ -613,6 +628,17 @@ const VehiclePurchaseDetail = () => {
         orderId={ma_phieu}
         onSuccess={handleReceiptSuccess}
       />
+
+      {/* Print Modal */}
+      <Modal
+        open={printModalVisible}
+        onCancel={() => setPrintModalVisible(false)}
+        footer={null}
+        width={800}
+        style={{ display: "none" }}
+      >
+        {header && <PrintTemplate data={{...header, chi_tiet: items}} type={printType} />}
+      </Modal>
 
       {/* ADD DETAIL MODAL */}
       <Modal

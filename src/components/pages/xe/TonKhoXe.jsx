@@ -197,7 +197,7 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
             <Statistic
               title="Loại xe tồn kho"
               value={loaiXeTonKho}
-              valueStyle={{ color: "#3f8600" }}
+              styles={{ content: { color: "#3f8600" } }}
             />
           </Card>
         </Col>
@@ -207,7 +207,7 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
               title="Giá trị tồn kho"
               value={tongGiaTri}
               formatter={(value) => formatService.formatCurrency(value)}
-              valueStyle={{ color: "#1890ff" }}
+              styles={{ content: { color: "#1890ff" } }}
             />
           </Card>
         </Col>

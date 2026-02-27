@@ -112,6 +112,7 @@ const PostSaleManagePage = () => {
       ngay_tra_giay_dang_kiem: record.ngay_tra_giay_dang_kiem
         ? dayjs(record.ngay_tra_giay_dang_kiem)
         : null,
+      han_dang_kiem: record.han_dang_kiem ? dayjs(record.han_dang_kiem) : null,
     });
     setInspModalVisible(true);
   };
@@ -144,6 +145,9 @@ const PostSaleManagePage = () => {
       const payload = {
         ngay_tra_giay_dang_kiem: values.ngay_tra_giay_dang_kiem
           ? values.ngay_tra_giay_dang_kiem.format("YYYY-MM-DD")
+          : null,
+        han_dang_kiem: values.han_dang_kiem
+          ? values.han_dang_kiem.format("YYYY-MM-DD")
           : null,
       };
       const res = await postSaleAPI.updateInspection(
@@ -217,9 +221,15 @@ const PostSaleManagePage = () => {
       dataIndex: "is_inspected",
       key: "is_inspected",
       align: "center",
-      render: (status) =>
+      render: (status, record) =>
         status ? (
-          <CheckCircleOutlined style={{ color: "#52c41a", fontSize: "18px" }} />
+          <Tooltip
+            title={`Hạn đăng kiểm: ${formatService.formatDate(record.han_dang_kiem)}`}
+          >
+            <CheckCircleOutlined
+              style={{ color: "#52c41a", fontSize: "18px" }}
+            />
+          </Tooltip>
         ) : (
           <ClockCircleOutlined style={{ color: "#faad14", fontSize: "18px" }} />
         ),
@@ -385,6 +395,13 @@ const PostSaleManagePage = () => {
             name="ngay_tra_giay_dang_kiem"
             label="Ngày trả giấy đăng kiểm"
             rules={[{ required: true, message: "Vui lòng chọn ngày!" }]}
+          >
+            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+          </Form.Item>
+          <Form.Item
+            name="han_dang_kiem"
+            label="Hạn đăng kiểm (Ngày hết hạn)"
+            rules={[{ required: true, message: "Vui lòng chọn ngày hết hạn!" }]}
           >
             <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
           </Form.Item>

@@ -374,7 +374,7 @@ const FinancialReportPage = () => {
                   title="Tổng phải thu"
                   value={summary.tong_phai_thu || 0}
                   precision={0}
-                  valueStyle={{ color: "#52c41a" }}
+                  styles={{ content: { color: "#52c41a" } }}
                   prefix={<RiseOutlined />}
                   suffix="₫"
                   formatter={(value) => formatService.formatCurrency(value)}
@@ -387,7 +387,7 @@ const FinancialReportPage = () => {
                   title="Tổng phải trả"
                   value={summary.tong_phai_tra || 0}
                   precision={0}
-                  valueStyle={{ color: "#ff4d4f" }}
+                  styles={{ content: { color: "#ff4d4f" } }}
                   prefix={<FallOutlined />}
                   suffix="₫"
                   formatter={(value) => formatService.formatCurrency(value)}
@@ -399,7 +399,7 @@ const FinancialReportPage = () => {
                 <Statistic
                   title="Số khách hàng còn nợ"
                   value={summary.so_khach_hang_no || 0}
-                  valueStyle={{ color: "#1890ff" }}
+                  styles={{ content: { color: "#1890ff" } }}
                 />
               </Card>
             </Col>
@@ -408,7 +408,7 @@ const FinancialReportPage = () => {
                 <Statistic
                   title="Số nhà cung cấp còn nợ"
                   value={summary.so_nha_cung_cap_no || 0}
-                  valueStyle={{ color: "#faad14" }}
+                  styles={{ content: { color: "#faad14" } }}
                 />
               </Card>
             </Col>

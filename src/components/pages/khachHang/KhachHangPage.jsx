@@ -404,91 +404,113 @@ const KhachHangListPage = () => {
               </Form.Item>
             </Col>
 
-            <Col xs={24} sm={12}>
+            <Col span={12}>
               <Form.Item
-                name="ho_ten"
-                label="Họ tên"
-                rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+                name="is_business"
+                label="Loại đối tác"
+                initialValue={false}
               >
-                <Input placeholder="Nhập họ tên" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={[16, 0]}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                name="dien_thoai"
-                label="Điện thoại"
-                rules={[
-                  {
-                    pattern: /^(0|\+84)[0-9]{9}$/,
-                    message: "SĐT không hợp lệ",
-                  },
-                ]}
-              >
-                <Input placeholder="0xxxxxxxxx" />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={12}>
-              <Form.Item
-                name="email"
-                label="Email"
-                rules={[{ type: "email", message: "Email không hợp lệ" }]}
-              >
-                <Input placeholder="email@example.com" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={[16, 0]}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                name="so_cmnd"
-                label="CMND/CCCD"
-                rules={[
-                  {
-                    pattern: /^[0-9]{9,12}$/,
-                    message: "CMND/CCCD không hợp lệ",
-                  },
-                ]}
-              >
-                <Input placeholder="9-12 số" />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={12}>
-              <Form.Item name="ngay_sinh" label="Ngày sinh">
-                <DatePicker
-                  style={{ width: "100%" }}
-                  format="DD/MM/YYYY"
-                  placeholder="Chọn ngày sinh"
+                <Select
+                  options={[
+                    { label: "Cá nhân", value: false },
+                    { label: "Doanh nghiệp", value: true },
+                  ]}
                 />
               </Form.Item>
             </Col>
           </Row>
 
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) => prevValues.is_business !== currentValues.is_business}
+          >
+            {({ getFieldValue }) => {
+              const isBusiness = getFieldValue("is_business");
+              return (
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="ho_ten"
+                      label={isBusiness ? "Tên công ty/doanh nghiệp" : "Họ tên cá nhân"}
+                      rules={[{ required: true, message: isBusiness ? "Vui lòng nhập tên công ty" : "Vui lòng nhập họ tên" }]}
+                    >
+                      <Input placeholder={isBusiness ? "Công ty TNHH..." : "Nguyễn Văn A"} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="ma_so_thue"
+                      label={isBusiness ? "Mã số thuế" : "Số CCCD/MST cá nhân"}
+                      rules={[
+                        { required: isBusiness, message: "Vui lòng nhập mã số thuế" },
+                        { pattern: /^[0-9]{10,13}$/, message: "Mã số thuế/CCCD không hợp lệ (10-13 số)" }
+                      ]}
+                    >
+                      <Input placeholder={isBusiness ? "MST doanh nghiệp" : "Số CCCD hoặc MST cá nhân"} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              );
+            }}
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item 
+                name="dien_thoai" 
+                label="Điện thoại"
+                rules={[
+                  { required: true, message: "Vui lòng nhập SĐT" },
+                  { pattern: /^[0-9]{10,11}$/, message: "Số điện thoại không hợp lệ (10-11 số)" }
+                ]}
+              >
+                <Input placeholder="09xxxxxxxx" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item 
+                name="email" 
+                label="Email"
+                rules={[{ type: "email", message: "Email không hợp lệ" }]}
+              >
+                <Input placeholder="example@gmail.com" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) => prevValues.is_business !== currentValues.is_business}
+          >
+            {({ getFieldValue }) => {
+              const isBusiness = getFieldValue("is_business");
+              return !isBusiness ? (
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item name="ngay_sinh" label="Ngày sinh">
+                      <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" placeholder="Chọn ngày sinh" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              ) : (
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item name="dai_dien" label="Người đại diện">
+                      <Input placeholder="Họ tên người đại diện" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              );
+            }}
+          </Form.Item>
+
           <Form.Item name="dia_chi" label="Địa chỉ">
-            <Input.TextArea rows={2} placeholder="Nhập địa chỉ" />
+            <Input.TextArea rows={2} placeholder="Địa chỉ chi tiết" />
           </Form.Item>
 
           <Form.Item name="la_ncc" valuePropName="checked">
             <Checkbox>Là nhà cung cấp</Checkbox>
           </Form.Item>
-
-          <Row gutter={[16, 0]}>
-            <Col xs={24} sm={12}>
-              <Form.Item name="dai_dien" label="Người đại diện">
-                <Input placeholder="Tên người đại diện" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item name="ma_so_thue" label="Mã số thuế">
-                <Input placeholder="Mã số thuế" />
-              </Form.Item>
-            </Col>
-          </Row>
 
           <Form.Item style={{ marginBottom: 0, marginTop: 16 }}>
             <Space wrap style={{ width: "100%", justifyContent: "flex-end" }}>

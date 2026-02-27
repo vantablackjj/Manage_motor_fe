@@ -67,7 +67,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "https://motor-manage.onrender.com",
+        target: "http://127.0.0.1:5000",
         changeOrigin: true,
         secure: false,
       },

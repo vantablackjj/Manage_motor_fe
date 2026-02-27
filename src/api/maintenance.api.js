@@ -41,6 +41,16 @@ const maintenanceApi = {
   updateStatus: (id, payload) => {
     return axiosInstance.put(`/maintenance/${id}/status`, payload);
   },
+
+  // Lấy danh sách nhắc nhở bảo trì
+  getReminders: (params) => {
+    return axiosInstance.get("/maintenance/reminders", { params });
+  },
+
+  // Cập nhật trạng thái nhắc nhở bảo trì
+  updateReminderStatus: (id, payload) => {
+    return axiosInstance.patch(`/maintenance/reminders/${id}`, payload);
+  },
 };
 
 export default maintenanceApi;

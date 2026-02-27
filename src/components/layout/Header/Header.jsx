@@ -166,28 +166,24 @@ const HeaderBar = ({
       </div>
 
       <div className="header-right">
-        <Space size={isMobile ? "middle" : "large"}>
-          {!isMobile && (
-            <Tooltip title={isDarkMode ? "Chế độ sáng" : "Chế độ tối"}>
-              <Switch
-                checkedChildren={<MoonOutlined />}
-                unCheckedChildren={<SunOutlined />}
-                checked={isDarkMode}
-                onChange={toggleTheme}
-                size="small"
-              />
-            </Tooltip>
-          )}
+        <Space size={isMobile ? "small" : "large"}>
+          <Tooltip title={isDarkMode ? "Chế độ sáng" : "Chế độ tối"}>
+            <Switch
+              checkedChildren={<MoonOutlined />}
+              unCheckedChildren={<SunOutlined />}
+              checked={isDarkMode}
+              onChange={toggleTheme}
+              size="small"
+            />
+          </Tooltip>
 
-          {!isMobile && (
-            <Tooltip title="Tìm kiếm nhanh (Ctrl + K)">
-              <SearchOutlined
-                className="header-icon"
-                style={{ fontSize: 20, cursor: "pointer" }}
-                onClick={onOpenSearch}
-              />
-            </Tooltip>
-          )}
+          <Tooltip title={isMobile ? "Tìm kiếm" : "Tìm kiếm nhanh (Ctrl + K)"}>
+            <SearchOutlined
+              className="header-icon"
+              style={{ fontSize: 20, cursor: "pointer" }}
+              onClick={onOpenSearch}
+            />
+          </Tooltip>
 
           <Popover
             content={notificationContent}

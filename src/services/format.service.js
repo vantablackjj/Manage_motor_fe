@@ -58,11 +58,10 @@ class FormatService {
       typeof amount === "string" ? parseFloat(amount) : amount;
 
     return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
+      style: "decimal",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(numericAmount);
+    }).format(numericAmount) + " ₫";
   }
 
   formatNumber(number, decimals = 0) {

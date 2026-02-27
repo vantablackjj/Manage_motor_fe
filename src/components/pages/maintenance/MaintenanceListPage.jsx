@@ -119,6 +119,12 @@ const MaintenanceListPage = () => {
       ),
     },
     {
+      title: "Kỹ thuật viên",
+      dataIndex: "ten_ktv",
+      key: "ten_ktv",
+      render: (text, record) => text || record.ktv_chinh || "-",
+    },
+    {
       title: "Người lập",
       dataIndex: "nguoi_lap_phieu",
       key: "nguoi_lap_phieu",

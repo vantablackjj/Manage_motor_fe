@@ -21,7 +21,9 @@ import {
   SearchOutlined,
   TableOutlined,
   ProjectOutlined,
+  ScanOutlined,
 } from "@ant-design/icons";
+import QRScannerModal from "../../features/Scanner/QRScannerModal";
 import { Segmented } from "antd";
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
@@ -58,6 +60,16 @@ const SalesOrderList = () => {
     pageSize: 20,
     total: 0,
   });
+  const [scannerVisible, setScannerVisible] = useState(false);
+
+  const handleScanSuccess = (decodedText) => {
+    setScannerVisible(false);
+    // Assuming the QR code contains the order ID or code
+    // We can navigate to the detail page
+    if (decodedText) {
+      navigate(`/sales/orders/${decodedText}`);
+    }
+  };
 
   useEffect(() => {
     fetchKhoList();
@@ -205,6 +217,12 @@ const SalesOrderList = () => {
           </Col>
           <Col xs={24} md={12} style={{ textAlign: "right" }}>
             <Space wrap>
+              <Button
+                icon={<ScanOutlined />}
+                onClick={() => setScannerVisible(true)}
+              >
+                Quét mã
+              </Button>
               <ImportButton
                 module="xuat-kho"
                 title="Hóa Đơn Xuất Kho"
@@ -239,7 +257,7 @@ const SalesOrderList = () => {
         </Row>
 
         <div style={{ marginBottom: 16 }}>
-          <Space direction="vertical" style={{ width: "100%" }} size="middle">
+          <Space orientation="vertical" style={{ width: "100%" }} size="middle">
             <Row gutter={[8, 8]}>
               <Col xs={24} sm={12} md={6}>
                 <Select
@@ -311,6 +329,12 @@ const SalesOrderList = () => {
           <OrderKanban data={data} loading={loading} />
         )}
       </Card>
+
+      <QRScannerModal
+        visible={scannerVisible}
+        onClose={() => setScannerVisible(false)}
+        onScanSuccess={handleScanSuccess}
+      />
     </div>
   );
 };

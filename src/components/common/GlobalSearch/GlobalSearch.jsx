@@ -8,6 +8,7 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useResponsive } from "../../../hooks/useResponsive";
 import { orderAPI, xeAPI, phuTungAPI, khachHangAPI } from "../../../api";
 import "./GlobalSearch.css";
 
@@ -15,6 +16,7 @@ const { Text } = Typography;
 
 const GlobalSearch = ({ visible, onClose }) => {
   const navigate = useNavigate();
+  const { isMobile } = useResponsive();
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
@@ -187,8 +189,8 @@ const GlobalSearch = ({ visible, onClose }) => {
       footer={null}
       closable={false}
       className="global-search-modal"
-      width={600}
-      style={{ top: 100 }}
+      width={isMobile ? "96%" : 600}
+      style={{ top: isMobile ? 50 : 100 }}
     >
       <Input
         ref={inputRef}

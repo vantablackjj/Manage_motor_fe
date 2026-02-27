@@ -67,7 +67,6 @@ const MaintenanceDetailPage = () => {
       notificationService.success(
         `Cập nhật trạng thái [${TRANG_THAI_LABELS[newStatus]}] thành công`,
       );
-      setIsApproveModalOpen(false);
       fetchDetail();
     } catch (error) {
       notificationService.error(
@@ -78,7 +77,7 @@ const MaintenanceDetailPage = () => {
     }
   };
 
-  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  // const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
 
   const confirmCancel = () => {
     Modal.confirm({
@@ -183,7 +182,26 @@ const MaintenanceDetailPage = () => {
               <Button
                 type="primary"
                 icon={<CheckCircleOutlined />}
-                onClick={() => setIsApproveModalOpen(true)}
+                onClick={() => {
+                  Modal.confirm({
+                    title: "Xác nhận Hoàn thành & Xuất kho",
+                    content: (
+                      <div>
+                        <p>
+                          Hệ thống sẽ ghi nhận hoàn thành và trừ tồn kho phụ
+                          tùng.
+                        </p>
+                        <p>
+                          Kho xuất:{" "}
+                          <strong>{data.ten_kho || data.ma_kho}</strong>
+                        </p>
+                      </div>
+                    ),
+                    okText: "Xác nhận hoàn thành",
+                    cancelText: "Quay lại",
+                    onOk: () => handleUpdateStatus("HOAN_THANH", data.ma_kho),
+                  });
+                }}
                 loading={statusLoading}
               >
                 Hoàn thành & Xuất kho
@@ -217,7 +235,7 @@ const MaintenanceDetailPage = () => {
           <Descriptions.Item label="Ngày lập">
             {formatService.formatDate(data.ngay_bao_tri)}
           </Descriptions.Item>
-          <Descriptions.Item label="Nhân viên">
+          <Descriptions.Item label="Người lập phiếu">
             {data.nguoi_lap_phieu || "N/A"}
           </Descriptions.Item>
           <Descriptions.Item label="Xe (Số khung)">
@@ -233,6 +251,15 @@ const MaintenanceDetailPage = () => {
             <Tag color={data.loai_bao_tri === "MIEN_PHI" ? "green" : "blue"}>
               {data.loai_bao_tri}
             </Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="Kỹ thuật viên">
+            {data.ten_ktv || data.ktv_chinh || "Chưa phân công"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Tiền phụ tùng">
+            {formatService.formatCurrency(data.tien_phu_tung)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Tiền công">
+            {formatService.formatCurrency(data.tien_cong)}
           </Descriptions.Item>
           <Descriptions.Item label="Ghi chú" span={2}>
             {data.ghi_chu || "Không có"}
@@ -267,38 +294,6 @@ const MaintenanceDetailPage = () => {
           }}
         />
       </Card>
-
-      <Modal
-        title="Hoàn thành & Xuất kho phụ tùng"
-        open={isApproveModalOpen}
-        onCancel={() => setIsApproveModalOpen(false)}
-        confirmLoading={statusLoading}
-        onOk={() => form.submit()}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{ ma_kho: data.ma_kho }}
-          onFinish={(values) => handleUpdateStatus("HOAN_THANH", values.ma_kho)}
-        >
-          <Form.Item
-            name="ma_kho"
-            label="Chọn Kho xuất phụ tùng"
-            rules={[
-              { required: true, message: "Vui lòng chọn kho để trừ phụ tùng" },
-            ]}
-            extra="* Toàn bộ phụ tùng trong phiếu sẽ được tự động xuất trừ kho từ kho này."
-          >
-            <Select placeholder="-- Chọn kho xuất --">
-              {khoList.map((k) => (
-                <Select.Option key={k.ma_kho} value={k.ma_kho}>
-                  {k.ma_kho} - {k.ten_kho}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };

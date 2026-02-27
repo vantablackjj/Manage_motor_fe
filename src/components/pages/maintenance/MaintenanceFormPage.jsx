@@ -64,6 +64,7 @@ const MaintenanceFormPage = () => {
   const [partnerList, setPartnerList] = useState([]); // For external vehicle partner selection
   const [liftList, setLiftList] = useState([]); // List of lifts
   const [khoList, setKhoList] = useState([]); // List of warehouses
+  const [stockMap, setStockMap] = useState({}); // { ma_pt: so_luong_kha_dung }
 
   const [isExternal, setIsExternal] = useState(false);
   const [warrantyInfo, setWarrantyInfo] = useState(null);
@@ -94,7 +95,33 @@ const MaintenanceFormPage = () => {
     if (location.state?.ma_ban_nang) {
       form.setFieldsValue({ ma_ban_nang: location.state.ma_ban_nang });
     }
+    if (form.getFieldValue("ma_kho")) {
+      fetchStock(form.getFieldValue("ma_kho"));
+    }
   }, []);
+
+  const watchedMaKho = Form.useWatch("ma_kho", form);
+  useEffect(() => {
+    if (watchedMaKho) {
+      fetchStock(watchedMaKho);
+    } else {
+      setStockMap({});
+    }
+  }, [watchedMaKho]);
+
+  const fetchStock = async (ma_kho) => {
+    try {
+      const res = await phuTungAPI.getTonKho(ma_kho);
+      const list = res.data || res || [];
+      const map = {};
+      list.forEach((item) => {
+        map[item.ma_pt] = item.so_luong_kha_dung;
+      });
+      setStockMap(map);
+    } catch (error) {
+      console.error("Error fetching stock map", error);
+    }
+  };
 
   const loadMasterData = async () => {
     try {
@@ -105,11 +132,11 @@ const MaintenanceFormPage = () => {
         khachHangAPI.getAll({ limit: 100 }),
         maintenanceAPI.getWorkshopBoard(),
         khoAPI.getAll(),
+        xeAPI.getAll({ limit: 20 }),
       ]);
 
-      const [ptRes, userRes, prodRes, partnerRes, liftRes, khoRes] = settle.map(
-        (s) => (s.status === "fulfilled" ? s.value : null),
-      );
+      const [ptRes, userRes, prodRes, partnerRes, liftRes, khoRes, xeRes] =
+        settle.map((s) => (s.status === "fulfilled" ? s.value : null));
 
       // 1. Phụ tùng
       const ptList = ptRes?.data || ptRes || [];
@@ -140,12 +167,16 @@ const MaintenanceFormPage = () => {
       // 6. Kho
       setKhoList(khoRes?.data || khoRes || []);
 
+      // 7. Xe (Initial list)
+      setXeList(xeRes?.data?.data || xeRes?.data || xeRes || []);
+
       console.log("Master Data loaded:", {
         ptCount: ptList.length,
         userCount: technicians.length,
         prodCount: pList.length,
         partnerCount: kList.length,
         liftCount: (liftRes?.data || liftRes || []).length,
+        xeCount: (xeRes?.data?.data || xeRes?.data || xeRes || []).length,
       });
     } catch (error) {
       console.error("Error in loadMasterData", error);
@@ -184,10 +215,9 @@ const MaintenanceFormPage = () => {
   };
 
   const debouncedSearchXe = useDebouncedCallback(async (value) => {
-    if (!value || value.length < 2) return;
     setSearchingXe(true);
     try {
-      const res = await xeAPI.getAll({ search: value, limit: 10 });
+      const res = await xeAPI.getAll({ search: value || "", limit: 20 });
       setXeList(res.data?.data || res.data || []);
     } catch (error) {
       console.error("Error searching vehicle", error);
@@ -308,6 +338,19 @@ const MaintenanceFormPage = () => {
         ) {
           updatedItem.thanh_tien =
             (updatedItem.so_luong || 0) * (updatedItem.don_gia || 0);
+
+          // Kiểm tra tồn kho ngay lập tức
+          if (
+            updatedItem.loai_hang_muc === "PHU_TUNG" &&
+            updatedItem.ma_hang_hoa
+          ) {
+            const available = stockMap[updatedItem.ma_hang_hoa] || 0;
+            if (updatedItem.so_luong > available) {
+              notificationService.warning(
+                `Kho hiện tại chỉ còn ${available} ${updatedItem.ten_hang_muc}. Vui lòng kiểm tra lại.`,
+              );
+            }
+          }
         }
 
         return updatedItem;
@@ -357,16 +400,32 @@ const MaintenanceFormPage = () => {
           thanh_tien: item.thanh_tien,
           ghi_chu: item.ghi_chu,
         })),
-        performer: values.performer,
+        ktv_chinh: values.ktv_chinh,
         ma_ban_nang: values.ma_ban_nang,
         ma_kho: values.ma_kho,
+        tien_phu_tung: items.reduce(
+          (sum, i) => sum + (i.loai_hang_muc === "PHU_TUNG" ? i.thanh_tien : 0),
+          0,
+        ),
+        tien_cong: items.reduce(
+          (sum, i) => sum + (i.loai_hang_muc === "DICH_VU" ? i.thanh_tien : 0),
+          0,
+        ),
       };
 
-      await maintenanceAPI.createMaintenance(payload);
+      const res = await maintenanceAPI.createMaintenance(payload);
+      const createdData = res.data || res;
+
       notificationService.success(
-        "Tạo phiếu dịch vụ thành công. Đã cập nhật lịch sử cho xe.",
+        res.message || "Tạo phiếu dịch vụ thành công",
       );
-      navigate("/maintenance");
+
+      // Chuyển hướng đến trang chi tiết của phiếu vừa tạo
+      if (createdData?.ma_phieu) {
+        navigate(`/maintenance/${createdData.ma_phieu}`);
+      } else {
+        navigate("/maintenance");
+      }
     } catch (error) {
       notificationService.error(
         error?.response?.data?.message || "Lỗi tạo phiếu dịch vụ",
@@ -406,11 +465,30 @@ const MaintenanceFormPage = () => {
               style={{ width: "100%" }}
               optionFilterProp="children"
             >
-              {phuTungList.map((p) => (
-                <Option key={p.ma_pt} value={p.ma_pt}>
-                  {p.ma_pt} - {p.ten_pt}
-                </Option>
-              ))}
+              {phuTungList.map((p) => {
+                const available = stockMap[p.ma_pt] || 0;
+                return (
+                  <Option
+                    key={p.ma_pt}
+                    value={p.ma_pt}
+                    disabled={available <= 0}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span>
+                        {p.ma_pt} - {p.ten_pt}
+                      </span>
+                      <Tag color={available > 0 ? "blue" : "red"}>
+                        Tồn: {available}
+                      </Tag>
+                    </div>
+                  </Option>
+                );
+              })}
             </Select>
           );
         }
@@ -714,13 +792,34 @@ const MaintenanceFormPage = () => {
                     </Form.Item>
                   </Col>
                   <Col span={12}>
-                    <Form.Item name="performer" label="Kỹ thuật viên thực hiện">
+                    <Form.Item name="ktv_chinh" label="Kỹ thuật viên thực hiện">
                       <Select placeholder="Chọn người làm">
-                        {userList.map((u) => (
-                          <Option key={u.id} value={u.id}>
-                            {u.ho_ten} ({u.username})
-                          </Option>
-                        ))}
+                        {userList.map((u) => {
+                          const busyLift = liftList.find(
+                            (l) => l.ktv_id === u.id,
+                          );
+                          return (
+                            <Option
+                              key={u.id}
+                              value={u.id}
+                              disabled={!!busyLift}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <span>{u.ho_ten}</span>
+                                {busyLift && (
+                                  <Tag color="error">
+                                    Bận: {busyLift.ten_ban_nang}
+                                  </Tag>
+                                )}
+                              </div>
+                            </Option>
+                          );
+                        })}
                       </Select>
                     </Form.Item>
                   </Col>
@@ -741,7 +840,11 @@ const MaintenanceFormPage = () => {
                     </Form.Item>
                   </Col>
                   <Col span={12}>
-                    <Form.Item name="ma_kho" label="Kho xuất phụ tùng">
+                    <Form.Item
+                      name="ma_kho"
+                      label="Kho xuất phụ tùng"
+                      rules={[{ required: true, message: "Chọn kho xuất" }]}
+                    >
                       <Select placeholder="Chọn kho xuất mặc định">
                         {khoList.map((k) => (
                           <Option key={k.ma_kho} value={k.ma_kho}>
@@ -842,6 +945,48 @@ const MaintenanceFormPage = () => {
                       Số lượng hạng mục:
                     </Typography.Text>
                     <Typography.Text>{items.length}</Typography.Text>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Typography.Text type="secondary">
+                      Tiền phụ tùng:
+                    </Typography.Text>
+                    <Typography.Text>
+                      {formatService.formatCurrency(
+                        items.reduce(
+                          (sum, i) =>
+                            sum +
+                            (i.loai_hang_muc === "PHU_TUNG" ? i.thanh_tien : 0),
+                          0,
+                        ),
+                      )}
+                    </Typography.Text>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Typography.Text type="secondary">
+                      Tiền công thợ:
+                    </Typography.Text>
+                    <Typography.Text>
+                      {formatService.formatCurrency(
+                        items.reduce(
+                          (sum, i) =>
+                            sum +
+                            (i.loai_hang_muc === "DICH_VU" ? i.thanh_tien : 0),
+                          0,
+                        ),
+                      )}
+                    </Typography.Text>
                   </div>
                   <div
                     style={{ display: "flex", justifyContent: "space-between" }}

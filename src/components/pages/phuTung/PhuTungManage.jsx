@@ -236,7 +236,7 @@ const PhuTungManage = () => {
       width: 250,
       ellipsis: true,
       render: (text, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <span>{text}</span>
           {record.status === false && (
             <Tag color="red" size="small" style={{ fontSize: "10px" }}>
@@ -516,7 +516,7 @@ const PhuTungManage = () => {
                 <Statistic
                   title="Tổng tồn"
                   value={tongTonKho}
-                  valueStyle={{ fontSize: isMobile ? 16 : 24 }}
+                  styles={{ content: { fontSize: isMobile ? 16 : 24 } }}
                 />
               </Card>
             </Col>
@@ -525,9 +525,11 @@ const PhuTungManage = () => {
                 <Statistic
                   title="Hết hàng"
                   value={khoHetHang}
-                  valueStyle={{
-                    color: khoHetHang ? "#cf1322" : "#3f8600",
-                    fontSize: isMobile ? 16 : 24,
+                  styles={{
+                    content: {
+                      color: khoHetHang ? "#cf1322" : "#3f8600",
+                      fontSize: isMobile ? 16 : 24,
+                    },
                   }}
                 />
               </Card>
@@ -654,7 +656,7 @@ const PhuTungManage = () => {
       </Card>
 
       <PhuTungForm
-        visible={formVisible}
+        open={formVisible}
         onClose={() => setFormVisible(false)}
         onSubmit={handleFormSubmit}
         initialValues={editingRecord}
@@ -663,7 +665,7 @@ const PhuTungManage = () => {
       />
 
       <LichSuModal
-        visible={lichSuVisible}
+        open={lichSuVisible}
         onClose={() => setLichSuVisible(false)}
         ma_pt={selectedPhuTung?.ma_pt}
         ten_pt={selectedPhuTung?.ten_pt}

@@ -1,7 +1,7 @@
-// src/components/layout/MainLayout/Sidebar.jsx
 import React from "react";
 import { Layout, Menu } from "antd";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useTheme } from "../../../contexts/ThemeContext";
 
 const { Sider } = Layout;
 

@@ -28,7 +28,7 @@ import {
   BarChartOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../../../contexts/AuthContext";
-import { reportAPI } from "../../../api";
+import { reportAPI, maintenanceAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
 import dayjs from "dayjs";
@@ -62,10 +62,12 @@ const DashboardPage = () => {
     low_stock_pt: 0,
     internal_debt: 0,
     customer_debt: 0,
+    supplier_debt: 0,
   });
 
   const [revenueChart, setRevenueChart] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
+  const [maintenanceReminders, setMaintenanceReminders] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -81,14 +83,17 @@ const DashboardPage = () => {
       };
 
       // Gọi API dashboard tổng quan và biểu đồ doanh thu
-      const [overviewRes, revenueRes] = await Promise.all([
+      const [overviewRes, revenueRes, reminderRes] = await Promise.all([
         reportAPI.dashboard.getOverview(params),
         reportAPI.dashboard.getRevenueChart(params),
+        maintenanceAPI.getReminders({ limit: 5 }), // Lấy 5 nhắc nhở gần nhất
       ]);
 
       const overview = overviewRes?.data || overviewRes;
       const revenueData =
         revenueRes?.data || (Array.isArray(revenueRes) ? revenueRes : []);
+      const reminders =
+        reminderRes?.data || (Array.isArray(reminderRes) ? reminderRes : []);
 
       if (overview) {
         setStats((prev) => ({
@@ -97,6 +102,7 @@ const DashboardPage = () => {
         }));
         setRecentActivities(overview.giao_dich_gan_day || []);
         setRevenueChart(revenueData);
+        setMaintenanceReminders(reminders);
       }
     } catch (error) {
       console.error(error);
@@ -111,49 +117,52 @@ const DashboardPage = () => {
       hoverable
       size="small"
       className="stat-card"
-      style={{ borderLeft: `4px solid ${color}` }}
+      style={{
+        borderLeft: `4px solid ${color}`,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
+      styles={{ body: { padding: isMobile ? "12px" : "16px", width: "100%" } }}
     >
-      <Row align="middle" gutter={16}>
+      <Row align="middle" gutter={8} style={{ width: "100%" }}>
         <Col span={18}>
-          <Text type="secondary" size="small">
-            {title}
-          </Text>
+          <div style={{ marginBottom: 4 }}>
+            <Text
+              type="secondary"
+              style={{ fontSize: isMobile ? "12px" : "14px" }}
+            >
+              {title}
+            </Text>
+          </div>
           <div
             style={{
-              fontSize: isMobile ? "20px" : "24px",
+              fontSize: isMobile ? "18px" : "22px",
               fontWeight: "bold",
-              margin: "4px 0",
+              color: "var(--text-primary)",
+              lineHeight: 1.2,
             }}
           >
             {isCurrency
               ? formatService.formatCurrency(value)
               : formatService.formatNumber(value)}
           </div>
-          <div style={{ fontSize: "12px" }}>
-            {growth !== undefined &&
-              (growth >= 0 ? (
-                <Text type="success">
-                  <ArrowUpOutlined /> {growth}%{" "}
-                  <Text type="secondary">so với trước</Text>
-                </Text>
-              ) : (
-                <Text type="danger">
-                  <ArrowDownOutlined /> {Math.abs(growth)}%{" "}
-                  <Text type="secondary">so với trước</Text>
-                </Text>
-              ))}
-          </div>
         </Col>
         <Col span={6} style={{ textAlign: "right" }}>
           <div
             style={{
               background: `${color}15`,
-              padding: "12px",
-              borderRadius: "12px",
-              display: "inline-block",
+              padding: isMobile ? "8px" : "12px",
+              borderRadius: "10px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            {React.cloneElement(icon, { style: { fontSize: "24px", color } })}
+            {React.cloneElement(icon, {
+              style: { fontSize: isMobile ? "20px" : "24px", color },
+            })}
           </div>
         </Col>
       </Row>
@@ -223,6 +232,48 @@ const DashboardPage = () => {
     },
   ];
 
+  const reminderColumns = [
+    {
+      title: "Xe / Số khung",
+      dataIndex: "so_khung",
+      key: "so_khung",
+      render: (text, record) => (
+        <div>
+          <div style={{ fontWeight: "bold" }}>{text || record.ma_serial}</div>
+          <div style={{ fontSize: "11px", color: "#8c8c8c" }}>
+            {record.ten_xe}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Khách hàng",
+      dataIndex: "ten_khach_hang",
+      key: "ten_khach_hang",
+      render: (text, record) => (
+        <div>
+          <div>{text}</div>
+          <div style={{ fontSize: "11px", color: "#8c8c8c" }}>
+            {record.dien_thoai}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Ngày hẹn",
+      dataIndex: "ngay_du_kien",
+      key: "ngay_du_kien",
+      render: (date) => {
+        const isPast = dayjs(date).isBefore(dayjs(), "day");
+        return (
+          <Tag color={isPast ? "error" : "warning"}>
+            {formatService.formatDate(date)}
+          </Tag>
+        );
+      },
+    },
+  ];
+
   return (
     <div
       style={{
@@ -234,41 +285,62 @@ const DashboardPage = () => {
       {/* Header & Filter */}
       <Row
         justify="space-between"
-        align="middle"
+        align="bottom"
         gutter={[16, 16]}
         style={{ marginBottom: 24 }}
       >
-        <Col xs={24} md={12}>
-          <Title level={isMobile ? 4 : 3} style={{ margin: 0 }}>
+        <Col xs={24} md={14}>
+          <Title
+            level={isMobile ? 4 : 3}
+            style={{ margin: 0, marginBottom: 4 }}
+          >
             Hệ thống quản lý Motor
           </Title>
-          <Text type="secondary">
-            Chào mừng trở lại, {user?.ho_ten || user?.username}
+          <Text
+            type="secondary"
+            style={{ fontSize: isMobile ? "13px" : "14px" }}
+          >
+            Chào mừng trở lại, <b>{user?.ho_ten || user?.username}</b>
           </Text>
         </Col>
-        <Col xs={24} md={12} style={{ textAlign: isMobile ? "left" : "right" }}>
-          <Space wrap>
-            <RangePicker
-              size="small"
-              value={dateRange}
-              onChange={(dates) => dates && setDateRange(dates)}
-              allowClear={false}
-            />
-            <Button
-              icon={<ReloadOutlined />}
-              size="small"
-              onClick={fetchDashboardData}
-              loading={loading}
+        <Col xs={24} md={10}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: isMobile ? "flex-start" : "flex-end",
+              gap: 8,
+            }}
+          >
+            <Space
+              wrap
+              size={8}
+              style={{
+                width: "100%",
+                justifyContent: isMobile ? "flex-start" : "flex-end",
+              }}
             >
-              Làm mới
-            </Button>
-          </Space>
+              <RangePicker
+                style={{ width: isMobile ? "100%" : "auto", minWidth: 220 }}
+                value={dateRange}
+                onChange={(dates) => dates && setDateRange(dates)}
+                allowClear={false}
+              />
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={fetchDashboardData}
+                loading={loading}
+              >
+                {isMobile ? "" : "Làm mới"}
+              </Button>
+            </Space>
+          </div>
         </Col>
       </Row>
 
       {/* Main Stats */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <StatCard
             title="Doanh thu hôm nay"
             value={stats.revenue_today}
@@ -277,7 +349,7 @@ const DashboardPage = () => {
             isCurrency
           />
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <StatCard
             title="Doanh thu tháng"
             value={stats.revenue_month}
@@ -286,7 +358,7 @@ const DashboardPage = () => {
             isCurrency
           />
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <StatCard
             title="Xe trong kho"
             value={stats.stock_xe}
@@ -294,7 +366,7 @@ const DashboardPage = () => {
             color="#1890ff"
           />
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <StatCard
             title="Phụ tùng sắp hết"
             value={stats.low_stock_pt}
@@ -302,7 +374,7 @@ const DashboardPage = () => {
             color="#faad14"
           />
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <StatCard
             title="Công nợ nội bộ"
             value={stats.internal_debt}
@@ -311,12 +383,21 @@ const DashboardPage = () => {
             isCurrency
           />
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <StatCard
             title="Công nợ khách hàng"
             value={stats.customer_debt}
             icon={<TeamOutlined />}
             color="#13c2c2"
+            isCurrency
+          />
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <StatCard
+            title="Công nợ nhà cung cấp"
+            value={stats.supplier_debt}
+            icon={<UserOutlined />}
+            color="#ff4d4f"
             isCurrency
           />
         </Col>
@@ -350,7 +431,7 @@ const DashboardPage = () => {
                   <Text type="secondary">Không có dữ liệu biểu đồ</Text>
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart data={revenueChart}>
                     <CartesianGrid
                       strokeDasharray="3 3"
@@ -395,25 +476,47 @@ const DashboardPage = () => {
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card
-            title="Giao dịch mới nhất"
-            size="small"
-            extra={
-              <Button type="link" size="small">
-                Tất cả
-              </Button>
-            }
-          >
-            <Table
-              dataSource={recentActivities}
-              columns={activityColumns}
-              rowKey="id"
-              pagination={false}
+          <Space orientation="vertical" style={{ width: "100%" }} size={16}>
+            <Card
+              title="Giao dịch mới nhất"
               size="small"
-              loading={loading}
-              scroll={{ x: 300 }}
-            />
-          </Card>
+              extra={
+                <Button type="link" size="small">
+                  Tất cả
+                </Button>
+              }
+            >
+              <Table
+                dataSource={recentActivities}
+                columns={activityColumns}
+                rowKey="id"
+                pagination={false}
+                size="small"
+                loading={loading}
+                scroll={{ x: 300 }}
+              />
+            </Card>
+
+            <Card
+              title="Nhắc nhở bảo trì sắp tới"
+              size="small"
+              extra={
+                <Button type="link" size="small">
+                  Xem thêm
+                </Button>
+              }
+            >
+              <Table
+                dataSource={maintenanceReminders}
+                columns={reminderColumns}
+                rowKey="id"
+                pagination={false}
+                size="small"
+                loading={loading}
+                scroll={{ x: 300 }}
+              />
+            </Card>
+          </Space>
         </Col>
       </Row>
 

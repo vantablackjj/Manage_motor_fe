@@ -27,6 +27,7 @@ import OrderRedirect from "../components/common/OrderRedirect";
 import MaintenanceListPage from "../components/pages/maintenance/MaintenanceListPage";
 import MaintenanceFormPage from "../components/pages/maintenance/MaintenanceFormPage";
 import MaintenanceDetailPage from "../components/pages/maintenance/MaintenanceDetailPage";
+import MaintenanceRemindersPage from "../components/pages/maintenance/MaintenanceRemindersPage";
 import WorkshopBoard from "../components/pages/maintenance/WorkshopBoard";
 import PostSaleManagePage from "../components/pages/postSale/PostSaleManagePage";
 
@@ -312,6 +313,12 @@ export const privateRoutes = [
     component: MaintenanceFormPage,
     layout: MainLayout,
     permissions: "maintenance.create",
+  },
+  {
+    path: "/maintenance/reminders",
+    component: MaintenanceRemindersPage,
+    layout: MainLayout,
+    permissions: "maintenance.view", // Re-use maintenance view permissions
   },
   {
     path: "/maintenance/:id",

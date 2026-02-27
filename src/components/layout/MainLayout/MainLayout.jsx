@@ -77,28 +77,22 @@ const MainLayout = ({ children }) => {
     // Dashboard - tất cả role đều xem
     items.push({ key: "/", icon: <DashboardOutlined />, label: "Tổng quan" });
 
-    // === KHO / NHẬP KHO (PURCHASE) ===
-    // purchase_orders.view: KHO, QUAN_LY, ADMIN, KE_TOAN
-    if (hasPermission("purchase_orders", "view")) {
-      items.push({
-        key: "/purchase",
-        icon: <ImportOutlined />,
-        label: "Nhập Kho",
-        children: [
-          { key: "/purchase/vehicles", label: "Nhập Xe" },
-          { key: "/purchase/parts", label: "Nhập Phụ Tùng" },
-        ],
-      });
-    }
+    // === QUẢN LÝ XE ===
+    if (hasPermission("inventory", "view") || hasPermission("purchase_orders", "view")) {
+      const xeChildren = [];
 
-    // === QUẢN LÝ XE (inventory.view) ===
-    if (hasPermission("inventory", "view")) {
-      const xeChildren = [
-        { key: "/xe/danh-sach", label: "Danh sách xe" },
-        { key: "/xe/lich-su", label: "Lịch sử xe" },
-      ];
+      // Nhập Xe (từ Nhập Kho cũ)
+      if (hasPermission("purchase_orders", "view")) {
+        xeChildren.push({ key: "/purchase/vehicles", label: "Nhập Xe" });
+      }
 
-      // Phê duyệt xe - cần products.approve
+      // Danh sách xe & Lịch sử
+      if (hasPermission("inventory", "view")) {
+        xeChildren.push({ key: "/xe/danh-sach", label: "Danh sách xe" });
+        xeChildren.push({ key: "/xe/lich-su", label: "Lịch sử xe" });
+      }
+
+      // Phê duyệt xe
       if (hasPermission("products", "approve")) {
         xeChildren.push({
           key: "/xe/phe-duyet",
@@ -106,60 +100,52 @@ const MainLayout = ({ children }) => {
         });
       }
 
-      items.push({
-        key: "/xe",
-        icon: <CarOutlined />,
-        label: "Quản lý xe",
-        children: xeChildren,
-      });
-    }
-
-    // === QUẢN LÝ KHO VẬN ===
-    if (hasPermission("inventory", "view")) {
-      const khoVanChildren = [];
-
-      // Chuyển kho - cần inventory.view (chi tiết action transfer check trong trang)
-      khoVanChildren.push({ key: "/chuyen-kho", label: "Chuyển kho" });
-
-      // Quản lý kho - cần warehouses.view
-      if (hasPermission("warehouses", "view")) {
-        khoVanChildren.push({ key: "/danh-muc/kho", label: "Danh mục kho" });
+      // Xuất Kho Xe (từ Xuất Kho cũ)
+      if (hasPermission("sales_orders", "view")) {
+        xeChildren.push({ key: "/sales/orders", label: "Đơn hàng xuất xe" });
       }
 
-      if (khoVanChildren.length > 0) {
+      // Quản lý kho (từ Quản lý kho cũ)
+      if (hasPermission("warehouses", "view")) {
+        xeChildren.push({ key: "/chuyen-kho", label: "Chuyển kho" });
+        xeChildren.push({ key: "/danh-muc/kho", label: "Danh mục kho" });
+      }
+
+      if (xeChildren.length > 0) {
         items.push({
-          key: "/warehouse-manage",
-          icon: <HomeOutlined />,
-          label: "Quản lý kho",
-          children: khoVanChildren,
+          key: "/xe-manage",
+          icon: <CarOutlined />,
+          label: "Quản lý xe",
+          children: xeChildren,
         });
       }
     }
 
-    // === XUẤT KHO / BÁN HÀNG (sales_orders.view) ===
-    if (hasPermission("sales_orders", "view")) {
-      items.push({
-        key: "/sales",
-        icon: <ExportOutlined />,
-        label: "Xuất Kho",
-        children: [
-          { key: "/sales/orders", label: "Đơn hàng xuất" },
-          // invoices.view
-          ...(hasPermission("invoices", "view")
-            ? [{ key: "/sales/invoices", label: "Hóa đơn xuất" }]
-            : []),
-        ],
-      });
-    }
+    // === QUẢN LÝ PHỤ TÙNG ===
+    if (hasPermission("products", "view") || hasPermission("purchase_orders", "view")) {
+      const ptChildren = [];
 
-    // === QUẢN LÝ PHỤ TÙNG (products.view) ===
-    if (hasPermission("products", "view")) {
-      items.push({
-        key: "/phu-tung",
-        icon: <ToolOutlined />,
-        label: "Quản lý phụ tùng",
-        children: [{ key: "/phu-tung/danh-sach", label: "Danh sách phụ tùng" }],
-      });
+      // Nhập Phụ Tùng (từ Nhập Kho cũ)
+      if (hasPermission("purchase_orders", "view")) {
+        ptChildren.push({ key: "/purchase/parts", label: "Nhập Phụ Tùng" });
+      }
+
+      // Danh sách phụ tùng
+      if (hasPermission("products", "view")) {
+        ptChildren.push({ key: "/phu-tung/danh-sach", label: "Danh sách phụ tùng" });
+      }
+
+      // Xuất Kho Phụ Tùng (từ Xuất Kho cũ)
+      // Lưu ý: hiện tại route /sales/orders dùng chung, nếu có route riêng cho PT thì add vào đây
+      
+      if (ptChildren.length > 0) {
+        items.push({
+          key: "/phu-tung-manage",
+          icon: <ToolOutlined />,
+          label: "Quản lý phụ tùng",
+          children: ptChildren,
+        });
+      }
     }
 
     if (hasPermission("maintenance", "view")) {
@@ -170,6 +156,7 @@ const MainLayout = ({ children }) => {
         children: [
           { key: "/maintenance", label: "Điều hành bàn nâng" },
           { key: "/maintenance/list", label: "Danh sách phiếu" },
+          { key: "/maintenance/reminders", label: "Lịch nhắc bảo dưỡng" },
         ],
       });
     }

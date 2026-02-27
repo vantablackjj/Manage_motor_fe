@@ -132,6 +132,17 @@ const SalesOrderCreate = () => {
   };
 
   const handleProductChange = (key, value) => {
+    // Kiểm tra trùng lặp sản phẩm
+    const isDuplicate = items.some(
+      (item) =>
+        item.key !== key && (item.xe_key === value || item.ma_pt === value)
+    );
+
+    if (isDuplicate) {
+      notificationService.warning("Sản phẩm này đã có trong danh sách");
+      return;
+    }
+
     const newItems = items.map((item) => {
       if (item.key === key) {
         let updatedItem = { ...item };
@@ -252,16 +263,30 @@ const SalesOrderCreate = () => {
           optionFilterProp="children"
         >
           {record.loai_hang === "XE"
-            ? availableXe.map((x) => (
-                <Option key={x.xe_key} value={x.xe_key}>
-                  {x.ten_loai} - {x.ten_mau} ({x.so_khung})
-                </Option>
-              ))
-            : availablePT.map((p) => (
-                <Option key={p.ma_pt} value={p.ma_pt}>
-                  {p.ten_pt} - Tồn: {p.so_luong_ton}
-                </Option>
-              ))}
+            ? availableXe
+                .filter(
+                  (x) =>
+                    !items.some(
+                      (item) => item.key !== record.key && item.xe_key === x.xe_key
+                    )
+                )
+                .map((x) => (
+                  <Option key={x.xe_key} value={x.xe_key}>
+                    {x.ten_loai} - {x.ten_mau} ({x.so_khung})
+                  </Option>
+                ))
+            : availablePT
+                .filter(
+                  (p) =>
+                    !items.some(
+                      (item) => item.key !== record.key && item.ma_pt === p.ma_pt
+                    )
+                )
+                .map((p) => (
+                  <Option key={p.ma_pt} value={p.ma_pt}>
+                    {p.ten_pt} - Tồn: {p.so_luong_ton}
+                  </Option>
+                ))}
         </Select>
       ),
     },

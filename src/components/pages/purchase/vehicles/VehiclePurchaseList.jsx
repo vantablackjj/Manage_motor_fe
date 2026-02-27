@@ -20,7 +20,9 @@ import {
   PlusOutlined,
   EyeOutlined,
   DownloadOutlined,
+  ScanOutlined,
 } from "@ant-design/icons";
+import QRScannerModal from "../../../features/Scanner/QRScannerModal";
 import ImportButton from "../../../features/Import/ImportButton";
 import ExportButton from "../../../features/Export/ExportButton";
 import { useNavigate } from "react-router-dom";
@@ -46,6 +48,14 @@ const VehiclePurchaseList = () => {
   // Modal State
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [scannerVisible, setScannerVisible] = useState(false);
+
+  const handleScanSuccess = (decodedText) => {
+    setScannerVisible(false);
+    if (decodedText) {
+      navigate(`/purchase/vehicles/${decodedText}`);
+    }
+  };
 
   const [filters, setFilters] = useState({
     ma_kho: null,
@@ -195,6 +205,12 @@ const VehiclePurchaseList = () => {
           </Col>
           <Col xs={24} md={12} style={{ textAlign: "right" }}>
             <Space wrap>
+              <Button 
+                icon={<ScanOutlined />} 
+                onClick={() => setScannerVisible(true)}
+              >
+                Quét mã
+              </Button>
               <ImportButton
                 module="nhap-kho-xe"
                 title="Đơn Nhập Kho Xe"
@@ -308,6 +324,12 @@ const VehiclePurchaseList = () => {
           setModalVisible(false);
         }}
         orderId={selectedOrderId}
+      />
+
+      <QRScannerModal
+        visible={scannerVisible}
+        onClose={() => setScannerVisible(false)}
+        onScanSuccess={handleScanSuccess}
       />
     </div>
   );

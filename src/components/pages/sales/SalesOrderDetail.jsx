@@ -28,7 +28,9 @@ import {
   DeleteOutlined,
   CloseCircleOutlined,
   EditOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
+import PrintTemplate from "../../features/Print/PrintTemplate";
 import {
   orderAPI,
   xeAPI,
@@ -61,7 +63,25 @@ const SalesOrderDetail = () => {
   const [availableVehicles, setAvailableVehicles] = useState([]);
   const [availableParts, setAvailableParts] = useState([]);
 
+  const [printModalVisible, setPrintModalVisible] = useState(false);
+  const [printType, setPrintType] = useState("ORDER");
   const [headerModalVisible, setHeaderModalVisible] = useState(false);
+
+  const handlePrint = (type) => {
+    setPrintType(type);
+    setPrintModalVisible(true);
+    setTimeout(() => {
+      const printContent = document.getElementById("print-content");
+      if (printContent) {
+        const originalContents = document.body.innerHTML;
+        const printContents = printContent.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload(); // Reload to restore React state
+      }
+    }, 500);
+  };
 
   const [vehicleForm] = Form.useForm();
   const [partForm] = Form.useForm();
@@ -487,6 +507,22 @@ const SalesOrderDetail = () => {
         }
         extra={
           <Space wrap>
+            {/* Print Buttons */}
+            <Button
+              icon={<PrinterOutlined />}
+              onClick={() => handlePrint("ORDER")}
+            >
+              In Đơn hàng
+            </Button>
+            {["DA_DUYET", "DANG_GIAO", "HOAN_THANH"].includes(trang_thai) && (
+              <Button
+                icon={<PrinterOutlined />}
+                onClick={() => handlePrint("STOCK_CARD")}
+              >
+                In Thẻ kho
+              </Button>
+            )}
+
             {/* Luồng Nháp (NHAP) */}
             {trang_thai === "NHAP" && (
               <>
@@ -995,6 +1031,17 @@ const SalesOrderDetail = () => {
             <Input.TextArea rows={3} />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Print Modal (Hidden but used for printing) */}
+      <Modal
+        open={printModalVisible}
+        onCancel={() => setPrintModalVisible(false)}
+        footer={null}
+        width={800}
+        style={{ display: "none" }}
+      >
+        <PrintTemplate data={data} type={printType} />
       </Modal>
     </div>
   );
