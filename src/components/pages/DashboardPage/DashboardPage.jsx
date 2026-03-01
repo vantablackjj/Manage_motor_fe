@@ -31,6 +31,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { reportAPI, maintenanceAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
+import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 
 const { RangePicker } = DatePicker;
@@ -44,10 +45,14 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 const DashboardPage = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, hasPermission } = useAuth();
   const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState([
@@ -66,6 +71,7 @@ const DashboardPage = () => {
   });
 
   const [revenueChart, setRevenueChart] = useState([]);
+  const [inventoryChart, setInventoryChart] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [maintenanceReminders, setMaintenanceReminders] = useState([]);
 
@@ -83,11 +89,13 @@ const DashboardPage = () => {
       };
 
       // Gọi API dashboard tổng quan và biểu đồ doanh thu
-      const [overviewRes, revenueRes, reminderRes] = await Promise.all([
-        reportAPI.dashboard.getOverview(params),
-        reportAPI.dashboard.getRevenueChart(params),
-        maintenanceAPI.getReminders({ limit: 5 }), // Lấy 5 nhắc nhở gần nhất
-      ]);
+      const [overviewRes, revenueRes, inventoryRes, reminderRes] =
+        await Promise.all([
+          reportAPI.dashboard.getOverview(params),
+          reportAPI.dashboard.getRevenueChart(params),
+          reportAPI.dashboard.getInventoryChart(params),
+          maintenanceAPI.getReminders({ limit: 5 }), // Lấy 5 nhắc nhở gần nhất
+        ]);
 
       const overview = overviewRes?.data || overviewRes;
       const revenueData =
@@ -102,6 +110,10 @@ const DashboardPage = () => {
         }));
         setRecentActivities(overview.giao_dich_gan_day || []);
         setRevenueChart(revenueData);
+        setInventoryChart(
+          inventoryRes?.data ||
+            (Array.isArray(inventoryRes) ? inventoryRes : []),
+        );
         setMaintenanceReminders(reminders);
       }
     } catch (error) {
@@ -112,60 +124,60 @@ const DashboardPage = () => {
     }
   };
 
-  const StatCard = ({ title, value, icon, growth, color, isCurrency }) => (
+  const StatCard = ({ title, value, icon, color, isCurrency, suffix }) => (
     <Card
       hoverable
       size="small"
-      className="stat-card"
       style={{
-        borderLeft: `4px solid ${color}`,
+        borderRadius: 16,
+        border: "none",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
         height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
+        overflow: "hidden",
       }}
-      styles={{ body: { padding: isMobile ? "12px" : "16px", width: "100%" } }}
+      styles={{ body: { padding: 16 } }}
     >
-      <Row align="middle" gutter={8} style={{ width: "100%" }}>
-        <Col span={18}>
-          <div style={{ marginBottom: 4 }}>
-            <Text
-              type="secondary"
-              style={{ fontSize: isMobile ? "12px" : "14px" }}
-            >
-              {title}
-            </Text>
-          </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div>
+          <Text
+            type="secondary"
+            style={{ fontSize: 13, display: "block", marginBottom: 4 }}
+          >
+            {title}
+          </Text>
           <div
             style={{
-              fontSize: isMobile ? "18px" : "22px",
-              fontWeight: "bold",
-              color: "var(--text-primary)",
-              lineHeight: 1.2,
+              fontSize: 24,
+              fontWeight: 700,
+              color: "var(--ant-color-text)",
             }}
           >
             {isCurrency
               ? formatService.formatCurrency(value)
               : formatService.formatNumber(value)}
+            {suffix}
           </div>
-        </Col>
-        <Col span={6} style={{ textAlign: "right" }}>
-          <div
-            style={{
-              background: `${color}15`,
-              padding: isMobile ? "8px" : "12px",
-              borderRadius: "10px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {React.cloneElement(icon, {
-              style: { fontSize: isMobile ? "20px" : "24px", color },
-            })}
-          </div>
-        </Col>
-      </Row>
+        </div>
+        <div
+          style={{
+            background: `${color}15`,
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {React.cloneElement(icon, { style: { fontSize: 22, color } })}
+        </div>
+      </div>
     </Card>
   );
 
@@ -275,132 +287,155 @@ const DashboardPage = () => {
   ];
 
   return (
-    <div
-      style={{
-        padding: "16px",
-        background: "var(--bg-layout)",
-        minHeight: "100vh",
-      }}
-    >
-      {/* Header & Filter */}
-      <Row
-        justify="space-between"
-        align="bottom"
-        gutter={[16, 16]}
-        style={{ marginBottom: 24 }}
+    <div style={{ padding: "0 8px" }}>
+      {/* Hero Welcome Section */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, #1f1f1f 0%, #000000 100%)",
+          borderRadius: 24,
+          padding: isMobile ? "24px" : "40px",
+          marginBottom: 32,
+          position: "relative",
+          overflow: "hidden",
+          color: "white",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+        }}
       >
-        <Col xs={24} md={14}>
-          <Title
-            level={isMobile ? 4 : 3}
-            style={{ margin: 0, marginBottom: 4 }}
-          >
-            Hệ thống quản lý Motor
-          </Title>
-          <Text
-            type="secondary"
-            style={{ fontSize: isMobile ? "13px" : "14px" }}
-          >
-            Chào mừng trở lại, <b>{user?.ho_ten || user?.username}</b>
-          </Text>
-        </Col>
-        <Col xs={24} md={10}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: isMobile ? "flex-start" : "flex-end",
-              gap: 8,
-            }}
-          >
-            <Space
-              wrap
-              size={8}
-              style={{
-                width: "100%",
-                justifyContent: isMobile ? "flex-start" : "flex-end",
-              }}
-            >
-              <RangePicker
-                style={{ width: isMobile ? "100%" : "auto", minWidth: 220 }}
-                value={dateRange}
-                onChange={(dates) => dates && setDateRange(dates)}
-                allowClear={false}
-              />
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={fetchDashboardData}
-                loading={loading}
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <Row gutter={[24, 24]} align="middle">
+            <Col xs={24} md={16}>
+              <Title
+                level={isMobile ? 3 : 2}
+                style={{ color: "white", margin: 0 }}
               >
-                {isMobile ? "" : "Làm mới"}
-              </Button>
-            </Space>
-          </div>
-        </Col>
-      </Row>
+                Chào buổi sáng, {user?.ho_ten || user?.username} 🚀
+              </Title>
+              <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 16 }}>
+                Hệ thống đã sẵn sàng. Bạn có {maintenanceReminders.length} nhắc
+                nhở bảo trì cần xử lý hôm nay.
+              </Text>
+            </Col>
+            <Col
+              xs={24}
+              md={8}
+              style={{ textAlign: isMobile ? "left" : "right" }}
+            >
+              <Space wrap size={12}>
+                <RangePicker
+                  value={dateRange}
+                  onChange={(dates) => dates && setDateRange(dates)}
+                  style={{ borderRadius: 10, border: "none", height: 40 }}
+                />
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={fetchDashboardData}
+                  loading={loading}
+                  style={{
+                    height: 40,
+                    borderRadius: 10,
+                    background: "rgba(255,255,255,0.1)",
+                    border: "none",
+                    color: "white",
+                  }}
+                >
+                  Làm mới
+                </Button>
+              </Space>
+            </Col>
+          </Row>
+        </div>
+        {/* Abstract decor */}
+        <div
+          style={{
+            position: "absolute",
+            right: "-5%",
+            bottom: "-20%",
+            width: 250,
+            height: 250,
+            borderRadius: "50%",
+            background: "rgba(255, 122, 69, 0.15)",
+            filter: "blur(60px)",
+          }}
+        />
+      </div>
 
       {/* Main Stats */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
-            title="Doanh thu hôm nay"
-            value={stats.revenue_today}
-            icon={<DollarOutlined />}
-            color="#722ed1"
-            isCurrency
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
-            title="Doanh thu tháng"
-            value={stats.revenue_month}
-            icon={<DollarOutlined />}
-            color="#eb2f96"
-            isCurrency
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
-            title="Xe trong kho"
-            value={stats.stock_xe}
-            icon={<CarOutlined />}
-            color="#1890ff"
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
-            title="Phụ tùng sắp hết"
-            value={stats.low_stock_pt}
-            icon={<ToolOutlined />}
-            color="#faad14"
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
-            title="Công nợ nội bộ"
-            value={stats.internal_debt}
-            icon={<SwapOutlined />}
-            color="#fa8c16"
-            isCurrency
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
-            title="Công nợ khách hàng"
-            value={stats.customer_debt}
-            icon={<TeamOutlined />}
-            color="#13c2c2"
-            isCurrency
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
-            title="Công nợ nhà cung cấp"
-            value={stats.supplier_debt}
-            icon={<UserOutlined />}
-            color="#ff4d4f"
-            isCurrency
-          />
-        </Col>
+        {hasPermission("reports", "view") && (
+          <>
+            <Col xs={24} sm={12} lg={6}>
+              <StatCard
+                title="Doanh thu hôm nay"
+                value={stats.revenue_today}
+                icon={<DollarOutlined />}
+                color="#722ed1"
+                isCurrency
+              />
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <StatCard
+                title="Doanh thu tháng"
+                value={stats.revenue_month}
+                icon={<DollarOutlined />}
+                color="#eb2f96"
+                isCurrency
+              />
+            </Col>
+          </>
+        )}
+
+        {hasPermission("inventory", "view") && (
+          <>
+            <Col xs={24} sm={12} lg={6}>
+              <StatCard
+                title="Xe trong kho"
+                value={stats.stock_xe}
+                icon={<CarOutlined />}
+                color="#1890ff"
+              />
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <StatCard
+                title="Phụ tùng sắp hết"
+                value={stats.low_stock_pt}
+                icon={<ToolOutlined />}
+                color="#faad14"
+              />
+            </Col>
+          </>
+        )}
+
+        {hasPermission("reports", "view_financial") && (
+          <>
+            <Col xs={24} sm={12} lg={6}>
+              <StatCard
+                title="Công nợ nội bộ"
+                value={stats.internal_debt}
+                icon={<SwapOutlined />}
+                color="#fa8c16"
+                isCurrency
+              />
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <StatCard
+                title="Công nợ khách hàng"
+                value={stats.customer_debt}
+                icon={<TeamOutlined />}
+                color="#13c2c2"
+                isCurrency
+              />
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <StatCard
+                title="Công nợ nhà cung cấp"
+                value={stats.supplier_debt}
+                icon={<UserOutlined />}
+                color="#ff4d4f"
+                isCurrency
+              />
+            </Col>
+          </>
+        )}
       </Row>
 
       {/* Charts & Recent Activities */}
@@ -415,64 +450,99 @@ const DashboardPage = () => {
               </Button>
             }
           >
-            <div style={{ height: 350, width: "100%", padding: "10px 0" }}>
-              {revenueChart.length === 0 ? (
-                <div
-                  style={{
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "var(--bg-secondary)",
-                    borderRadius: 8,
-                    border: "1px dashed var(--border-color)",
-                  }}
-                >
-                  <Text type="secondary">Không có dữ liệu biểu đồ</Text>
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                  <BarChart data={revenueChart}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="var(--border-color)"
-                    />
-                    <XAxis
-                      dataKey="thang"
-                      tick={{ fill: "var(--text-secondary)" }}
-                      label={{
-                        value: "Tháng",
-                        position: "insideBottom",
-                        offset: -5,
-                        fill: "var(--text-secondary)",
-                      }}
-                    />
-                    <YAxis
-                      tick={{ fill: "var(--text-secondary)" }}
-                      tickFormatter={(value) => `${value / 1000000}M`}
-                      width={60}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "var(--bg-primary)",
-                        borderColor: "var(--border-color)",
-                        color: "var(--text-primary)",
-                      }}
-                      itemStyle={{ color: "var(--text-primary)" }}
-                      formatter={(value) => formatService.formatCurrency(value)}
-                    />
-                    <Legend />
-                    <Bar
-                      name="Doanh thu"
-                      dataKey="doanh_thu"
-                      fill="#1890ff"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+            <Row gutter={[16, 16]}>
+              {hasPermission("reports", "view") && (
+                <Col xs={24} md={16}>
+                  <div style={{ height: 350, width: "100%" }}>
+                    {revenueChart.length === 0 ? (
+                      <div
+                        className="flex-center h-100"
+                        style={{ background: "#f5f5f5", borderRadius: 8 }}
+                      >
+                        <Text type="secondary">
+                          Không có dữ liệu biểu đồ doanh thu
+                        </Text>
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={revenueChart}>
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            vertical={false}
+                          />
+                          <XAxis dataKey="thang" tick={{ fontSize: 12 }} />
+                          <YAxis
+                            tickFormatter={(v) => `${v / 1e6}M`}
+                            width={60}
+                          />
+                          <Tooltip
+                            formatter={(v) => formatService.formatCurrency(v)}
+                          />
+                          <Legend />
+                          <Bar
+                            name="Doanh thu"
+                            dataKey="doanh_thu"
+                            fill="#1890ff"
+                            radius={[4, 4, 0, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </Col>
               )}
-            </div>
+
+              {hasPermission("inventory", "view") && (
+                <Col xs={24} md={8}>
+                  <div style={{ height: 350, width: "100%" }}>
+                    {inventoryChart.length === 0 ? (
+                      <div
+                        className="flex-center h-100"
+                        style={{ background: "#f5f5f5", borderRadius: 8 }}
+                      >
+                        <Text type="secondary">Không có dữ liệu tồn kho</Text>
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={inventoryChart}
+                            dataKey="so_luong"
+                            nameKey="ten_kho"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            innerRadius={60}
+                            fill="#8884d8"
+                            paddingAngle={5}
+                            label={({ name, percent }) =>
+                              `${name} ${(percent * 100).toFixed(0)}%`
+                            }
+                          >
+                            {inventoryChart.map((_, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={
+                                  [
+                                    "#1890ff",
+                                    "#52c41a",
+                                    "#faad14",
+                                    "#ff4d4f",
+                                    "#722ed1",
+                                  ][index % 5]
+                                }
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend iconType="circle" />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </Col>
+              )}
+            </Row>
           </Card>
         </Col>
         <Col xs={24} lg={8}>

@@ -82,7 +82,7 @@ const KhachHangManage = () => {
         status: !showDeleted,
       };
       if (activeTab === LOAI_DOI_TAC.KHACH_HANG) {
-        params.la_ncc = false;
+        // No la_ncc filter at API level to ensure we get CA_HAI as well
       } else if (activeTab === LOAI_DOI_TAC.NHA_CUNG_CAP) {
         params.la_ncc = true;
       } else if (activeTab === LOAI_DOI_TAC.CA_HAI) {
@@ -189,6 +189,15 @@ const KhachHangManage = () => {
   };
 
   const filteredData = data.filter((item) => {
+    // Tab filter (if not already filtered strictly by API)
+    if (activeTab === LOAI_DOI_TAC.KHACH_HANG) {
+      if (
+        item.loai_doi_tac !== LOAI_DOI_TAC.KHACH_HANG &&
+        item.loai_doi_tac !== LOAI_DOI_TAC.CA_HAI
+      )
+        return false;
+    }
+
     if (!debouncedSearchText) return true;
     const search = debouncedSearchText.toLowerCase();
     return (
@@ -464,14 +473,18 @@ const KhachHangManage = () => {
                     { label: "Cá nhân", value: false },
                     { label: "Doanh nghiệp", value: true },
                   ]}
-                  onChange={() => form.setFieldsValue({ ma_so_thue: undefined })}
+                  onChange={() =>
+                    form.setFieldsValue({ ma_so_thue: undefined })
+                  }
                 />
               </Form.Item>
             </Col>
           </Row>
           <Form.Item
             noStyle
-            shouldUpdate={(prevValues, currentValues) => prevValues.is_business !== currentValues.is_business}
+            shouldUpdate={(prevValues, currentValues) =>
+              prevValues.is_business !== currentValues.is_business
+            }
           >
             {({ getFieldValue }) => {
               const isBusiness = getFieldValue("is_business");
@@ -480,10 +493,25 @@ const KhachHangManage = () => {
                   <Col span={12}>
                     <Form.Item
                       name="ho_ten"
-                      label={isBusiness ? "Tên công ty/doanh nghiệp" : "Họ tên cá nhân"}
-                      rules={[{ required: true, message: isBusiness ? "Vui lòng nhập tên công ty" : "Vui lòng nhập họ tên" }]}
+                      label={
+                        isBusiness
+                          ? "Tên công ty/doanh nghiệp"
+                          : "Họ tên cá nhân"
+                      }
+                      rules={[
+                        {
+                          required: true,
+                          message: isBusiness
+                            ? "Vui lòng nhập tên công ty"
+                            : "Vui lòng nhập họ tên",
+                        },
+                      ]}
                     >
-                      <Input placeholder={isBusiness ? "Công ty TNHH..." : "Nguyễn Văn A"} />
+                      <Input
+                        placeholder={
+                          isBusiness ? "Công ty TNHH..." : "Nguyễn Văn A"
+                        }
+                      />
                     </Form.Item>
                   </Col>
                   <Col span={12}>
@@ -491,11 +519,23 @@ const KhachHangManage = () => {
                       name="ma_so_thue"
                       label={isBusiness ? "Mã số thuế" : "Số CCCD/MST cá nhân"}
                       rules={[
-                        { required: isBusiness, message: "Vui lòng nhập mã số thuế" },
-                        { pattern: /^[0-9]{10,13}$/, message: "Mã số thuế/CCCD không hợp lệ (10-13 số)" }
+                        {
+                          required: isBusiness,
+                          message: "Vui lòng nhập mã số thuế",
+                        },
+                        {
+                          pattern: /^[0-9]{10,13}$/,
+                          message: "Mã số thuế/CCCD không hợp lệ (10-13 số)",
+                        },
                       ]}
                     >
-                      <Input placeholder={isBusiness ? "MST doanh nghiệp" : "Số CCCD hoặc MST cá nhân"} />
+                      <Input
+                        placeholder={
+                          isBusiness
+                            ? "MST doanh nghiệp"
+                            : "Số CCCD hoặc MST cá nhân"
+                        }
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -504,19 +544,22 @@ const KhachHangManage = () => {
           </Form.Item>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item 
-                name="dien_thoai" 
+              <Form.Item
+                name="dien_thoai"
                 label="Điện thoại"
                 rules={[
-                  { pattern: /^[0-9]{10,11}$/, message: "Số điện thoại không hợp lệ (10-11 số)" }
+                  {
+                    pattern: /^[0-9]{10,11}$/,
+                    message: "Số điện thoại không hợp lệ (10-11 số)",
+                  },
                 ]}
               >
                 <Input placeholder="09xxxxxxxx" />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item 
-                name="email" 
+              <Form.Item
+                name="email"
                 label="Email"
                 rules={[{ type: "email", message: "Email không hợp lệ" }]}
               >
@@ -526,7 +569,9 @@ const KhachHangManage = () => {
           </Row>
           <Form.Item
             noStyle
-            shouldUpdate={(prevValues, currentValues) => prevValues.is_business !== currentValues.is_business}
+            shouldUpdate={(prevValues, currentValues) =>
+              prevValues.is_business !== currentValues.is_business
+            }
           >
             {({ getFieldValue }) => {
               const isBusiness = getFieldValue("is_business");
@@ -534,7 +579,11 @@ const KhachHangManage = () => {
                 <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item name="ngay_sinh" label="Ngày sinh">
-                      <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" placeholder="Chọn ngày sinh" />
+                      <DatePicker
+                        style={{ width: "100%" }}
+                        format="DD/MM/YYYY"
+                        placeholder="Chọn ngày sinh"
+                      />
                     </Form.Item>
                   </Col>
                 </Row>

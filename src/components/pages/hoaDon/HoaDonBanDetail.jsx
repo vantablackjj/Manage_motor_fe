@@ -50,6 +50,8 @@ const HoaDonBanDetail = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [approvalModalVisible, setApprovalModalVisible] = useState(false);
+  const [invoiceApprovalVisible, setInvoiceApprovalVisible] = useState(false);
+  const [invoiceForm] = Form.useForm();
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -98,6 +100,22 @@ const HoaDonBanDetail = () => {
     } catch (error) {
       notificationService.error(
         error?.response?.data?.message || "Lỗi phê duyệt giao hàng",
+      );
+    }
+  };
+
+  // Approve Invoice (Initial phase)
+  const handlePheDuyetHoaDon = async (values) => {
+    try {
+      const paymentAmount = values.should_pay ? values.amount : 0;
+      await hoaDonAPI.pheDuyet(so_hd, paymentAmount);
+      notificationService.success("Phê duyệt hóa đơn thành công");
+      setInvoiceApprovalVisible(false);
+      invoiceForm.resetFields();
+      fetchData();
+    } catch (error) {
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi phê duyệt hóa đơn",
       );
     }
   };
@@ -208,6 +226,7 @@ const HoaDonBanDetail = () => {
 
     switch (trang_thai) {
       case "DA_XUAT":
+      case "DA_THANH_TOAN":
         workflowButton = (
           <Button
             type="primary"
@@ -268,12 +287,21 @@ const HoaDonBanDetail = () => {
         );
         break;
 
-      case "DA_THANH_TOAN":
-        workflowButton = (
-          <Tag color="green" key="tag">
-            Đã thanh toán
-          </Tag>
-        );
+      case "NHAP":
+      case "CHO_DUYET":
+        if (isManager) {
+          workflowButton = (
+            <Button
+              type="primary"
+              icon={<CheckCircleOutlined />}
+              onClick={() => setInvoiceApprovalVisible(true)}
+              style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+              key="approve_invoice"
+            >
+              Phê duyệt hóa đơn
+            </Button>
+          );
+        }
         break;
 
       default:
@@ -609,6 +637,69 @@ const HoaDonBanDetail = () => {
                     </Form.Item>
                   </Col>
                 </Row>
+              )
+            }
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Invoice Approval Modal (Initial Phase) */}
+      <Modal
+        title="Phê duyệt hóa đơn"
+        open={invoiceApprovalVisible}
+        onCancel={() => setInvoiceApprovalVisible(false)}
+        onOk={() => invoiceForm.submit()}
+        okText="Xác nhận duyệt"
+        okButtonProps={{
+          style: { backgroundColor: "#52c41a", borderColor: "#52c41a" },
+        }}
+      >
+        <Form
+          form={invoiceForm}
+          layout="vertical"
+          onFinish={handlePheDuyetHoaDon}
+          initialValues={{ should_pay: true, amount: thanh_tien }}
+        >
+          <p>Duyệt hóa đơn sẽ thực hiện xuất kho và ghi nhận công nợ.</p>
+          <Descriptions
+            column={1}
+            size="small"
+            bordered
+            style={{ marginBottom: 16 }}
+          >
+            <Descriptions.Item label="Tổng thanh toán">
+              <b style={{ color: "#1890ff" }}>
+                {formatService.formatCurrency(thanh_tien)}
+              </b>
+            </Descriptions.Item>
+          </Descriptions>
+
+          <Form.Item name="should_pay" valuePropName="checked">
+            <Checkbox>Thu tiền ngay khi duyệt</Checkbox>
+          </Form.Item>
+
+          <Form.Item
+            noStyle
+            shouldUpdate={(prev, current) =>
+              prev.should_pay !== current.should_pay
+            }
+          >
+            {({ getFieldValue }) =>
+              getFieldValue("should_pay") && (
+                <Form.Item
+                  name="amount"
+                  label="Số tiền thu"
+                  rules={[{ required: true, message: "Nhập số tiền" }]}
+                >
+                  <InputNumber
+                    style={{ width: "100%" }}
+                    formatter={(value) =>
+                      `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                    }
+                    parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                    max={thanh_tien}
+                  />
+                </Form.Item>
               )
             }
           </Form.Item>

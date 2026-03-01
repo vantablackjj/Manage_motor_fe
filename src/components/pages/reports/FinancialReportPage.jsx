@@ -44,6 +44,7 @@ const FinancialReportPage = () => {
     ma_kho: null,
     tu_ngay: dayjs().startOf("month"),
     den_ngay: dayjs(),
+    loai: "XE", // For profit report: XE or PHU_TUNG
     loai_cong_no: null, // PHAI_THU or PHAI_TRA
     ma_kh: null,
     ma_ncc: null,
@@ -60,6 +61,7 @@ const FinancialReportPage = () => {
     params.ma_kho,
     params.tu_ngay,
     params.den_ngay,
+    params.loai,
     params.loai_cong_no,
     params.ma_kh,
     params.ma_ncc,
@@ -113,6 +115,11 @@ const FinancialReportPage = () => {
           setData(list);
           setSummary(null);
         }
+      } else if (activeTab === "loi-nhuan") {
+        res = await reportAPI.sales.getProfitLoss(apiParams);
+        const list = Array.isArray(res.data) ? res.data : res || [];
+        setData(list);
+        setSummary(null);
       } else {
         res = await reportAPI.finance.getByDay({ ...apiParams, loai: "THU" });
         const rawData = res?.data !== undefined ? res.data : res;
@@ -221,7 +228,9 @@ const FinancialReportPage = () => {
           <Text type="secondary" style={{ fontSize: 12 }}>
             {record.loai_doi_tac === "KHACH_HANG"
               ? "Khách hàng"
-              : "Nhà cung cấp"}
+              : record.loai_doi_tac === "NHA_CUNG_CAP"
+                ? "Nhà cung cấp"
+                : "Cả hai"}
           </Text>
         </div>
       ),
@@ -302,11 +311,88 @@ const FinancialReportPage = () => {
     },
   ];
 
+  const profitColumns =
+    params.loai === "XE"
+      ? [
+          {
+            title: "Ngày bán",
+            dataIndex: "ngay_ban",
+            key: "ngay_ban",
+            render: (date) => formatService.formatDate(date),
+          },
+          { title: "Tên xe", dataIndex: "ten_xe", key: "ten_xe" },
+          { title: "Số khung", dataIndex: "so_khung", key: "so_khung" },
+          { title: "Số HD", dataIndex: "so_hoa_don", key: "so_hoa_don" },
+          {
+            title: "Giá bán",
+            dataIndex: "gia_ban",
+            key: "gia_ban",
+            align: "right",
+            render: (v) => formatService.formatCurrency(v),
+          },
+          {
+            title: "Giá vốn",
+            dataIndex: "gia_von",
+            key: "gia_von",
+            align: "right",
+            render: (v) => formatService.formatCurrency(v),
+          },
+          {
+            title: "Lợi nhuận",
+            dataIndex: "loi_nhuan",
+            key: "loi_nhuan",
+            align: "right",
+            render: (v) => (
+              <Text strong type={v >= 0 ? "success" : "danger"}>
+                {formatService.formatCurrency(v)}
+              </Text>
+            ),
+          },
+          {
+            title: "% LN",
+            dataIndex: "ti_le_ln",
+            key: "ti_le_ln",
+            align: "right",
+            render: (v) => `${Number(v).toFixed(1)}%`,
+          },
+        ]
+      : [
+          { title: "Tên phụ tùng", dataIndex: "ten_pt", key: "ten_pt" },
+          { title: "Mã PT", dataIndex: "ma_pt", key: "ma_pt" },
+          { title: "Số lượng", dataIndex: "so_luong", key: "so_luong" },
+          {
+            title: "Doanh thu",
+            dataIndex: "doanh_thu",
+            key: "doanh_thu",
+            align: "right",
+            render: (v) => formatService.formatCurrency(v),
+          },
+          {
+            title: "Tổng giá vốn",
+            dataIndex: "tong_gia_von",
+            key: "tong_gia_von",
+            align: "right",
+            render: (v) => formatService.formatCurrency(v),
+          },
+          {
+            title: "Lợi nhuận",
+            dataIndex: "loi_nhuan",
+            key: "loi_nhuan",
+            align: "right",
+            render: (v) => (
+              <Text strong type={v >= 0 ? "success" : "danger"}>
+                {formatService.formatCurrency(v)}
+              </Text>
+            ),
+          },
+        ];
+
   const handleExport = async (type) => {
     try {
       let reportCode = activeTab.toUpperCase().replace(/-/g, "_");
       if (activeTab === "cong-no-khach-hang") reportCode = "CONG_NO_KH";
       if (activeTab === "so-quy") reportCode = "THU_CHI";
+      if (activeTab === "loi-nhuan") reportCode = "PROFIT_LOSS";
 
       const exportParams = {
         loai_bao_cao: reportCode,
@@ -361,6 +447,7 @@ const FinancialReportPage = () => {
           items={[
             { key: "cong-no-noi-bo", label: "Công nợ Nội bộ" },
             { key: "cong-no-khach-hang", label: "Công nợ Khách hàng" },
+            { key: "loi-nhuan", label: "Lợi nhuận (P&L)" },
             { key: "so-quy", label: "Sổ quỹ Thu chi" },
           ]}
         />
@@ -458,6 +545,20 @@ const FinancialReportPage = () => {
               </Col>
             )}
 
+            {activeTab === "loi-nhuan" && (
+              <Col xs={24} sm={8} md={5}>
+                <Text strong>Loại hàng:</Text>
+                <Select
+                  style={{ width: "100%" }}
+                  value={params.loai}
+                  onChange={(val) => setParams({ ...params, loai: val })}
+                >
+                  <Option value="XE">Xe máy</Option>
+                  <Option value="PHU_TUNG">Phụ tùng</Option>
+                </Select>
+              </Col>
+            )}
+
             <Col
               xs={24}
               sm={8}
@@ -496,7 +597,9 @@ const FinancialReportPage = () => {
               ? cashFlowColumns
               : activeTab === "cong-no-khach-hang"
                 ? customerDebtColumns
-                : internalDebtColumns
+                : activeTab === "loi-nhuan"
+                  ? profitColumns
+                  : internalDebtColumns
           }
           rowKey={(record) =>
             record.id || record.ma_doi_tuong || record.so_phieu || Math.random()

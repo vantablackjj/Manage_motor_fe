@@ -162,6 +162,7 @@ const KhachHangListPage = () => {
       key: "stt",
       width: 60,
       align: "center",
+      fixed: isMobile ? false : "left",
       render: (_, __, index) => (page - 1) * pageSize + index + 1,
     },
     {
@@ -169,7 +170,7 @@ const KhachHangListPage = () => {
       dataIndex: "ma_kh",
       key: "ma_kh",
       width: 120,
-      fixed: "left",
+      fixed: isMobile ? false : "left",
     },
     {
       title: "Họ tên",
@@ -228,7 +229,7 @@ const KhachHangListPage = () => {
       title: "Thao tác",
       key: "action",
       width: 150,
-      fixed: "right",
+      fixed: isMobile ? false : "right",
       render: (_, record) => (
         <Space size="small">
           {authService.canEdit() && (
@@ -259,7 +260,11 @@ const KhachHangListPage = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
+      style={{
+        padding: "16px 8px",
+        background: "var(--bg-layout, #f0f2f5)",
+        minHeight: "100vh",
+      }}
     >
       <div style={{ marginBottom: 16 }}>
         <Row justify="space-between" align="middle" gutter={[8, 16]}>
@@ -347,7 +352,7 @@ const KhachHangListPage = () => {
             (col) =>
               !isMobile ||
               col.fixed ||
-              ["ho_ten", "la_ncc", "dien_thoai"].includes(col.dataIndex)
+              ["ho_ten", "la_ncc", "dien_thoai"].includes(col.dataIndex),
           )}
           dataSource={data}
           rowKey="ma_kh"
@@ -387,7 +392,7 @@ const KhachHangListPage = () => {
           onFinish={handleSubmit}
           size="small"
         >
-          <Row gutter={[16, 0]}>
+          <Row gutter={[16, 16]}>
             <Col xs={24} sm={12}>
               <Form.Item
                 name="ma_kh"
@@ -403,8 +408,7 @@ const KhachHangListPage = () => {
                 <Input disabled={!!editingRecord} placeholder="VD: KH001" />
               </Form.Item>
             </Col>
-
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="is_business"
                 label="Loại đối tác"
@@ -422,31 +426,60 @@ const KhachHangListPage = () => {
 
           <Form.Item
             noStyle
-            shouldUpdate={(prevValues, currentValues) => prevValues.is_business !== currentValues.is_business}
+            shouldUpdate={(prevValues, currentValues) =>
+              prevValues.is_business !== currentValues.is_business
+            }
           >
             {({ getFieldValue }) => {
               const isBusiness = getFieldValue("is_business");
               return (
-                <Row gutter={16}>
-                  <Col span={12}>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={12}>
                     <Form.Item
                       name="ho_ten"
-                      label={isBusiness ? "Tên công ty/doanh nghiệp" : "Họ tên cá nhân"}
-                      rules={[{ required: true, message: isBusiness ? "Vui lòng nhập tên công ty" : "Vui lòng nhập họ tên" }]}
+                      label={
+                        isBusiness
+                          ? "Tên công ty/doanh nghiệp"
+                          : "Họ tên cá nhân"
+                      }
+                      rules={[
+                        {
+                          required: true,
+                          message: isBusiness
+                            ? "Vui lòng nhập tên công ty"
+                            : "Vui lòng nhập họ tên",
+                        },
+                      ]}
                     >
-                      <Input placeholder={isBusiness ? "Công ty TNHH..." : "Nguyễn Văn A"} />
+                      <Input
+                        placeholder={
+                          isBusiness ? "Công ty TNHH..." : "Nguyễn Văn A"
+                        }
+                      />
                     </Form.Item>
                   </Col>
-                  <Col span={12}>
+                  <Col xs={24} sm={12}>
                     <Form.Item
                       name="ma_so_thue"
                       label={isBusiness ? "Mã số thuế" : "Số CCCD/MST cá nhân"}
                       rules={[
-                        { required: isBusiness, message: "Vui lòng nhập mã số thuế" },
-                        { pattern: /^[0-9]{10,13}$/, message: "Mã số thuế/CCCD không hợp lệ (10-13 số)" }
+                        {
+                          required: isBusiness,
+                          message: "Vui lòng nhập mã số thuế",
+                        },
+                        {
+                          pattern: /^[0-9]{10,13}$/,
+                          message: "Mã số thuế/CCCD không hợp lệ (10-13 số)",
+                        },
                       ]}
                     >
-                      <Input placeholder={isBusiness ? "MST doanh nghiệp" : "Số CCCD hoặc MST cá nhân"} />
+                      <Input
+                        placeholder={
+                          isBusiness
+                            ? "MST doanh nghiệp"
+                            : "Số CCCD hoặc MST cá nhân"
+                        }
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -454,22 +487,25 @@ const KhachHangListPage = () => {
             }}
           </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item 
-                name="dien_thoai" 
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="dien_thoai"
                 label="Điện thoại"
                 rules={[
                   { required: true, message: "Vui lòng nhập SĐT" },
-                  { pattern: /^[0-9]{10,11}$/, message: "Số điện thoại không hợp lệ (10-11 số)" }
+                  {
+                    pattern: /^[0-9]{10,11}$/,
+                    message: "Số điện thoại không hợp lệ (10-11 số)",
+                  },
                 ]}
               >
                 <Input placeholder="09xxxxxxxx" />
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <Form.Item 
-                name="email" 
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="email"
                 label="Email"
                 rules={[{ type: "email", message: "Email không hợp lệ" }]}
               >
@@ -480,21 +516,27 @@ const KhachHangListPage = () => {
 
           <Form.Item
             noStyle
-            shouldUpdate={(prevValues, currentValues) => prevValues.is_business !== currentValues.is_business}
+            shouldUpdate={(prevValues, currentValues) =>
+              prevValues.is_business !== currentValues.is_business
+            }
           >
             {({ getFieldValue }) => {
               const isBusiness = getFieldValue("is_business");
               return !isBusiness ? (
-                <Row gutter={16}>
-                  <Col span={12}>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={12}>
                     <Form.Item name="ngay_sinh" label="Ngày sinh">
-                      <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" placeholder="Chọn ngày sinh" />
+                      <DatePicker
+                        style={{ width: "100%" }}
+                        format="DD/MM/YYYY"
+                        placeholder="Chọn ngày sinh"
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
               ) : (
-                <Row gutter={16}>
-                  <Col span={12}>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={12}>
                     <Form.Item name="dai_dien" label="Người đại diện">
                       <Input placeholder="Họ tên người đại diện" />
                     </Form.Item>

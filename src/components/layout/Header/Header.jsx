@@ -14,6 +14,7 @@ import {
   Empty,
   Tooltip,
   Switch,
+  theme,
 } from "antd";
 import {
   MenuOutlined,
@@ -46,6 +47,7 @@ const HeaderBar = ({
     useNotification();
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
+  const { token } = theme.useToken();
 
   const handleNotificationClick = (item) => {
     if (!item.is_read) {
@@ -57,7 +59,7 @@ const HeaderBar = ({
   };
 
   const notificationContent = (
-    <div style={{ width: isMobile ? 300 : 350 }}>
+    <div style={{ width: isMobile ? "90vw" : 350, maxWidth: 350 }}>
       <div
         style={{
           display: "flex",
@@ -71,7 +73,7 @@ const HeaderBar = ({
         </Typography.Title>
         {unreadCount > 0 && (
           <Button type="link" size="small" onClick={markAllAsRead}>
-            Đánh dấu tất cả là đã đọc
+            {isMobile ? "Đọc hết" : "Đánh dấu tất cả là đã đọc"}
           </Button>
         )}
       </div>
@@ -129,7 +131,10 @@ const HeaderBar = ({
                         marginBottom: 4,
                       }}
                     >
-                      {item.content}
+                      {item.content?.replace(
+                        /bởi \d+/g,
+                        `bởi ${item.user_name || "Hệ thống"}`,
+                      )}
                     </div>
                     <Space style={{ fontSize: 12, color: "#8c8c8c" }}>
                       <ClockCircleOutlined />
@@ -160,27 +165,35 @@ const HeaderBar = ({
   );
 
   return (
-    <Header className="layout-header">
+    <Header
+      className="layout-header"
+      style={{
+        padding: isMobile ? "0 10px" : "0 16px",
+        background: token.colorBgContainer,
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+      }}
+    >
       <div className="header-left">
         <MenuOutlined className="trigger" onClick={onToggleSidebar} />
       </div>
 
       <div className="header-right">
-        <Space size={isMobile ? "small" : "large"}>
+        <Space size={isMobile ? 4 : "large"}>
           <Tooltip title={isDarkMode ? "Chế độ sáng" : "Chế độ tối"}>
             <Switch
-              checkedChildren={<MoonOutlined />}
-              unCheckedChildren={<SunOutlined />}
+              checkedChildren={<MoonOutlined style={{ fontSize: 12 }} />}
+              unCheckedChildren={<SunOutlined style={{ fontSize: 12 }} />}
               checked={isDarkMode}
               onChange={toggleTheme}
               size="small"
+              style={{ minWidth: isMobile ? 32 : 44 }}
             />
           </Tooltip>
 
           <Tooltip title={isMobile ? "Tìm kiếm" : "Tìm kiếm nhanh (Ctrl + K)"}>
             <SearchOutlined
               className="header-icon"
-              style={{ fontSize: 20, cursor: "pointer" }}
+              style={{ fontSize: isMobile ? 18 : 20, cursor: "pointer" }}
               onClick={onOpenSearch}
             />
           </Tooltip>
@@ -203,7 +216,7 @@ const HeaderBar = ({
                 <BellOutlined
                   className="header-icon"
                   style={{
-                    fontSize: 22,
+                    fontSize: isMobile ? 20 : 22,
                     cursor: "pointer",
                     color: unreadCount > 0 ? "#1890ff" : "inherit",
                   }}
@@ -217,11 +230,18 @@ const HeaderBar = ({
             placement="bottomRight"
             trigger={["click"]}
           >
-            <Space className="user-info" style={{ cursor: "pointer" }}>
+            <div
+              className="user-info"
+              style={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
               <Avatar
                 icon={<UserOutlined />}
                 style={{ backgroundColor: "#1890ff" }}
-                size={isMobile ? "default" : "large"}
+                size={isMobile ? "small" : "large"}
               />
               {!isMobile && (
                 <div className="user-details">
@@ -233,7 +253,7 @@ const HeaderBar = ({
                   </div>
                 </div>
               )}
-            </Space>
+            </div>
           </Dropdown>
         </Space>
       </div>

@@ -57,8 +57,10 @@ export const hoaDonAPI = {
   },
 
   // Approve (phe duyet)
-  pheDuyet: async (ma_hd) => {
-    return axiosInstance.post(API_ENDPOINTS.HOA_DON_BAN_PHE_DUYET(ma_hd));
+  pheDuyet: async (ma_hd, paymentAmount = null) => {
+    return axiosInstance.patch(API_ENDPOINTS.HOA_DON_BAN_PHE_DUYET(ma_hd), {
+      so_tien_thu: paymentAmount,
+    });
   },
 
   // Cancel (huy duyet)

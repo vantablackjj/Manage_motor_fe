@@ -77,8 +77,6 @@ const MaintenanceDetailPage = () => {
     }
   };
 
-  // const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
-
   const confirmCancel = () => {
     Modal.confirm({
       title: "Xác nhận hủy phiếu dịch vụ",

@@ -22,6 +22,11 @@ import {
   PrinterOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  PlusOutlined,
+  SendOutlined,
+  ImportOutlined,
+  EditOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import PrintTemplate from "../../../features/Print/PrintTemplate";
 import { donHangMuaXeAPI } from "../../../../api";
@@ -352,7 +357,10 @@ const VehiclePurchaseDetail = () => {
                 Nhập kho
               </Button>
             )}
-            <Button icon={<PrinterOutlined />} onClick={() => handlePrintLocal("ORDER")}>
+            <Button
+              icon={<PrinterOutlined />}
+              onClick={() => handlePrintLocal("ORDER")}
+            >
               In đơn hàng
             </Button>
           </Space>
@@ -637,7 +645,12 @@ const VehiclePurchaseDetail = () => {
         width={800}
         style={{ display: "none" }}
       >
-        {header && <PrintTemplate data={{...header, chi_tiet: items}} type={printType} />}
+        {header && (
+          <PrintTemplate
+            data={{ ...header, chi_tiet: items }}
+            type={printType}
+          />
+        )}
       </Modal>
 
       {/* ADD DETAIL MODAL */}

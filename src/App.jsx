@@ -16,26 +16,44 @@ import "./App.css";
 dayjs.extend(relativeTime);
 dayjs.locale("vi");
 
-// Shared token overrides (both modes)
 const sharedToken = {
-  colorPrimary: "#1677ff",
+  colorPrimary: "#ff7a45", // Consistent brand orange
+  colorLink: "#ff7a45",
   colorSuccess: "#52c41a",
   colorWarning: "#faad14",
   colorError: "#ff4d4f",
-  colorInfo: "#1677ff",
-  borderRadius: 8,
+  colorInfo: "#ff7a45",
+  borderRadius: 12,
   fontSize: 14,
-  fontFamily:
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  fontFamily: '"Outfit", "Inter", -apple-system, sans-serif',
+  controlHeight: 40, // Balanced chunky inputs
 };
 
 const sharedComponents = {
-  Button: { controlHeight: 36, borderRadius: 6, fontWeight: 500 },
-  Input: { controlHeight: 36, borderRadius: 6 },
-  Select: { controlHeight: 36, borderRadius: 6 },
-  Table: { borderRadius: 8 },
-  Card: { borderRadius: 8 },
-  Modal: { borderRadius: 12 },
+  Button: {
+    controlHeight: 40,
+    borderRadius: 10,
+    fontWeight: 600,
+    boxShadow: "0 2px 0 rgba(255, 122, 69, 0.05)",
+  },
+  Input: { controlHeight: 40, borderRadius: 10 },
+  Select: { controlHeight: 40, borderRadius: 10 },
+  DatePicker: { controlHeight: 40, borderRadius: 10 },
+  Table: {
+    borderRadius: 12,
+    headerBg: "#fafafa",
+    headerColor: "#595959",
+    headerFontWeight: 600,
+  },
+  Card: {
+    borderRadius: 16,
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+  },
+  Modal: { borderRadius: 16 },
+  Tabs: {
+    titleFontSize: 15,
+    fontWeightStrong: 600,
+  },
 };
 
 // Wrapper that reads ThemeContext and passes algorithm to ConfigProvider
@@ -50,55 +68,48 @@ function ThemedApp() {
       ...sharedToken,
       ...(isDarkMode
         ? {
-            // Dark mode token overrides
-            colorBgBase: "#0d0d0d",
+            colorBgBase: "#0a0a0a",
             colorBgContainer: "#141414",
-            colorBgElevated: "#1c1c1c",
-            colorBgLayout: "#0a0a0a",
-            colorBorder: "#2d2d2d",
-            colorBorderSecondary: "#1f1f1f",
-            colorText: "rgba(255,255,255,0.87)",
-            colorTextSecondary: "rgba(255,255,255,0.55)",
-            colorTextTertiary: "rgba(255,255,255,0.35)",
-            colorPrimary: "#4096ff",
-            colorSuccess: "#49aa19",
-            colorWarning: "#d89614",
-            colorError: "#dc4446",
+            colorBgElevated: "#1f1f1f",
+            colorBgLayout: "#000000",
+            colorBorder: "#303030",
+            colorText: "rgba(255,255,255,0.85)",
+            colorTextHeading: "#ffffff",
           }
-        : {}),
+        : {
+            colorBgLayout: "#f8f9fa",
+            colorBgContainer: "#ffffff",
+            colorTextHeading: "#1f1f1f",
+          }),
     },
     components: {
       ...sharedComponents,
       ...(isDarkMode
         ? {
             Table: {
-              borderRadius: 8,
-              headerBg: "#1c1c1c",
-              rowHoverBg: "#1c1c1c",
-            },
-            Card: {
-              borderRadius: 8,
-              colorBgContainer: "#141414",
+              headerBg: "#2a2a2a",
+              rowHoverBg: "#2a2a2a",
             },
             Menu: {
-              darkItemBg: "#0a0a0a",
-              darkSubMenuItemBg: "#0d0d0d",
-              darkItemSelectedBg: "#1677ff",
+              darkItemSelectedBg: "#ff7a45",
+              darkItemSelectedColor: "#ffffff",
+              darkItemColor: "rgba(255, 255, 255, 0.65)",
+              darkItemHoverColor: "#ffffff",
             },
             Layout: {
-              siderBg: "#0a0a0a",
-              headerBg: "#141414",
-              bodyBg: "#0a0a0a",
-            },
-            Modal: {
-              borderRadius: 12,
-              contentBg: "#1c1c1c",
-              headerBg: "#1c1c1c",
+              siderBg: "#001529",
+              headerBg: "#1f1f1f",
             },
           }
         : {
-            Table: { borderRadius: 8, headerBg: "#fafafa" },
-            Layout: { siderBg: "#001529" },
+            Layout: {
+              siderBg: "#ffffff",
+              headerBg: "#ffffff",
+            },
+            Menu: {
+              itemSelectedBg: "#fff7e6",
+              itemSelectedColor: "#ff7a45",
+            },
           }),
     },
   };

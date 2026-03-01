@@ -596,13 +596,15 @@ const MaintenanceFormPage = () => {
     <div style={{ padding: "16px 8px" }}>
       <Card
         title={
-          <Space>
+          <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate("/maintenance")}
               type="text"
             />
-            <span>
+            <span
+              style={{ fontSize: "clamp(14px, 4vw, 18px)", fontWeight: 600 }}
+            >
               <ToolOutlined /> Lập Phiếu Dịch Vụ / Sửa Chữa Mới
             </span>
           </Space>
@@ -624,8 +626,8 @@ const MaintenanceFormPage = () => {
                 size="small"
                 style={{ marginBottom: 16 }}
               >
-                <Row gutter={16}>
-                  <Col span={18}>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={18}>
                     <Form.Item
                       name="ma_serial"
                       label={
@@ -651,6 +653,7 @@ const MaintenanceFormPage = () => {
                           </Tag>
                         ) : null
                       }
+                      style={{ marginBottom: 0 }}
                     >
                       {isExternal ? (
                         <Input placeholder="Nhập biển số hoặc số khung xe ngoài..." />
@@ -686,7 +689,7 @@ const MaintenanceFormPage = () => {
                       )}
                     </Form.Item>
                   </Col>
-                  <Col span={6} style={{ paddingTop: 30 }}>
+                  <Col xs={24} sm={6} style={{ paddingTop: 30 }}>
                     <Button
                       block
                       icon={<PlusOutlined />}
@@ -706,8 +709,8 @@ const MaintenanceFormPage = () => {
                 </Row>
 
                 {isExternal && (
-                  <Row gutter={16}>
-                    <Col span={12}>
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12}>
                       <Form.Item
                         name="ma_hang_hoa_xe"
                         label="Loại xe"
@@ -729,7 +732,7 @@ const MaintenanceFormPage = () => {
                         />
                       </Form.Item>
                     </Col>
-                    <Col span={12}>
+                    <Col xs={24} sm={12}>
                       <Form.Item
                         name="so_khung_thuc_te"
                         label="Số khung xác thực"
@@ -743,8 +746,8 @@ const MaintenanceFormPage = () => {
                   </Row>
                 )}
 
-                <Row gutter={16}>
-                  <Col span={12}>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={12}>
                     <Form.Item
                       name="ma_doi_tac"
                       label="Chủ xe / Khách hàng"
@@ -791,7 +794,7 @@ const MaintenanceFormPage = () => {
                       </Select>
                     </Form.Item>
                   </Col>
-                  <Col span={12}>
+                  <Col xs={24} sm={12}>
                     <Form.Item name="ktv_chinh" label="Kỹ thuật viên thực hiện">
                       <Select placeholder="Chọn người làm">
                         {userList.map((u) => {
@@ -825,8 +828,8 @@ const MaintenanceFormPage = () => {
                   </Col>
                 </Row>
 
-                <Row gutter={16}>
-                  <Col span={12}>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={12}>
                     <Form.Item name="ma_ban_nang" label="Bàn nâng điều phối">
                       <Select placeholder="Chọn bàn nâng (nếu có)">
                         {liftList.map((l) => (
@@ -839,7 +842,7 @@ const MaintenanceFormPage = () => {
                       </Select>
                     </Form.Item>
                   </Col>
-                  <Col span={12}>
+                  <Col xs={24} sm={12}>
                     <Form.Item
                       name="ma_kho"
                       label="Kho xuất phụ tùng"
@@ -1043,7 +1046,7 @@ const MaintenanceFormPage = () => {
           />
 
           <div style={{ textAlign: "right", marginTop: 24 }}>
-            <Space>
+            <Space wrap>
               <Button onClick={() => navigate("/maintenance")}>Hủy</Button>
               <Button
                 type="primary"

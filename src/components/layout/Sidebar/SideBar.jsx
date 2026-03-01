@@ -10,11 +10,27 @@ const Sidebar = ({ collapsed, isMobile, menuItems, onMenuClick }) => {
 
   const renderSidebarContent = () => (
     <>
-      <div className="sidebar-logo">
+      <div
+        className="sidebar-logo"
+        style={{
+          background: "#001529",
+          borderBottom: "1px solid rgba(255,255,255,0.05)",
+        }}
+      >
         {!collapsed ? (
-          <h2 className="logo-text">Motor MS</h2>
+          <h2
+            className="logo-text"
+            style={{ color: "white", fontSize: 22, fontWeight: 800 }}
+          >
+            MOTOR<span style={{ color: "#ff7a45" }}> MS</span>
+          </h2>
         ) : (
-          <h2 className="logo-text-collapsed">M</h2>
+          <h2
+            className="logo-text-collapsed"
+            style={{ color: "#ff7a45", fontSize: 26 }}
+          >
+            M
+          </h2>
         )}
       </div>
 
@@ -22,9 +38,10 @@ const Sidebar = ({ collapsed, isMobile, menuItems, onMenuClick }) => {
         theme="dark"
         mode="inline"
         selectedKeys={[location.pathname]}
-        defaultOpenKeys={["/xe", "/phu-tung"]}
+        defaultOpenKeys={["/transaction-manage", "/inventory-visibility"]}
         items={menuItems}
         onClick={onMenuClick}
+        style={{ background: "#001529" }}
         className="sidebar-menu"
       />
     </>

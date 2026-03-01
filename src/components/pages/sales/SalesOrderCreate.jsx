@@ -78,7 +78,11 @@ const SalesOrderCreate = () => {
 
       try {
         const khRes = await khachHangAPI.getKhachHang();
-        const customers = (khRes.data || khRes || []).filter((c) => c.status);
+        const customers = (khRes.data || khRes || []).filter(
+          (c) =>
+            c.status &&
+            (c.loai_doi_tac === "KHACH_HANG" || c.loai_doi_tac === "CA_HAI"),
+        );
         setCustomerList(customers);
       } catch (err) {
         console.error("Lỗi tải danh sách khách hàng", err);
@@ -135,7 +139,7 @@ const SalesOrderCreate = () => {
     // Kiểm tra trùng lặp sản phẩm
     const isDuplicate = items.some(
       (item) =>
-        item.key !== key && (item.xe_key === value || item.ma_pt === value)
+        item.key !== key && (item.xe_key === value || item.ma_pt === value),
     );
 
     if (isDuplicate) {
@@ -267,8 +271,9 @@ const SalesOrderCreate = () => {
                 .filter(
                   (x) =>
                     !items.some(
-                      (item) => item.key !== record.key && item.xe_key === x.xe_key
-                    )
+                      (item) =>
+                        item.key !== record.key && item.xe_key === x.xe_key,
+                    ),
                 )
                 .map((x) => (
                   <Option key={x.xe_key} value={x.xe_key}>
@@ -279,8 +284,9 @@ const SalesOrderCreate = () => {
                 .filter(
                   (p) =>
                     !items.some(
-                      (item) => item.key !== record.key && item.ma_pt === p.ma_pt
-                    )
+                      (item) =>
+                        item.key !== record.key && item.ma_pt === p.ma_pt,
+                    ),
                 )
                 .map((p) => (
                   <Option key={p.ma_pt} value={p.ma_pt}>

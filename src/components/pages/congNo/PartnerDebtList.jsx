@@ -21,6 +21,7 @@ import {
 import { reportAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import dayjs from "dayjs";
+import PartnerThanhToanModal from "./PartnerThanhToanModal";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -30,6 +31,8 @@ const PartnerDebtList = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [selectedPartner, setSelectedPartner] = useState(null);
+  const [payModalVisible, setPayModalVisible] = useState(false);
   const [params, setParams] = useState({
     ma_kho: null,
     tu_ngay: dayjs().startOf("month"),
@@ -93,7 +96,9 @@ const PartnerDebtList = () => {
           <Text type="secondary" style={{ fontSize: 12 }}>
             {record.loai_doi_tac === "KHACH_HANG"
               ? "Khách hàng"
-              : "Nhà cung cấp"}{" "}
+              : record.loai_doi_tac === "NHA_CUNG_CAP"
+                ? "Nhà cung cấp"
+                : "Cả hai"}{" "}
             ({record.ma_doi_tac})
           </Text>
         </div>
@@ -134,44 +139,84 @@ const PartnerDebtList = () => {
       key: "ngay_cap_nhat",
       render: (date) => formatService.formatDate(date),
     },
+    {
+      title: "Hành động",
+      key: "action",
+      width: 120,
+      render: (_, record) => (
+        <Button
+          type="primary"
+          size="small"
+          icon={<DollarOutlined />}
+          onClick={() => {
+            setSelectedPartner(record);
+            setPayModalVisible(true);
+          }}
+        >
+          Thanh toán
+        </Button>
+      ),
+    },
   ];
 
   return (
     <div>
       {summary && (
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col xs={24} sm={12} md={6}>
-            <Card size="small">
-              <Statistic
-                title="Tổng khách nợ (Phải thu)"
-                value={summary.tong_phai_thu || 0}
-                precision={0}
-                valueStyle={{ color: "#52c41a" }}
-                prefix={<RiseOutlined />}
-                suffix="₫"
-                formatter={(val) => formatService.formatCurrency(val)}
-              />
-            </Card>
+        <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+          <Col xs={24} sm={12}>
+            <div
+              style={{
+                background: "linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)",
+                borderRadius: 16,
+                padding: "24px",
+                border: "1px solid #b7eb8f",
+                boxShadow: "0 4px 12px rgba(82, 196, 26, 0.08)",
+              }}
+            >
+              <Text
+                type="secondary"
+                style={{ fontSize: 13, display: "block", marginBottom: 8 }}
+              >
+                <RiseOutlined /> Tổng khách nợ (Phải thu)
+              </Text>
+              <div style={{ fontSize: 28, fontWeight: 700, color: "#52c41a" }}>
+                {formatService.formatCurrency(summary.tong_phai_thu || 0)}
+              </div>
+            </div>
           </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card size="small">
-              <Statistic
-                title="Tổng nợ nhà cung cấp"
-                value={summary.tong_phai_tra || 0}
-                precision={0}
-                valueStyle={{ color: "#ff4d4f" }}
-                prefix={<FallOutlined />}
-                suffix="₫"
-                formatter={(val) => formatService.formatCurrency(val)}
-              />
-            </Card>
+          <Col xs={24} sm={12}>
+            <div
+              style={{
+                background: "linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)",
+                borderRadius: 16,
+                padding: "24px",
+                border: "1px solid #ffd591",
+                boxShadow: "0 4px 12px rgba(255, 122, 69, 0.08)",
+              }}
+            >
+              <Text
+                type="secondary"
+                style={{ fontSize: 13, display: "block", marginBottom: 8 }}
+              >
+                <FallOutlined /> Tổng nợ nhà cung cấp (Phải trả)
+              </Text>
+              <div style={{ fontSize: 28, fontWeight: 700, color: "#ff7a45" }}>
+                {formatService.formatCurrency(summary.tong_phai_tra || 0)}
+              </div>
+            </div>
           </Col>
         </Row>
       )}
 
-      <Card size="small" style={{ marginBottom: 16 }}>
+      <Card size="small" style={{ marginBottom: 24, borderRadius: 16 }}>
         <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={10}>
+            <Text
+              type="secondary"
+              style={{ display: "block", marginBottom: 4, fontSize: 12 }}
+            >
+              Khoảng thời gian
+            </Text>
             <RangePicker
               style={{ width: "100%" }}
               value={[params.tu_ngay, params.den_ngay]}
@@ -182,35 +227,64 @@ const PartnerDebtList = () => {
               format="DD/MM/YYYY"
             />
           </Col>
-          <Col xs={24} sm={6} md={6}>
+          <Col xs={24} sm={8}>
+            <Text
+              type="secondary"
+              style={{ display: "block", marginBottom: 4, fontSize: 12 }}
+            >
+              Loại đối tác
+            </Text>
             <Select
               style={{ width: "100%" }}
-              placeholder="Loại đối tác"
+              placeholder="Chọn loại đối tác"
               allowClear
               value={params.loai_cong_no}
               onChange={(val) => setParams({ ...params, loai_cong_no: val })}
             >
               <Option value="PHAI_THU">Phải thu (Khách nợ)</Option>
-              <Option value="PHAI_TRA">Phải trả (Nợ nhà cung cấp)</Option>
+              <Option value="PHAI_TRA">Phải trả (Nợ NCC)</Option>
             </Select>
           </Col>
-          <Col xs={24} sm={6} md={4}>
-            <Button icon={<ReloadOutlined />} onClick={fetchData} block>
-              {" "}
-              Làm mới{" "}
-            </Button>
+          <Col xs={24} sm={6}>
+            <div style={{ paddingTop: 20 }}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={fetchData}
+                block
+                type="primary"
+                ghost
+              >
+                Làm mới
+              </Button>
+            </div>
           </Col>
         </Row>
       </Card>
 
-      <Table
+      <Card
+        title="Danh sách công nợ chi tiết"
         size="small"
-        dataSource={data}
-        columns={columns}
-        loading={loading}
-        rowKey="ma_doi_tac"
-        pagination={{ pageSize: 15 }}
-        scroll={{ x: 800 }}
+        style={{ borderRadius: 16 }}
+      >
+        <Table
+          size="middle"
+          dataSource={data}
+          columns={columns}
+          loading={loading}
+          rowKey={(record) => `${record.ma_doi_tac}_${record.loai_cong_no}`}
+          pagination={{ pageSize: 15, size: "small" }}
+          scroll={{ x: 800 }}
+        />
+      </Card>
+
+      <PartnerThanhToanModal
+        visible={payModalVisible}
+        onCancel={() => setPayModalVisible(false)}
+        onSuccess={() => {
+          setPayModalVisible(false);
+          fetchData();
+        }}
+        initData={selectedPartner}
       />
     </div>
   );

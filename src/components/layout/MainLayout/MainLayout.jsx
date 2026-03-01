@@ -1,6 +1,6 @@
 // src/components/layout/MainLayout/MainLayout.jsx
 import React, { useState, useEffect, useMemo } from "react";
-import { Layout, Drawer } from "antd";
+import { Layout, Drawer, theme } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import Sidebar from "../Sidebar/SideBar";
@@ -47,6 +47,7 @@ const MainLayout = ({ children }) => {
   const location = useLocation();
   const { user, logout, hasPermission, hasRole } = useAuth();
   const { isMobile, isTablet } = useResponsive();
+  const { token } = theme.useToken();
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -77,97 +78,117 @@ const MainLayout = ({ children }) => {
     // Dashboard - tất cả role đều xem
     items.push({ key: "/", icon: <DashboardOutlined />, label: "Tổng quan" });
 
-    // === QUẢN LÝ XE ===
-    if (hasPermission("inventory", "view") || hasPermission("purchase_orders", "view")) {
-      const xeChildren = [];
+    // === QUẢN LÝ GIAO DỊCH (NEW CONSOLIDATED) ===
+    if (
+      hasPermission("purchase_orders", "view") ||
+      hasPermission("sales_orders", "view") ||
+      hasPermission("inventory", "view") ||
+      hasPermission("products", "approve")
+    ) {
+      const transactionChildren = [];
 
-      // Nhập Xe (từ Nhập Kho cũ)
+      // Nhập hàng
       if (hasPermission("purchase_orders", "view")) {
-        xeChildren.push({ key: "/purchase/vehicles", label: "Nhập Xe" });
+        transactionChildren.push({
+          key: "/purchase/vehicles",
+          label: "Nhập Xe",
+        });
+        transactionChildren.push({
+          key: "/purchase/parts",
+          label: "Nhập Phụ Tùng",
+        });
       }
 
-      // Danh sách xe & Lịch sử
-      if (hasPermission("inventory", "view")) {
-        xeChildren.push({ key: "/xe/danh-sach", label: "Danh sách xe" });
-        xeChildren.push({ key: "/xe/lich-su", label: "Lịch sử xe" });
-      }
-
-      // Phê duyệt xe
+      // Phê duyệt
       if (hasPermission("products", "approve")) {
-        xeChildren.push({
+        transactionChildren.push({
           key: "/xe/phe-duyet",
           label: "Phê duyệt xe nhập lẻ",
         });
       }
 
-      // Xuất Kho Xe (từ Xuất Kho cũ)
+      // Bán hàng & Xuất kho
       if (hasPermission("sales_orders", "view")) {
-        xeChildren.push({ key: "/sales/orders", label: "Đơn hàng xuất xe" });
+        transactionChildren.push({
+          key: "/sales/orders",
+          label: "Xuất xe & Phụ tùng",
+        });
       }
 
-      // Quản lý kho (từ Quản lý kho cũ)
-      if (hasPermission("warehouses", "view")) {
-        xeChildren.push({ key: "/chuyen-kho", label: "Chuyển kho" });
-        xeChildren.push({ key: "/danh-muc/kho", label: "Danh mục kho" });
+      // Điều phối nội bộ
+      if (hasPermission("inventory", "view")) {
+        transactionChildren.push({ key: "/chuyen-kho", label: "Chuyển kho" });
       }
 
-      if (xeChildren.length > 0) {
+      if (transactionChildren.length > 0) {
         items.push({
-          key: "/xe-manage",
-          icon: <CarOutlined />,
-          label: "Quản lý xe",
-          children: xeChildren,
+          key: "/transaction-manage",
+          icon: <SwapOutlined />,
+          label: "Quản lý Giao dịch",
+          children: transactionChildren,
         });
       }
     }
 
-    // === QUẢN LÝ PHỤ TÙNG ===
-    if (hasPermission("products", "view") || hasPermission("purchase_orders", "view")) {
-      const ptChildren = [];
+    // === TỒN KHO (INVENTORY VISIBILITY) ===
+    if (
+      hasPermission("inventory", "view") ||
+      hasPermission("products", "view")
+    ) {
+      const tonKhoChildren = [];
 
-      // Nhập Phụ Tùng (từ Nhập Kho cũ)
-      if (hasPermission("purchase_orders", "view")) {
-        ptChildren.push({ key: "/purchase/parts", label: "Nhập Phụ Tùng" });
+      if (hasPermission("inventory", "view")) {
+        tonKhoChildren.push({ key: "/xe/danh-sach", label: "Tồn kho xe" });
       }
 
-      // Danh sách phụ tùng
       if (hasPermission("products", "view")) {
-        ptChildren.push({ key: "/phu-tung/danh-sach", label: "Danh sách phụ tùng" });
+        tonKhoChildren.push({
+          key: "/phu-tung/danh-sach",
+          label: "Tồn kho phụ tùng",
+        });
       }
 
-      // Xuất Kho Phụ Tùng (từ Xuất Kho cũ)
-      // Lưu ý: hiện tại route /sales/orders dùng chung, nếu có route riêng cho PT thì add vào đây
-      
-      if (ptChildren.length > 0) {
+      if (hasPermission("inventory", "view")) {
+        tonKhoChildren.push({ key: "/xe/lich-su", label: "Lịch sử xe" });
+      }
+
+      if (tonKhoChildren.length > 0) {
         items.push({
-          key: "/phu-tung-manage",
-          icon: <ToolOutlined />,
-          label: "Quản lý phụ tùng",
-          children: ptChildren,
+          key: "/inventory-visibility",
+          icon: <InboxOutlined />,
+          label: "Tồn kho xe & Phụ tùng",
+          children: tonKhoChildren,
         });
       }
     }
 
-    if (hasPermission("maintenance", "view")) {
-      items.push({
-        key: "/maintenance-parent",
-        icon: <CustomerServiceOutlined />,
-        label: "Dịch vụ & Sửa chữa",
-        children: [
-          { key: "/maintenance", label: "Điều hành bàn nâng" },
+    // === DỊCH VỤ & SỬA CHỮA ===
+    if (
+      hasPermission("maintenance", "view") ||
+      hasPermission("sales_orders", "view")
+    ) {
+      const serviceChildren = [];
+
+      if (hasPermission("maintenance", "view")) {
+        serviceChildren.push(
+          { key: "/maintenance", label: "Tiếp nhận dịch vụ" },
           { key: "/maintenance/list", label: "Danh sách phiếu" },
           { key: "/maintenance/reminders", label: "Lịch nhắc bảo dưỡng" },
-        ],
-      });
-    }
+        );
+      }
 
-    // === DỊCH VỤ SAU BÁN (sales_orders.view) ===
-    if (hasPermission("sales_orders", "view")) {
-      items.push({
-        key: "/post-sale",
-        icon: <AuditOutlined />,
-        label: "Dịch vụ Sau bán",
-      });
+      if (hasPermission("sales_orders", "view")) {
+        serviceChildren.push({ key: "/post-sale", label: "Dịch vụ Sau bán" });
+      }
+
+      if (serviceChildren.length > 0) {
+        items.push({
+          key: "/maintenance-parent",
+          icon: <CustomerServiceOutlined />,
+          label: "Dịch vụ & Sửa chữa",
+          children: serviceChildren,
+        });
+      }
     }
 
     // === TÀI CHÍNH (debt.view OR payments.view) ===
@@ -190,7 +211,6 @@ const MainLayout = ({ children }) => {
     // === BÁO CÁO (reports.view) ===
     if (hasPermission("reports", "view")) {
       const baoCaoChildren = [
-        { key: "/bao-cao/dashboard", label: "Dashboard Báo cáo" },
         { key: "/bao-cao/ton-kho", label: "Báo cáo Tồn kho" },
         { key: "/bao-cao/doanh-thu", label: "Báo cáo Doanh thu" },
         { key: "/bao-cao/nhap-xuat", label: "Báo cáo Nhập xuất" },
@@ -213,10 +233,11 @@ const MainLayout = ({ children }) => {
     }
 
     // === QUẢN LÝ DANH MỤC ===
-    // Hiển thị nếu có ít nhất một trong: products.view, partners.view
+    // Hiển thị nếu có ít nhất một trong: products.view, partners.view, warehouses.view
     if (
       hasPermission("products", "view") ||
-      hasPermission("partners", "view")
+      hasPermission("partners", "view") ||
+      hasPermission("warehouses", "view")
     ) {
       const danhMucChildren = [];
 
@@ -239,6 +260,10 @@ const MainLayout = ({ children }) => {
             { key: "/danh-muc/nhom-phu-tung", label: "Nhóm phụ tùng" },
           ],
         });
+      }
+
+      if (hasPermission("warehouses", "view")) {
+        danhMucChildren.push({ key: "/danh-muc/kho", label: "Danh mục kho" });
       }
 
       if (hasPermission("partners", "view")) {
@@ -340,7 +365,7 @@ const MainLayout = ({ children }) => {
         </Drawer>
       )}
 
-      <Layout>
+      <Layout style={{ background: token.colorBgLayout }}>
         <HeaderBar
           isMobile={isMobile}
           onToggleSidebar={toggleSidebar}
@@ -350,8 +375,16 @@ const MainLayout = ({ children }) => {
         />
 
         <PushNotificationBanner />
-        <Content className="layout-content">
-          <div className="content-wrapper">{children}</div>
+        <Content
+          className="layout-content"
+          style={{ background: token.colorBgLayout, padding: 0 }}
+        >
+          <div
+            className="content-wrapper"
+            style={{ background: token.colorBgLayout, padding: "16px 24px" }}
+          >
+            {children}
+          </div>
         </Content>
       </Layout>
 

@@ -33,15 +33,17 @@ export const khachHangAPI = {
   },
 
   // For compatibility and specifically requested dropdown filters
+  // getNhaCungCap with la_ncc: true returns BOTH "NHA_CUNG_CAP" and "CA_HAI" on backend
   getNhaCungCap: async (params) => {
     return axiosInstance.get(KHACH_HANG_ENDPOINTS.BASE, {
       params: { ...params, la_ncc: true },
     });
   },
 
+  // getKhachHang should ideally return both "KHACH_HANG" and "CA_HAI"
   getKhachHang: async (params) => {
     return axiosInstance.get(KHACH_HANG_ENDPOINTS.BASE, {
-      params: { ...params, la_ncc: false },
+      params: { ...params }, // Removed la_ncc: false which excluded "Both"
     });
   },
 

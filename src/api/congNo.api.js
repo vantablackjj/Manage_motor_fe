@@ -20,5 +20,7 @@ export const congNoAPI = {
     return axiosInstance.post(CONG_NO_ENDPOINTS.THANH_TOAN, data);
   },
 
-  // getAllThanhToan removed as /cong-no/thanh-toan is POST only for creating payments.
+  createThanhToanDoiTac: (data) => {
+    return axiosInstance.post("/cong-no/doi-tac/thanh-toan", data);
+  },
 };

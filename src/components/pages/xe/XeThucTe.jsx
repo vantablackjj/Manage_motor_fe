@@ -292,7 +292,7 @@ const XeThucTe = () => {
       key: "stt",
       width: 60,
       align: "center",
-      fixed: "left",
+      fixed: isMobile ? false : "left",
       render: (_, __, index) =>
         formatService.formatTableIndex(index, page, pageSize),
     },
@@ -376,7 +376,7 @@ const XeThucTe = () => {
       title: "Thao tác",
       key: "action",
       width: 120,
-      fixed: "right",
+      fixed: isMobile ? false : "right",
       render: (_, record) => (
         <Space size="small">
           <Tooltip title="Xem chi tiết">
@@ -437,7 +437,7 @@ const XeThucTe = () => {
   return (
     <div
       style={{
-        padding: "16px 8px",
+        padding: isMobile ? "8px 4px" : "16px",
         background: "var(--bg-layout, #f0f2f5)",
         minHeight: "100vh",
       }}
@@ -524,52 +524,88 @@ const XeThucTe = () => {
             {/* Statistics */}
             <Row gutter={[8, 8]} style={{ marginBottom: "16px" }}>
               <Col xs={12} sm={6}>
-                <Card size="small">
+                <Card
+                  size="small"
+                  styles={{ body: { padding: isMobile ? "8px" : "12px" } }}
+                >
                   <Statistic
-                    title="Tổng"
+                    title={
+                      <span style={{ fontSize: isMobile ? 12 : 14 }}>Tổng</span>
+                    }
                     value={stats.total}
-                    prefix={<CarOutlined />}
-                    styles={{ content: { fontSize: isMobile ? 16 : 24 } }}
+                    prefix={
+                      <CarOutlined style={{ fontSize: isMobile ? 16 : 20 }} />
+                    }
+                    styles={{
+                      content: {
+                        fontSize: isMobile ? 18 : 24,
+                        fontWeight: 700,
+                      },
+                    }}
                   />
                 </Card>
               </Col>
               <Col xs={12} sm={6}>
-                <Card size="small">
+                <Card
+                  size="small"
+                  styles={{ body: { padding: isMobile ? "8px" : "12px" } }}
+                >
                   <Statistic
-                    title="Tồn kho"
+                    title={
+                      <span style={{ fontSize: isMobile ? 12 : 14 }}>
+                        Tồn kho
+                      </span>
+                    }
                     value={stats.tonKho}
                     styles={{
                       content: {
                         color: "#3f8600",
-                        fontSize: isMobile ? 16 : 24,
+                        fontSize: isMobile ? 18 : 24,
+                        fontWeight: 700,
                       },
                     }}
                   />
                 </Card>
               </Col>
               <Col xs={12} sm={6}>
-                <Card size="small">
+                <Card
+                  size="small"
+                  styles={{ body: { padding: isMobile ? "8px" : "12px" } }}
+                >
                   <Statistic
-                    title="Đã bán"
+                    title={
+                      <span style={{ fontSize: isMobile ? 12 : 14 }}>
+                        Đã bán
+                      </span>
+                    }
                     value={stats.daBan}
                     styles={{
                       content: {
                         color: "#cf1322",
-                        fontSize: isMobile ? 16 : 24,
+                        fontSize: isMobile ? 18 : 24,
+                        fontWeight: 700,
                       },
                     }}
                   />
                 </Card>
               </Col>
               <Col xs={12} sm={6}>
-                <Card size="small">
+                <Card
+                  size="small"
+                  styles={{ body: { padding: isMobile ? "8px" : "12px" } }}
+                >
                   <Statistic
-                    title="Chuyển"
+                    title={
+                      <span style={{ fontSize: isMobile ? 12 : 14 }}>
+                        Chuyển
+                      </span>
+                    }
                     value={stats.dangChuyen}
                     styles={{
                       content: {
                         color: "#1890ff",
-                        fontSize: isMobile ? 16 : 24,
+                        fontSize: isMobile ? 18 : 24,
+                        fontWeight: 700,
                       },
                     }}
                   />
@@ -660,26 +696,38 @@ const XeThucTe = () => {
                   />
                 </Col>
 
-                <Col xs={24} md={12} style={{ textAlign: "right" }}>
-                  <Space>
-                    <Button onClick={handleReset}>Xóa bộ lọc</Button>
-                    <Button icon={<ReloadOutlined />} onClick={fetchData}>
+                <Col
+                  xs={24}
+                  md={12}
+                  style={{ textAlign: isMobile ? "left" : "right" }}
+                >
+                  <Space
+                    wrap={isMobile}
+                    size={isMobile ? 4 : 8}
+                    style={{
+                      width: isMobile ? "100%" : "auto",
+                      justifyContent: isMobile ? "flex-start" : "flex-end",
+                    }}
+                  >
+                    <Button
+                      onClick={handleReset}
+                      size={isMobile ? "small" : "middle"}
+                    >
+                      Xóa bộ lọc
+                    </Button>
+                    <Button
+                      icon={<ReloadOutlined />}
+                      onClick={fetchData}
+                      size={isMobile ? "small" : "middle"}
+                    >
                       Làm mới
                     </Button>
                     <ExportButton
                       module="xe-ton-kho"
                       title="Danh sách xe"
                       params={filters}
+                      size={isMobile ? "small" : "middle"}
                     />
-                    {authService.hasPermission("products", "create") && (
-                      <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={handleCreate}
-                      >
-                        Nhập kho xe
-                      </Button>
-                    )}
                   </Space>
                 </Col>
               </Row>

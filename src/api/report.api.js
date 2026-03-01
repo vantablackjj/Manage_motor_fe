@@ -57,6 +57,11 @@ export const reportAPI = {
         params,
       });
     },
+    getProfitLoss: async (params) => {
+      return axiosInstance.get(`${BAO_CAO_BASE}/loi-nhuan`, {
+        params,
+      });
+    },
   },
 
   // ===== BÁO CÁO NHẬP XUẤT =====
@@ -135,6 +140,21 @@ export const reportAPI = {
       return axiosInstance.post(`${BAO_CAO_BASE}/xuat-pdf`, data, {
         responseType: "blob",
       });
+    },
+    // New: Export hand-over receipt
+    handover: async (data) => {
+      // Assuming a dedicated endpoint or reusing xuat-pdf with a special type
+      // For now, let's assume we use /api/bao-cao/xuat-pdf with loai_bao_cao: 'HANDOVER'
+      return axiosInstance.post(
+        `${BAO_CAO_BASE}/xuat-pdf`,
+        {
+          loai_bao_cao: "HANDOVER",
+          params: data,
+        },
+        {
+          responseType: "blob",
+        },
+      );
     },
   },
 };

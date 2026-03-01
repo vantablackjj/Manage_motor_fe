@@ -45,7 +45,7 @@ const STATUS_LABELS = {
 
 const REMINDER_LABELS = {
   BAO_DUONG_DINH_KY: "Bảo dưỡng định kỳ",
-  DANG_KIEM: "Đăng kiểm / Giấy tờ",
+  DANG_KIEM: "Giấy tờ gốc (CSKH)",
   BAO_HANH: "Bảo hành",
 };
 
@@ -56,8 +56,8 @@ const MaintenanceRemindersPage = () => {
 
   const [filters, setFilters] = useState({
     search: "",
-    tu_ngay: dayjs().subtract(7, "days").startOf("day"),
-    den_ngay: dayjs().endOf("day"),
+    tu_ngay: dayjs().subtract(15, "days").startOf("day"),
+    den_ngay: dayjs().add(30, "days").endOf("day"),
     trang_thai: "CHUA_NHAC",
   });
 
@@ -265,6 +265,13 @@ const MaintenanceRemindersPage = () => {
       </Row>
 
       <Card size="small" title="Danh Sách Lịch Nhắc Bảo Dưỡng">
+        <div style={{ marginBottom: 12 }}>
+          <Text type="secondary" italic>
+            * Trang này hiển thị các xe **sắp đến hạn** bảo trì (tính từ ngày
+            bán/bảo trì lần cuối). Để xem lịch sử sửa chữa đã thực hiện, vui
+            lòng vào mục **"Quản lý phiếu bảo trì"**.
+          </Text>
+        </div>
         {/* Bộ lọc */}
         <Row gutter={[8, 8]} style={{ marginBottom: 16 }}>
           <Col xs={24} sm={12} md={8}>

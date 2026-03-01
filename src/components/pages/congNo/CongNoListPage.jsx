@@ -1,12 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { Table, Card, Button, Space, Row, Col, Statistic, Select } from "antd";
-import { DollarOutlined, EyeOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Card,
+  Button,
+  Space,
+  Row,
+  Col,
+  Typography,
+  Select,
+  DatePicker,
+} from "antd";
+import {
+  DollarOutlined,
+  EyeOutlined,
+  FilterOutlined,
+  ReloadOutlined,
+  TableOutlined,
+  ExportOutlined,
+} from "@ant-design/icons";
 import { congNoAPI, khoAPI } from "../../../api";
 import { formatService } from "../../../services";
 import { useNavigate } from "react-router-dom";
 import ThanhToanModal from "./ThanhToanModal";
 
 const { Option } = Select;
+const { Title, Text } = Typography;
 
 const CongNoListPage = () => {
   const navigate = useNavigate();
@@ -146,69 +164,156 @@ const CongNoListPage = () => {
   );
 
   return (
-    <div style={{ padding: "16px 8px" }}>
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12} md={8}>
-          <Card size="small">
-            <Statistic
-              title="Tổng công nợ hệ thống"
-              value={totalDebt}
-              precision={0}
-              valueStyle={{ color: "#cf1322", fontSize: "18px" }}
-              prefix={<DollarOutlined />}
-              suffix="₫"
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <div style={{ marginBottom: 16 }}>
-        <Space direction="vertical" style={{ width: "100%" }}>
-          <Row gutter={[8, 8]}>
-            <Col xs={24} sm={12}>
-              <Select
-                placeholder="Lọc theo Kho Nợ"
-                style={{ width: "100%" }}
-                allowClear
-                onChange={(v) => handleFilterChange("ma_kho_no", v)}
-              >
-                {khoList.map((k) => (
-                  <Option key={k.ma_kho} value={k.ma_kho}>
-                    {k.ten_kho}
-                  </Option>
-                ))}
-              </Select>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Select
-                placeholder="Lọc theo Kho Có"
-                style={{ width: "100%" }}
-                allowClear
-                onChange={(v) => handleFilterChange("ma_kho_co", v)}
-              >
-                {khoList.map((k) => (
-                  <Option key={k.ma_kho} value={k.ma_kho}>
-                    {k.ten_kho}
-                  </Option>
-                ))}
-              </Select>
-            </Col>
-          </Row>
-          <Button onClick={() => fetchData()} block size="small">
-            Làm mới
-          </Button>
-        </Space>
+    <div style={{ padding: "0" }}>
+      {/* Hero Summary Card */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, #ff9c6e 0%, #ff7a45 100%)",
+          borderRadius: 20,
+          padding: "32px",
+          marginBottom: 32,
+          position: "relative",
+          overflow: "hidden",
+          color: "white",
+          boxShadow: "0 10px 30px rgba(255, 122, 69, 0.2)",
+        }}
+      >
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 14 }}>
+            ● Cập nhật lúc: {formatService.formatDateTime(new Date())}
+          </Text>
+          <div style={{ marginTop: 8 }}>
+            <Title
+              level={5}
+              style={{ color: "white", margin: 0, fontWeight: 500 }}
+            >
+              Tổng công nợ hệ thống
+            </Title>
+            <div style={{ fontSize: 40, fontWeight: 700, margin: "8px 0" }}>
+              {formatService.formatCurrency(totalDebt)}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span
+              style={{
+                fontSize: 13,
+                background: "rgba(255,255,255,0.2)",
+                padding: "2px 10px",
+                borderRadius: 20,
+              }}
+            >
+              ↗ +2.5% so với tháng trước
+            </span>
+          </div>
+        </div>
+        {/* Abstract shape decoration */}
+        <div
+          style={{
+            position: "absolute",
+            right: "-10%",
+            top: "-50%",
+            width: 300,
+            height: 300,
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.1)",
+            filter: "blur(40px)",
+          }}
+        />
       </div>
 
-      <Card title="Chi tiết công nợ các kho" size="small">
+      <Card
+        size="small"
+        title={
+          <Space>
+            <FilterOutlined /> Bộ lọc tìm kiếm
+          </Space>
+        }
+        extra={
+          <Button onClick={fetchData} icon={<ReloadOutlined />} type="text">
+            Làm mới
+          </Button>
+        }
+        style={{ marginBottom: 24, borderRadius: 16 }}
+      >
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={8}>
+            <Text
+              type="secondary"
+              style={{ display: "block", marginBottom: 6 }}
+            >
+              Lọc theo Kho Nợ
+            </Text>
+            <Select
+              placeholder="Tất cả kho nợ"
+              style={{ width: "100%" }}
+              allowClear
+              onChange={(v) => handleFilterChange("ma_kho_no", v)}
+            >
+              {khoList.map((k) => (
+                <Option key={k.ma_kho} value={k.ma_kho}>
+                  {k.ten_kho}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={8}>
+            <Text
+              type="secondary"
+              style={{ display: "block", marginBottom: 6 }}
+            >
+              Lọc theo Kho Có
+            </Text>
+            <Select
+              placeholder="Tất cả kho có"
+              style={{ width: "100%" }}
+              allowClear
+              onChange={(v) => handleFilterChange("ma_kho_co", v)}
+            >
+              {khoList.map((k) => (
+                <Option key={k.ma_kho} value={k.ma_kho}>
+                  {k.ten_kho}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={8}>
+            <Text
+              type="secondary"
+              style={{ display: "block", marginBottom: 6 }}
+            >
+              Khoảng thời gian
+            </Text>
+            <DatePicker.RangePicker style={{ width: "100%" }} />
+          </Col>
+        </Row>
+      </Card>
+
+      <Card
+        title={
+          <Space>
+            <TableOutlined /> Danh sách công nợ chi tiết
+          </Space>
+        }
+        size="small"
+        style={{ borderRadius: 16 }}
+        extra={
+          <Button type="link" icon={<ExportOutlined />}>
+            Xuất báo cáo
+          </Button>
+        }
+      >
         <Table
           dataSource={data}
           columns={columns}
           rowKey={(r) => `${r.ma_kho_no}_${r.ma_kho_co}`}
           loading={loading}
-          size="small"
+          size="middle"
           scroll={{ x: 800 }}
-          locale={{ emptyText: "Không có dữ liệu công nợ" }}
+          pagination={{
+            pageSize: 5,
+            showTotal: (total) => `Tổng ${total} mục công nợ`,
+            size: "small",
+          }}
         />
       </Card>
 

@@ -26,6 +26,8 @@ import {
   AuditOutlined,
   CarOutlined,
   ReloadOutlined,
+  TruckOutlined,
+  PrinterOutlined,
 } from "@ant-design/icons";
 import { postSaleAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
@@ -112,7 +114,6 @@ const PostSaleManagePage = () => {
       ngay_tra_giay_dang_kiem: record.ngay_tra_giay_dang_kiem
         ? dayjs(record.ngay_tra_giay_dang_kiem)
         : null,
-      han_dang_kiem: record.han_dang_kiem ? dayjs(record.han_dang_kiem) : null,
     });
     setInspModalVisible(true);
   };
@@ -136,7 +137,7 @@ const PostSaleManagePage = () => {
         fetchStats();
       }
     } catch (error) {
-      notificationService.error("Lỗi cập nhật đăng ký");
+      notificationService.error("Lỗi cập nhật đăng ký biển số");
     }
   };
 
@@ -146,22 +147,48 @@ const PostSaleManagePage = () => {
         ngay_tra_giay_dang_kiem: values.ngay_tra_giay_dang_kiem
           ? values.ngay_tra_giay_dang_kiem.format("YYYY-MM-DD")
           : null,
-        han_dang_kiem: values.han_dang_kiem
-          ? values.han_dang_kiem.format("YYYY-MM-DD")
-          : null,
       };
       const res = await postSaleAPI.updateInspection(
         selectedXe.xe_key,
         payload,
       );
       if (res.success) {
-        notificationService.success("Cập nhật thông tin đăng kiểm thành công");
+        notificationService.success("Cập nhật thông tin giấy tờ thành công");
         setInspModalVisible(false);
         fetchData();
         fetchStats();
       }
     } catch (error) {
-      notificationService.error("Lỗi cập nhật đăng kiểm");
+      notificationService.error("Lỗi cập nhật thông tin giấy tờ");
+    }
+  };
+
+  const handlePrintHandover = async (record, type = "GIAY_TO") => {
+    try {
+      const printData = {
+        ten_khach_hang: record.ten_khach_hang,
+        so_dien_thoai: record.sdt_kh,
+        dia_chi: record.dia_chi_kh,
+        loai_ban_giao: type,
+        ten_xe: record.ten_xe || record.ten_loai,
+        so_khung: record.so_khung,
+        so_may: record.so_may,
+        bien_so: record.bien_so,
+      };
+
+      const response = await postSaleAPI.exportHandover(printData);
+      const blob = new Blob([response], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `BienBanBanGiao_${record.so_khung}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      notificationService.error("Lỗi khi in biên bản");
     }
   };
 
@@ -217,19 +244,13 @@ const PostSaleManagePage = () => {
         ),
     },
     {
-      title: "Đăng kiểm",
+      title: "Giấy tờ Gốc",
       dataIndex: "is_inspected",
       key: "is_inspected",
       align: "center",
       render: (status, record) =>
         status ? (
-          <Tooltip
-            title={`Hạn đăng kiểm: ${formatService.formatDate(record.han_dang_kiem)}`}
-          >
-            <CheckCircleOutlined
-              style={{ color: "#52c41a", fontSize: "18px" }}
-            />
-          </Tooltip>
+          <CheckCircleOutlined style={{ color: "#52c41a", fontSize: "18px" }} />
         ) : (
           <ClockCircleOutlined style={{ color: "#faad14", fontSize: "18px" }} />
         ),
@@ -248,12 +269,24 @@ const PostSaleManagePage = () => {
               onClick={() => handleOpenRegModal(record)}
             />
           </Tooltip>
-          <Tooltip title="Cập nhật Đăng kiểm">
+          <Tooltip title="Trả Giấy tờ Gốc">
             <Button
               icon={<FileDoneOutlined />}
               size="small"
               type={record.is_inspected ? "default" : "primary"}
               onClick={() => handleOpenInspModal(record)}
+            />
+          </Tooltip>
+          <Tooltip title="In Biên bản Bàn giao">
+            <Button
+              icon={<PrinterOutlined />}
+              size="small"
+              onClick={() =>
+                handlePrintHandover(
+                  record,
+                  record.is_registered ? "GIAY_TO" : "XE",
+                )
+              }
             />
           </Tooltip>
         </Space>
@@ -286,7 +319,7 @@ const PostSaleManagePage = () => {
         <Col xs={24} sm={12} md={6}>
           <Card size="small" style={{ borderLeft: "4px solid #722ed1" }}>
             <Statistic
-              title="Chờ đăng kiểm"
+              title="Chờ trả giấy tờ gốc"
               value={stats.cho_dang_kiem}
               prefix={<ClockCircleOutlined />}
               styles={{ content: { color: "#722ed1" } }}
@@ -330,7 +363,7 @@ const PostSaleManagePage = () => {
               allowClear
             >
               <Option value="chua_dang_ky">Chưa đăng ký biển</Option>
-              <Option value="chua_dang_kiem">Chưa đăng kiểm</Option>
+              <Option value="chua_dang_kiem">Chưa có giấy tờ gốc</Option>
               <Option value="pending">Đang xử lý</Option>
               <Option value="hoan_thanh">Đã hoàn thành</Option>
             </Select>
@@ -384,7 +417,7 @@ const PostSaleManagePage = () => {
 
       {/* Inspection Modal */}
       <Modal
-        title="Cập nhật thông tin Đăng kiểm"
+        title="Cập nhật thông tin Giấy tờ Gốc (Đăng kiểm)"
         open={inspModalVisible}
         onCancel={() => setInspModalVisible(false)}
         onOk={() => inspForm.submit()}
@@ -393,15 +426,8 @@ const PostSaleManagePage = () => {
         <Form form={inspForm} layout="vertical" onFinish={handleUpdateInsp}>
           <Form.Item
             name="ngay_tra_giay_dang_kiem"
-            label="Ngày trả giấy đăng kiểm"
+            label="Ngày trả giấy tờ (Đăng kiểm/Gốc)"
             rules={[{ required: true, message: "Vui lòng chọn ngày!" }]}
-          >
-            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-          </Form.Item>
-          <Form.Item
-            name="han_dang_kiem"
-            label="Hạn đăng kiểm (Ngày hết hạn)"
-            rules={[{ required: true, message: "Vui lòng chọn ngày hết hạn!" }]}
           >
             <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
           </Form.Item>

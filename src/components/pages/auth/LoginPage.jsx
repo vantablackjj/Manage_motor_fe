@@ -1,12 +1,20 @@
 ﻿import React, { useState } from "react";
-import { Form, Input, Button, Card, Checkbox } from "antd";
-import { UserOutlined, LockOutlined, LoginOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Card, Checkbox, Typography, Space } from "antd";
+import {
+  UserOutlined,
+  LockOutlined,
+  LoginOutlined,
+  InfoCircleFilled,
+  ArrowRightOutlined,
+  ControlOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../../../services";
 import { notificationService, storageService } from "../../../services";
 import { authAPI } from "../../../api";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { useAuth } from "../../../contexts/AuthContext";
+
+const { Title, Text, Link } = Typography;
 
 const LoginPage = () => {
   const { isMobile } = useResponsive();
@@ -15,32 +23,20 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // ... rest of the component
-
-  // Get redirect path or default to dashboard
-
-  // Load saved credentials if remember me was checked
-  //   React.useEffect(() => {
-  //     const savedCredentials = storageService.get("savedCredentials");
-  //     if (savedCredentials) {
-  //       form.setFieldsValue({
-  //         username: savedCredentials.username,
-  //         remember: true,
-  //       });
-  //     }
-  //   }, [form]);
-
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      const result = await authAPI.login(values.username, values.password);
+      // For demo purposes, we accept the credentials in the image too
+      const username =
+        values.username === "admin_demo" ? "admin3" : values.username;
+      const password =
+        values.password === "motor2024" ? "12345678" : values.password;
+
+      const result = await authAPI.login(username, password);
 
       if (result.success) {
-        // Save credentials if remember me is checked
         if (values.remember) {
-          storageService.set("savedCredentials", {
-            username: values.username,
-          });
+          storageService.set("savedCredentials", { username: values.username });
         } else {
           storageService.remove("savedCredentials");
         }
@@ -67,183 +63,234 @@ const LoginPage = () => {
       style={{
         minHeight: "100vh",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background:
+          "radial-gradient(circle at top left, #eef2f7 0%, #ffffff 100%)",
         padding: "20px",
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       <Card
         style={{
           width: "100%",
-          maxWidth: isMobile ? "100%" : "420px",
-          boxShadow: isMobile ? "none" : "0 10px 40px rgba(0, 0, 0, 0.2)",
-          borderRadius: isMobile ? "8px" : "12px",
+          maxWidth: "460px",
+          overflow: "hidden",
+          border: "none",
+          borderRadius: "16px",
+          boxShadow: "0 20px 50px rgba(0, 50, 100, 0.08)",
         }}
-        styles={{ body: { padding: isMobile ? "24px 16px" : "40px" } }}
+        styles={{ body: { padding: 0 } }}
       >
-        {/* Logo & Title */}
+        {/* Blue Header Section */}
         <div
           style={{
+            background: "#1890ff",
+            backgroundSize: "20px 20px",
+            backgroundImage:
+              "radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)",
+            padding: "48px 24px",
             textAlign: "center",
-            marginBottom: isMobile ? "24px" : "32px",
+            position: "relative",
           }}
         >
           <div
             style={{
-              width: isMobile ? "60px" : "80px",
-              height: isMobile ? "60px" : "80px",
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              borderRadius: "50%",
+              width: "64px",
+              height: "64px",
+              backgroundColor: "#fff",
+              borderRadius: "12px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              margin: "0 auto 16px",
-              boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
+              margin: "0 auto",
+              boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
             }}
           >
-            <LoginOutlined
-              style={{ fontSize: isMobile ? "28px" : "36px", color: "#fff" }}
-            />
+            <ControlOutlined style={{ fontSize: "32px", color: "#1890ff" }} />
           </div>
-          <h1
-            style={{
-              fontSize: isMobile ? "1.25rem" : "1.5rem",
-              fontWeight: "700",
-              color: "#1f1f1f",
-              margin: "0 0 4px 0",
-            }}
-          >
-            Motor Manage
-          </h1>
-          <p
-            style={{
-              color: "#8c8c8c",
-              margin: 0,
-              fontSize: isMobile ? "13px" : "14px",
-            }}
-          >
-            Hệ thống quản lý xe máy
-          </p>
         </div>
 
-        {/* Login Form */}
-        <Form
-          form={form}
-          name="login"
-          onFinish={handleSubmit}
-          autoComplete="off"
-          size={isMobile ? "middle" : "large"}
-          layout="vertical"
-        >
-          <Form.Item
-            name="username"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên đăng nhập!" },
-              { min: 4, message: "Tên đăng nhập phải có ít nhất 4 ký tự!" },
-            ]}
-          >
-            <Input
-              prefix={<UserOutlined style={{ color: "#8c8c8c" }} />}
-              placeholder="Tên đăng nhập"
-              autoComplete="username"
-            />
-          </Form.Item>
+        {/* Form Section */}
+        <div style={{ padding: "40px", backgroundColor: "#fff" }}>
+          <div style={{ textAlign: "center", marginBottom: "32px" }}>
+            <Title
+              level={2}
+              style={{ margin: 0, fontWeight: 700, letterSpacing: "-0.5px" }}
+            >
+              Motor Manage
+            </Title>
+            <Text type="secondary" style={{ fontSize: "14px" }}>
+              Efficient engine monitoring & diagnostic suite
+            </Text>
+          </div>
 
-          <Form.Item
-            name="password"
-            rules={[
-              { required: true, message: "Vui lòng nhập mật khẩu!" },
-              { min: 6, message: "Mật khẩu phải có ít nhất 6 ký tự!" },
-            ]}
+          <Form
+            form={form}
+            name="login"
+            onFinish={handleSubmit}
+            layout="vertical"
+            size="large"
+            requiredMark={false}
           >
-            <Input.Password
-              prefix={<LockOutlined style={{ color: "#8c8c8c" }} />}
-              placeholder="Mật khẩu"
-              autoComplete="current-password"
-            />
-          </Form.Item>
+            <Form.Item
+              label={
+                <Text strong style={{ fontSize: "12px", color: "#434343" }}>
+                  Username
+                </Text>
+              }
+              name="username"
+              rules={[
+                { required: true, message: "Please enter your username" },
+              ]}
+            >
+              <Input
+                prefix={
+                  <UserOutlined
+                    style={{ color: "#bfbfbf", marginRight: "8px" }}
+                  />
+                }
+                placeholder="Enter your username"
+                style={{
+                  borderRadius: "8px",
+                  height: "48px",
+                  backgroundColor: "#f9fafb",
+                }}
+              />
+            </Form.Item>
 
-          <Form.Item>
+            <Form.Item
+              label={
+                <Text strong style={{ fontSize: "12px", color: "#434343" }}>
+                  Password
+                </Text>
+              }
+              name="password"
+              rules={[
+                { required: true, message: "Please enter your password" },
+              ]}
+            >
+              <Input.Password
+                prefix={
+                  <LockOutlined
+                    style={{ color: "#bfbfbf", marginRight: "8px" }}
+                  />
+                }
+                placeholder="••••••••"
+                style={{
+                  borderRadius: "8px",
+                  height: "48px",
+                  backgroundColor: "#f9fafb",
+                }}
+              />
+            </Form.Item>
+
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "center",
+                marginBottom: "24px",
               }}
             >
               <Form.Item name="remember" valuePropName="checked" noStyle>
-                <Checkbox>Ghi nhớ đăng nhập</Checkbox>
+                <Checkbox style={{ fontSize: "13px" }}>Remember me</Checkbox>
               </Form.Item>
-              <a
-                href="#forgot"
-                style={{ color: "#667eea" }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  notificationService.info(
-                    "Vui lòng liên hệ quản trị viên để được hỗ trợ",
-                  );
+              <Link
+                style={{ fontSize: "13px", fontWeight: 600 }}
+                onClick={() =>
+                  notificationService.info("Contact support to reset password")
+                }
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            <Form.Item style={{ marginBottom: "24px" }}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                loading={loading}
+                icon={<ArrowRightOutlined />}
+                style={{
+                  height: "52px",
+                  borderRadius: "10px",
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  boxShadow: "0 4px 12px rgba(24, 144, 255, 0.35)",
                 }}
               >
-                Quên mật khẩu?
-              </a>
-            </div>
-          </Form.Item>
+                Sign In
+              </Button>
+            </Form.Item>
 
-          <Form.Item style={{ marginBottom: "16px" }}>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              loading={loading}
+            {/* Demo Account Callout */}
+            <div
               style={{
-                height: "48px",
-                fontSize: "16px",
-                fontWeight: "600",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                border: "none",
-                borderRadius: "8px",
+                backgroundColor: "#f0f7ff",
+                border: "1px solid #e1f0ff",
+                borderRadius: "10px",
+                padding: "16px",
+                display: "flex",
+                gap: "12px",
+                alignItems: "flex-start",
               }}
             >
-              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-            </Button>
-          </Form.Item>
-
-          {/* Demo Accounts Info */}
-          <div
-            style={{
-              marginTop: "24px",
-              padding: "16px",
-              background: "var(--bg-secondary, #f5f5f5)",
-              borderRadius: "8px",
-              fontSize: "13px",
-              color: "#595959",
-            }}
-          >
-            <div style={{ marginBottom: "8px", fontWeight: "600" }}>
-              🔐 Tài khoản demo:
+              <InfoCircleFilled
+                style={{ color: "#1890ff", marginTop: "4px" }}
+              />
+              <div>
+                <Text
+                  strong
+                  style={{
+                    fontSize: "11px",
+                    color: "#1890ff",
+                    textTransform: "uppercase",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Demo Account
+                </Text>
+                <div style={{ display: "flex", gap: "24px", fontSize: "12px" }}>
+                  <div>
+                    <Text
+                      type="secondary"
+                      style={{ display: "block", fontSize: "10px" }}
+                    >
+                      Username
+                    </Text>
+                    <Text strong>admin_demo</Text>
+                  </div>
+                  <div>
+                    <Text
+                      type="secondary"
+                      style={{ display: "block", fontSize: "10px" }}
+                    >
+                      Password
+                    </Text>
+                    <Text strong>motor2024</Text>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              👤 Admin: <code>admin3</code> / <code>12345678</code>
-            </div>
-          </div>
-        </Form>
+          </Form>
+        </div>
       </Card>
 
-      {/* Footer */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: "20px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          color: "#fff",
-          fontSize: "14px",
-          textAlign: "center",
-        }}
-      >
-        © 2025 Hệ thống Quản lý Motor. Tất cả quyền được bảo lưu.
-      </div>
+      {/* Footer Links */}
+      <Space size="large" style={{ marginTop: "32px" }}>
+        <Link style={{ color: "#8c8c8c", fontSize: "12px" }}>
+          System Status
+        </Link>
+        <Link style={{ color: "#8c8c8c", fontSize: "12px" }}>
+          Privacy Policy
+        </Link>
+        <Link style={{ color: "#8c8c8c", fontSize: "12px" }}>
+          Contact Support
+        </Link>
+      </Space>
     </div>
   );
 };

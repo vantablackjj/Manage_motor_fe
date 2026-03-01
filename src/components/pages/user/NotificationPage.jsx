@@ -193,7 +193,10 @@ const NotificationPage = () => {
                     ellipsis={{ rows: 2 }}
                     style={{ marginTop: 8, color: "#595959", marginBottom: 0 }}
                   >
-                    {item.content}
+                    {item.content?.replace(
+                      /bởi \d+/g,
+                      `bởi ${item.user_name || "Hệ thống"}`,
+                    )}
                   </Paragraph>
 
                   {item.link && (

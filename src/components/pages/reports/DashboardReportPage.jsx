@@ -20,9 +20,11 @@ import {
   ArrowUpOutlined,
   ArrowDownOutlined,
   SwapOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import { reportAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
+import { CheckCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useResponsive } from "../../../hooks/useResponsive";
 import {
@@ -146,27 +148,48 @@ const DashboardReportPage = () => {
 
       <Spin spinning={loading}>
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={8}>
             <StatBox
-              title="Doanh thu hôm nay"
-              value={data.overview.revenue_today || 0}
-              icon={<DollarOutlined />}
-              color="#52c41a"
-              isCurrency
-            />
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <StatBox
-              title="Doanh thu tháng"
+              title="Doanh thu Hóa đơn"
               value={data.overview.revenue_month || 0}
               icon={<ArrowUpOutlined />}
               color="#1890ff"
               isCurrency
             />
           </Col>
+          <Col xs={24} sm={12} md={8}>
+            <StatBox
+              title="Thực thu tiền mặt"
+              value={data.overview.cash_collection_month || 0}
+              icon={<DollarOutlined />}
+              color="#52c41a"
+              isCurrency
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <StatBox
+              title="Linh kiện sắp hết"
+              value={data.overview.low_stock_pt || 0}
+              icon={<ArrowDownOutlined />}
+              color="#ff7a45"
+              suffix=" mã"
+            />
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col xs={24} sm={12} md={6}>
             <StatBox
-              title="Tồn kho Xe"
+              title="Xe đang sửa"
+              value={data.overview.stock_xe_fixing || 0}
+              icon={<ToolOutlined />}
+              color="#722ed1"
+              suffix=" xe"
+            />
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <StatBox
+              title="Xe tồn kho"
               value={data.overview.stock_xe || 0}
               icon={<CarOutlined />}
               color="#faad14"
@@ -175,18 +198,6 @@ const DashboardReportPage = () => {
           </Col>
           <Col xs={24} sm={12} md={6}>
             <StatBox
-              title="Linh kiện sắp hết"
-              value={data.overview.low_stock_pt || 0}
-              icon={<ArrowDownOutlined />}
-              color="#ff7a45"
-              suffix=" bộ"
-            />
-          </Col>
-        </Row>
-
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col xs={24} sm={12} md={8}>
-            <StatBox
               title="Nợ Khách hàng"
               value={data.overview.customer_debt || 0}
               icon={<TeamOutlined />}
@@ -194,21 +205,12 @@ const DashboardReportPage = () => {
               isCurrency
             />
           </Col>
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} md={6}>
             <StatBox
               title="Nợ Nhà cung cấp"
               value={data.overview.supplier_debt || 0}
               icon={<TeamOutlined />}
               color="#722ed1"
-              isCurrency
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8}>
-            <StatBox
-              title="Nợ Nội bộ"
-              value={data.overview.internal_debt || 0}
-              icon={<SwapOutlined />}
-              color="#13c2c2"
               isCurrency
             />
           </Col>

@@ -65,6 +65,7 @@ const VehiclePurchaseCreate = () => {
       const suppliers = allCustomers.filter(
         (c) =>
           (c.loai_doi_tac === "NHA_CUNG_CAP" ||
+            c.loai_doi_tac === "CA_HAI" ||
             c.la_ncc === true ||
             c.la_ncc === "true") &&
           c.status !== false &&

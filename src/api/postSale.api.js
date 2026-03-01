@@ -23,4 +23,11 @@ export const postSaleAPI = {
     // data: { ngay_tra_giay_dang_kiem }
     return axiosInstance.patch(`/dich-vu-sau-ban/${xe_key}/dang-kiem`, data);
   },
+
+  // Xuất biên bản bàn giao
+  exportHandover: (data) => {
+    return axiosInstance.post("/dich-vu-sau-ban/xuat-bien-ban", data, {
+      responseType: "blob",
+    });
+  },
 };

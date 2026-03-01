@@ -65,9 +65,17 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+
+    allowedHosts: ["jaclyn-uncaged-ecliptically.ngrok-free.dev"],
     proxy: {
       "/api": {
         target: "https://motor-manage.onrender.com",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/socket.io": {
+        target: "https://motor-manage.onrender.com",
+        ws: true,
         changeOrigin: true,
         secure: false,
       },

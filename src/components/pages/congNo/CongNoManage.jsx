@@ -1,28 +1,70 @@
 ﻿import React from "react";
-import { Tabs } from "antd";
+import { Typography, Tabs, Space } from "antd";
+import {
+  ReconciliationOutlined,
+  TeamOutlined,
+  DollarCircleOutlined,
+} from "@ant-design/icons";
 import CongNoListPage from "./CongNoListPage";
 import PartnerDebtList from "./PartnerDebtList";
 
-const { TabPane } = Tabs;
+const { Title } = Typography;
 
 const CongNoManage = () => {
   return (
-    <div
-      style={{
-        padding: "16px 8px",
-        background: "var(--bg-layout, #f0f2f5)",
-        minHeight: "100vh",
-      }}
-    >
-      <h2 style={{ marginBottom: 16, paddingLeft: 8 }}>Quản lý Công Nợ</h2>
-      <Tabs defaultActiveKey="1" type="card">
-        <TabPane tab="Công nợ nội bộ" key="1">
-          <CongNoListPage />
-        </TabPane>
-        <TabPane tab="Công nợ Khách hàng & NCC" key="2">
-          <PartnerDebtList />
-        </TabPane>
-      </Tabs>
+    <div style={{ padding: "0 8px" }}>
+      <div
+        style={{
+          marginBottom: 24,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Space size="middle">
+          <div
+            style={{
+              background: "#ff7a45",
+              borderRadius: 8,
+              width: 36,
+              height: 36,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <DollarCircleOutlined style={{ color: "white", fontSize: 20 }} />
+          </div>
+          <Title level={4} style={{ margin: 0 }}>
+            Quản lý Công Nợ
+          </Title>
+        </Space>
+      </div>
+
+      <Tabs
+        defaultActiveKey="1"
+        className="premium-tabs"
+        items={[
+          {
+            key: "1",
+            label: (
+              <span>
+                <ReconciliationOutlined /> Công nợ nội bộ
+              </span>
+            ),
+            children: <CongNoListPage />,
+          },
+          {
+            key: "2",
+            label: (
+              <span>
+                <TeamOutlined /> Công nợ Khách hàng & NCC
+              </span>
+            ),
+            children: <PartnerDebtList />,
+          },
+        ]}
+      />
     </div>
   );
 };

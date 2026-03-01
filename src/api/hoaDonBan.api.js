@@ -27,7 +27,10 @@ export const hoaDonBanAPI = {
   guiDuyet: (soHd) => axiosInstance.patch(`${BASE}/${soHd}/gui-duyet`),
 
   // Approve (Admin only)
-  pheDuyet: (soHd) => axiosInstance.patch(`${BASE}/${soHd}/phe-duyet`),
+  pheDuyet: (soHd, paymentAmount) =>
+    axiosInstance.patch(`${BASE}/${soHd}/phe-duyet`, {
+      so_tien_thu: paymentAmount,
+    }),
 
   // Reject
   tuChoi: (soHd) => axiosInstance.patch(`${BASE}/${soHd}/tu-choi`),
