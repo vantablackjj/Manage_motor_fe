@@ -132,15 +132,20 @@ const ThanhToanModal = ({ visible, onCancel, onSuccess, initData }) => {
           label="Số tiền thanh toán"
           rules={[
             { required: true, message: "Nhập số tiền" },
-            { type: "number", min: 1000, message: "Số tiền không hợp lệ" },
+            {
+              type: "number",
+              min: 1000,
+              message: "Số tiền không hợp lệ",
+              transform: (value) => (value ? Number(value) : 0),
+            },
           ]}
         >
           <InputNumber
             style={{ width: "100%" }}
             formatter={(value) =>
-              `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
             }
-            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+            parser={(value) => value.replace(/[^\d]/g, "")}
             min={0}
             max={initData?.so_tien_no}
           />

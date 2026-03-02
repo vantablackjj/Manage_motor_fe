@@ -207,10 +207,18 @@ const ThuChiList = () => {
       title: "Khách hàng/NCC",
       dataIndex: "ma_kh",
       key: "ma_kh",
-      render: (val) => {
+      render: (val, record) => {
         const partner = partners.find((p) => p.ma_kh === val);
         return partner ? partner.ho_ten : val;
       },
+    },
+    {
+      title: "Người tạo",
+      dataIndex: "ten_nguoi_tao",
+      key: "ten_nguoi_tao",
+      width: 150,
+      ellipsis: true,
+      render: (text, record) => text || record.nguoi_tao || "-",
     },
     {
       title: "Trạng thái",

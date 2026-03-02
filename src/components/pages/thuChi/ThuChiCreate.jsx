@@ -191,15 +191,20 @@ const ThuChiCreate = () => {
                 label="Số tiền (VNĐ)"
                 rules={[
                   { required: true, message: "Nhập số tiền" },
-                  { type: "number", min: 1, message: "Số tiền phải lớn hơn 0" },
+                  {
+                    type: "number",
+                    min: 1,
+                    message: "Số tiền phải lớn hơn 0",
+                    transform: (value) => (value ? Number(value) : 0),
+                  },
                 ]}
               >
                 <InputNumber
                   style={{ width: "100%" }}
                   formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
                   }
-                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                  parser={(value) => value.replace(/[^\d]/g, "")}
                   placeholder="Nhập số tiền"
                 />
               </Form.Item>

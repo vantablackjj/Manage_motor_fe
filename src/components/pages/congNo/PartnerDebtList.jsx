@@ -99,7 +99,7 @@ const PartnerDebtList = () => {
               : record.loai_doi_tac === "NHA_CUNG_CAP"
                 ? "Nhà cung cấp"
                 : "Cả hai"}{" "}
-            ({record.ma_doi_tac})
+            ({record.ma_kh || record.ma_doi_tac})
           </Text>
         </div>
       ),
@@ -271,7 +271,9 @@ const PartnerDebtList = () => {
           dataSource={data}
           columns={columns}
           loading={loading}
-          rowKey={(record) => `${record.ma_doi_tac}_${record.loai_cong_no}`}
+          rowKey={(record) =>
+            `${record.ma_kh || record.ma_doi_tac}_${record.loai_cong_no}`
+          }
           pagination={{ pageSize: 15, size: "small" }}
           scroll={{ x: 800 }}
         />

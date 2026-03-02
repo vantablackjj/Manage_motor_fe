@@ -80,14 +80,14 @@ const FinancialReportPage = () => {
     setLoading(true);
     try {
       let res;
-      const apiParams = {
-        ...params,
+      const baseParams = {
         tu_ngay: params.tu_ngay?.format("YYYY-MM-DD"),
         den_ngay: params.den_ngay?.format("YYYY-MM-DD"),
+        ma_kho: params.ma_kho,
       };
 
       if (activeTab === "cong-no-noi-bo") {
-        res = await reportAPI.debt.getInternal(apiParams);
+        res = await reportAPI.debt.getInternal(baseParams);
         const rawData = res?.data !== undefined ? res.data : res;
         const list = Array.isArray(rawData)
           ? rawData
@@ -97,7 +97,12 @@ const FinancialReportPage = () => {
         setData(list);
         setSummary(null);
       } else if (activeTab === "cong-no-khach-hang") {
-        res = await reportAPI.debt.getCustomer(apiParams);
+        res = await reportAPI.debt.getCustomer({
+          ...baseParams,
+          loai_cong_no: params.loai_cong_no,
+          ma_kh: params.ma_kh,
+          ma_ncc: params.ma_ncc,
+        });
 
         // Handle new unified response format
         if (res?.data && res?.summary) {
@@ -116,20 +121,27 @@ const FinancialReportPage = () => {
           setSummary(null);
         }
       } else if (activeTab === "loi-nhuan") {
-        res = await reportAPI.sales.getProfitLoss(apiParams);
+        res = await reportAPI.sales.getProfitLoss({
+          ...baseParams,
+          loai: params.loai, // XE hoặc PHU_TUNG - hợp lệ cho endpoint lợi nhuận
+        });
         const list = Array.isArray(res.data) ? res.data : res || [];
         setData(list);
         setSummary(null);
       } else {
-        res = await reportAPI.finance.getByDay({ ...apiParams, loai: "THU" });
-        const rawData = res?.data !== undefined ? res.data : res;
+        // so-quy tab: fetch cả THU và CHI, KHÔNG truyền loai=XE
+        const [thuRes, chiRes] = await Promise.all([
+          reportAPI.finance.getByDay(baseParams), // Không truyền loai để lấy cả THU lẫn CHI
+          reportAPI.finance.getSummary(baseParams),
+        ]);
+        const rawData = thuRes?.data !== undefined ? thuRes.data : thuRes;
         const list = Array.isArray(rawData)
           ? rawData
           : rawData
             ? [rawData]
             : [];
         setData(list);
-        setSummary(null);
+        setSummary(chiRes?.data !== undefined ? chiRes.data : chiRes || null);
       }
     } catch (error) {
       notificationService.error("Không thể tải dữ liệu báo cáo");
@@ -285,13 +297,28 @@ const FinancialReportPage = () => {
   const cashFlowColumns = [
     {
       title: "Ngày",
-      dataIndex: "ngay",
-      key: "ngay",
+      dataIndex: "ngay_giao_dich",
+      key: "ngay_giao_dich",
       render: (date) => formatService.formatDate(date),
     },
     { title: "Số phiếu", dataIndex: "so_phieu", key: "so_phieu" },
-    { title: "Loại", dataIndex: "loai_phieu", key: "loai_phieu" },
-    { title: "Lý do", dataIndex: "ly_do", key: "ly_do" },
+    {
+      title: "Loại",
+      dataIndex: "loai",
+      key: "loai",
+      render: (val) => (
+        <Tag color={val === "THU" ? "green" : "red"}>
+          {val === "THU" ? "Thu" : "Chi"}
+        </Tag>
+      ),
+    },
+    {
+      title: "Nội dung",
+      dataIndex: "dien_giai",
+      key: "dien_giai",
+      render: (val, record) => val || record.noi_dung || "-",
+    },
+    { title: "Kho", dataIndex: "ten_kho", key: "ten_kho" },
     {
       title: "Số tiền",
       dataIndex: "so_tien",
@@ -303,11 +330,6 @@ const FinancialReportPage = () => {
           {formatService.formatCurrency(val)}
         </Text>
       ),
-    },
-    {
-      title: "Người thực hiện",
-      dataIndex: "nguoi_thuc_hien",
-      key: "nguoi_thuc_hien",
     },
   ];
 

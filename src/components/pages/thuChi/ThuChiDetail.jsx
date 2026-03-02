@@ -117,12 +117,16 @@ const ThuChiDetail = () => {
     ma_kh,
     ngay_giao_dich,
     nguoi_tao,
+    ten_nguoi_tao,
     ngay_tao,
     nguoi_gui,
+    ten_nguoi_gui,
     ngay_gui,
     nguoi_duyet,
+    ten_nguoi_duyet,
     ngay_duyet,
     nguoi_huy,
+    ten_nguoi_huy,
     ngay_huy,
     ly_do_huy,
     lien_ket_phieu,
@@ -142,7 +146,8 @@ const ThuChiDetail = () => {
             <Text strong>Tạo phiếu</Text>
             <br />
             <Text type="secondary" size="small">
-              Bởi {nguoi_tao} - {formatService.formatDateTime(ngay_tao)}
+              Bởi {ten_nguoi_tao || nguoi_tao} -{" "}
+              {formatService.formatDateTime(ngay_tao)}
             </Text>
           </>
         ),
@@ -157,7 +162,8 @@ const ThuChiDetail = () => {
             <Text strong>Gửi duyệt</Text>
             <br />
             <Text type="secondary" size="small">
-              Bởi {nguoi_gui} - {formatService.formatDateTime(ngay_gui)}
+              Bởi {ten_nguoi_gui || nguoi_gui} -{" "}
+              {formatService.formatDateTime(ngay_gui)}
             </Text>
           </>
         ),
@@ -172,7 +178,8 @@ const ThuChiDetail = () => {
             <Text strong>Đã phê duyệt</Text>
             <br />
             <Text type="secondary" size="small">
-              Bởi {nguoi_duyet} - {formatService.formatDateTime(ngay_duyet)}
+              Bởi {ten_nguoi_duyet || nguoi_duyet} -{" "}
+              {formatService.formatDateTime(ngay_duyet)}
             </Text>
           </>
         ),
@@ -187,7 +194,8 @@ const ThuChiDetail = () => {
             <Text strong>Đã hủy</Text>
             <br />
             <Text type="secondary" size="small">
-              Bởi {nguoi_huy} - {formatService.formatDateTime(ngay_huy)}
+              Bởi {ten_nguoi_huy || nguoi_huy} -{" "}
+              {formatService.formatDateTime(ngay_huy)}
             </Text>
             {ly_do_huy && (
               <>

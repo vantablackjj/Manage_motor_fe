@@ -272,9 +272,10 @@ const DonHangListPage = () => {
     },
     {
       title: "Người tạo",
-      dataIndex: "nguoi_tao",
-      key: "nguoi_tao",
+      dataIndex: "ten_nguoi_tao",
+      key: "ten_nguoi_tao",
       width: 120,
+      render: (text, record) => text || record.nguoi_tao || "-",
     },
     {
       title: "Thao tác",

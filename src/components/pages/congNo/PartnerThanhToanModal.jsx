@@ -33,7 +33,7 @@ const PartnerThanhToanModal = ({ visible, onCancel, onSuccess, initData }) => {
       form.resetFields();
       if (initData) {
         form.setFieldsValue({
-          ma_doi_tac: initData.ma_doi_tac,
+          ma_doi_tac: initData.ma_doi_tac || initData.ma_kh,
           loai_cong_no: initData.loai_cong_no,
           so_tien: initData.con_lai,
         });
@@ -86,7 +86,7 @@ const PartnerThanhToanModal = ({ visible, onCancel, onSuccess, initData }) => {
           style={{ marginBottom: 16 }}
         >
           <Descriptions.Item label="Đối tác">
-            <b>{initData.ho_ten}</b> ({initData.ma_doi_tac})
+            <b>{initData.ho_ten}</b> ({initData.ma_doi_tac || initData.ma_kh})
           </Descriptions.Item>
           <Descriptions.Item label="Loại công nợ">
             {initData.loai_cong_no === "PHAI_THU"
@@ -142,15 +142,20 @@ const PartnerThanhToanModal = ({ visible, onCancel, onSuccess, initData }) => {
               label="Số tiền thanh toán"
               rules={[
                 { required: true, message: "Nhập số tiền" },
-                { type: "number", min: 1000, message: "Tối thiểu 1.000đ" },
+                {
+                  type: "number",
+                  min: 1000,
+                  message: "Tối thiểu 1.000đ",
+                  transform: (value) => (value ? Number(value) : 0),
+                },
               ]}
             >
               <InputNumber
                 style={{ width: "100%" }}
                 formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
                 }
-                parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                parser={(value) => value.replace(/[^\d]/g, "")}
               />
             </Form.Item>
           </Col>
