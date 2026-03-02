@@ -49,9 +49,24 @@ const InventoryReportPage = () => {
     ngay_tinh: dayjs(),
   });
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [hasMore, setHasMore] = useState(true);
+
   useEffect(() => {
     fetchFilterOptions();
   }, []);
+
+  useEffect(() => {
+    setPage(1); // Reset to first page when filters change
+  }, [
+    activeTab,
+    params.ma_kho,
+    params.ma_loai_xe,
+    params.ma_mau,
+    params.nhom_pt,
+    params.canh_bao,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -62,6 +77,8 @@ const InventoryReportPage = () => {
     params.ma_mau,
     params.nhom_pt,
     params.canh_bao,
+    page,
+    pageSize,
   ]);
 
   const fetchFilterOptions = async () => {
@@ -86,6 +103,8 @@ const InventoryReportPage = () => {
       const apiParams = {
         ...params,
         ngay_tinh: params.ngay_tinh?.format("YYYY-MM-DD"),
+        page,
+        limit: pageSize,
       };
 
       if (activeTab === "ton-kho-xe") {
@@ -99,6 +118,13 @@ const InventoryReportPage = () => {
       const rawData = res?.data !== undefined ? res.data : res;
       const list = Array.isArray(rawData) ? rawData : rawData ? [rawData] : [];
       setData(list);
+
+      // If we got fewer items than the page size, there are no more items
+      if (list.length < pageSize) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
     } catch (error) {
       notificationService.error("Không thể tải dữ liệu báo cáo");
       setData([]);
@@ -253,7 +279,7 @@ const InventoryReportPage = () => {
   ];
 
   return (
-    <div style={{ padding: 16 }}>
+    <div className="manage-page-container">
       <Card
         title={
           <Space>
@@ -272,7 +298,13 @@ const InventoryReportPage = () => {
           ]}
         />
 
-        <Card size="small" style={{ marginBottom: 16, background: "var(--bg-secondary, #fafafa)" }}>
+        <Card
+          size="small"
+          style={{
+            marginBottom: 16,
+            background: "var(--bg-secondary, #fafafa)",
+          }}
+        >
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={8} md={4}>
               <Text strong>Chọn kho:</Text>
@@ -332,7 +364,7 @@ const InventoryReportPage = () => {
 
             {activeTab === "ton-kho-pt" && (
               <Col xs={24} sm={8} md={4}>
-                <div style={{ marginTop: 22 }}>
+                <div style={{ marginTop: isMobile ? 8 : 22 }}>
                   <Checkbox
                     checked={params.canh_bao}
                     onChange={(e) =>
@@ -359,10 +391,17 @@ const InventoryReportPage = () => {
               xs={24}
               sm={16}
               md={8}
-              style={{ textAlign: "right", marginTop: 22 }}
+              style={{
+                textAlign: isMobile ? "left" : "right",
+                marginTop: isMobile ? 8 : 22,
+              }}
             >
-              <Space>
-                <Button icon={<ReloadOutlined />} onClick={fetchData}>
+              <Space wrap>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={fetchData}
+                  size={isMobile ? "small" : "middle"}
+                >
                   Làm mới
                 </Button>
                 <Button
@@ -370,12 +409,14 @@ const InventoryReportPage = () => {
                   icon={<FileExcelOutlined />}
                   onClick={() => handleExport("excel")}
                   danger
+                  size={isMobile ? "small" : "middle"}
                 >
                   Excel
                 </Button>
                 <Button
                   icon={<FilePdfOutlined />}
                   onClick={() => handleExport("pdf")}
+                  size={isMobile ? "small" : "middle"}
                 >
                   PDF
                 </Button>
@@ -405,12 +446,39 @@ const InventoryReportPage = () => {
             return Math.random();
           }}
           pagination={{
-            pageSize: 10,
+            current: page,
+            pageSize: pageSize,
+            onChange: (p, s) => {
+              setPage(p);
+              setPageSize(s);
+            },
             showSizeChanger: true,
+            pageSizeOptions: ["20", "50", "100", "200"],
+            showTotal: (total, range) => `Bản ghi ${range[0]} - ${range[1]}`,
+            // Since we're skipping total count for performance,
+            // we use a large number if there's more data, or current total if not
+            total: hasMore
+              ? page * pageSize + 1
+              : (page - 1) * pageSize + data.length,
           }}
           scroll={{ x: 1000 }}
         />
       </Card>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

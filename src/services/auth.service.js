@@ -21,7 +21,8 @@ class AuthService {
 
   // Get refresh token
   getRefreshToken() {
-    return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    // Refresh token is now handled via HTTP-only cookies
+    return null;
   }
 
   // Set user info
@@ -39,9 +40,7 @@ class AuthService {
   setTokens(accessToken, refreshToken = null) {
     try {
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-      if (refreshToken) {
-        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
-      }
+      // refreshToken is now handled via HTTP-only cookies from the server
       return true;
     } catch (error) {
       console.error("Set tokens error:", error);
@@ -52,7 +51,6 @@ class AuthService {
   // Clear all auth data
   clearAuth() {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER_INFO);
     localStorage.removeItem(STORAGE_KEYS.CURRENT_KHO);
   }

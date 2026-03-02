@@ -5,6 +5,7 @@ import { publicRoutes, privateRoutes } from "./routeConfig";
 import PrivateRoute from "./PrivateRoutes";
 import PageLoading from "../components/common/Loading/Loading";
 import { Fragment } from "react";
+import MainLayout from "../components/layout/MainLayout/MainLayout";
 
 const AppRoutes = () => {
   return (
@@ -13,11 +14,19 @@ const AppRoutes = () => {
         {/* Redirect /sales to /sales/orders as it's a parent menu key */}
         <Route
           path="/sales"
-          element={<Navigate to="/sales/orders" replace />}
+          element={
+            <MainLayout>
+              <Navigate to="/sales/orders" replace />
+            </MainLayout>
+          }
         />
         <Route
           path="/purchase"
-          element={<Navigate to="/purchase/vehicles" replace />}
+          element={
+            <MainLayout>
+              <Navigate to="/purchase/vehicles" replace />
+            </MainLayout>
+          }
         />
 
         {/* Public routes */}

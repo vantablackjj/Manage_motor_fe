@@ -25,10 +25,12 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { USER_ROLE_LABELS } from "../../../utils/constant";
 import { authAPI } from "../../../api/auth.config";
 import { notificationService } from "../../../services";
+import { useResponsive } from "../../../hooks/useResponsive";
 
 const { Title, Text } = Typography;
 
 const UserProfilePage = () => {
+  const { isMobile } = useResponsive();
   const { user, setUser } = useAuth();
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
@@ -117,13 +119,10 @@ const UserProfilePage = () => {
   }
 
   return (
-    <div
-      style={{ padding: "16px 8px" }}
-      className="w-full h-full bg-slate-50 min-h-screen"
-    >
+    <div className="manage-page-container">
       <Row gutter={[24, 24]} justify="center">
         {/* Left Column: Avatar & Basic Info */}
-        <Col xs={24} md={8} lg={6}>
+        <Col xs={24} md={10} lg={8}>
           <Card
             className="shadow-sm rounded-lg"
             styles={{ body: { padding: 0 } }}
@@ -209,7 +208,7 @@ const UserProfilePage = () => {
         </Col>
 
         {/* Right Column: Edit Form */}
-        <Col xs={24} md={16} lg={14}>
+        <Col xs={24} md={14} lg={16}>
           <Card
             title={
               <span className="text-gray-700 font-semibold text-lg">
@@ -427,6 +426,21 @@ const UserProfilePage = () => {
           </Form.Item>
         </Form>
       </Modal>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

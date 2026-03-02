@@ -13,6 +13,7 @@ import {
   Col,
   Segmented,
 } from "antd";
+import { useResponsive } from "../../../hooks/useResponsive";
 import {
   PlusOutlined,
   ReloadOutlined,
@@ -46,6 +47,7 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const ChuyenKhoList = () => {
+  const { isMobile } = useResponsive();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -188,19 +190,18 @@ const ChuyenKhoList = () => {
   ];
 
   return (
-    <div
-      style={{
-        padding: "16px 8px",
-        background: "var(--bg-layout, #f0f2f5)",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="manage-page-container">
       <Card size="small">
         <div style={{ marginBottom: 16 }}>
           <Row justify="space-between" align="middle" gutter={[8, 16]}>
-            <Col xs={24} md={10}>
-              <Space align="center" size="large">
-                <h2 style={{ margin: 0 }}>
+            <Col xs={24} md={12}>
+              <Space align="center" size={isMobile ? "small" : "large"} wrap>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: isMobile ? "1.25rem" : "1.75rem",
+                  }}
+                >
                   <SwapOutlined style={{ marginRight: 8 }} />
                   Chuyển kho
                 </h2>
@@ -215,23 +216,33 @@ const ChuyenKhoList = () => {
                   ]}
                   value={viewMode}
                   onChange={setViewMode}
+                  size={isMobile ? "small" : "middle"}
                 />
               </Space>
             </Col>
-            <Col xs={24} md={14} style={{ textAlign: "right" }}>
+            <Col
+              xs={24}
+              md={12}
+              style={{ textAlign: isMobile ? "left" : "right" }}
+            >
               <Space wrap>
-                <Button icon={<ScanOutlined />}>Quét mã</Button>
+                <Button
+                  icon={<ScanOutlined />}
+                  size={isMobile ? "small" : "middle"}
+                >
+                  Quét mã
+                </Button>
                 <ImportButton
                   module="transfer-pt"
                   title="Phiếu Chuyển Kho"
                   onSuccess={fetchData}
+                  size={isMobile ? "small" : "middle"}
                 />
-                <ExportButton
-                  module="transfer-pt"
-                  title="Xuất Excel Phụ tùng"
-                  params={filters}
-                />
-                <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={() => fetchData()}
+                  size={isMobile ? "small" : "middle"}
+                >
                   Làm mới
                 </Button>
                 {authService.hasPermission("inventory", "transfer") && (
@@ -239,6 +250,8 @@ const ChuyenKhoList = () => {
                     type="primary"
                     icon={<PlusOutlined />}
                     onClick={() => navigate("/chuyen-kho/tao-moi")}
+                    size={isMobile ? "small" : "middle"}
+                    block={isMobile}
                   >
                     Tạo mới
                   </Button>
@@ -327,6 +340,21 @@ const ChuyenKhoList = () => {
           />
         )}
       </Card>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

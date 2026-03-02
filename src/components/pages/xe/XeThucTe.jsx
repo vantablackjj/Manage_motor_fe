@@ -271,12 +271,6 @@ const XeThucTe = () => {
     setFormVisible(true);
   };
 
-  const handleCreate = () => {
-    setFormMode("create");
-    setSelectedXe(null);
-    setFormVisible(true);
-  };
-
   const handleCloseForm = () => {
     setFormVisible(false);
     setSelectedXe(null);
@@ -494,17 +488,6 @@ const XeThucTe = () => {
                     Chuyển kho
                   </Button>
                 )}
-                {activeTab === "danh-sach" &&
-                  authService.hasPermission("products", "create") && (
-                    <Button
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={handleCreate}
-                      block={isMobile}
-                    >
-                      Nhập kho xe
-                    </Button>
-                  )}
               </Space>
             </Col>
           </Row>

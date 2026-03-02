@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from "react";
 import {
   Table,
   Button,
@@ -17,6 +16,7 @@ import {
   Typography,
   Tooltip,
   Divider,
+  Dropdown,
 } from "antd";
 import {
   PlusOutlined,
@@ -33,7 +33,9 @@ import {
   AppstoreAddOutlined,
   FormOutlined,
   SwapOutlined,
+  MoreOutlined,
 } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
 import { userAPI, khoAPI } from "../../../api";
 import { authService, notificationService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
@@ -303,50 +305,58 @@ const UserManagePage = () => {
       },
     },
     {
-      title: "Hành động",
+      title: "Thao tác",
       key: "action",
-      width: 250,
-      fixed: "right",
-      render: (_, record) => (
-        <Space size="small" split={<Divider type="vertical" />}>
-          <Tooltip title="Chỉnh sửa">
-            <Button
-              type="text"
-              className="text-blue-600 p-0"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Đổi mật khẩu">
-            <Button
-              type="text"
-              className="text-yellow-600 p-0"
-              icon={<KeyOutlined />}
-              onClick={() => handleResetPassword(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Phân quyền kho">
-            <Button
-              type="text"
-              className="text-purple-600 p-0"
-              icon={<HomeOutlined />}
-              onClick={() => handleManagePermissions(record)}
-            />
-          </Tooltip>
-        </Space>
-      ),
+      width: 80,
+      align: "center",
+      fixed: isMobile ? false : "right",
+      render: (_, record) => {
+        const menuItems = [
+          {
+            key: "edit",
+            label: "Chỉnh sửa",
+            icon: <EditOutlined style={{ color: "#1890ff" }} />,
+            onClick: () => handleEdit(record),
+          },
+          {
+            key: "password",
+            label: "Đổi mật khẩu",
+            icon: <KeyOutlined style={{ color: "#faad14" }} />,
+            onClick: () => handleResetPassword(record),
+          },
+          {
+            key: "permission",
+            label: "Phân quyền kho",
+            icon: <HomeOutlined style={{ color: "#722ed1" }} />,
+            onClick: () => handleManagePermissions(record),
+          },
+        ];
+        return (
+          <Dropdown
+            menu={{ items: menuItems }}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            <Button type="text" icon={<MoreOutlined />} />
+          </Dropdown>
+        );
+      },
     },
   ];
 
   return (
-    <div className="p-4 md:p-6 bg-slate-50 min-h-screen">
+    <div className="manage-page-container">
       <Card
-        className="shadow-sm border-0 rounded-xl"
-        styles={{ body: { padding: "24px" } }}
+        className="manage-card shadow-sm border-0 rounded-xl"
+        styles={{ body: { padding: isMobile ? "12px" : "24px" } }}
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <div>
-            <Title level={3} className="m-0 text-gray-800 flex items-center">
+          <div style={{ marginBottom: isMobile ? 8 : 0 }}>
+            <Title
+              level={3}
+              className="m-0 text-gray-800 flex items-center"
+              style={{ fontSize: isMobile ? "1.25rem" : "1.75rem" }}
+            >
               <UserOutlined className="mr-3 text-blue-500" />
               Danh sách Nhân viên
             </Title>
@@ -355,29 +365,43 @@ const UserManagePage = () => {
             </Text>
           </div>
 
-          <Space wrap>
+          <Space
+            wrap
+            size={isMobile ? 8 : 12}
+            style={{
+              width: isMobile ? "100%" : "auto",
+              justifyContent: isMobile ? "flex-start" : "flex-end",
+            }}
+          >
             <Input.Search
               placeholder="Tìm username, tên, email..."
               allowClear
               onSearch={setSearchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="w-full md:w-64"
+              style={{ width: isMobile ? "calc(100vw - 40px)" : 256 }}
               size="middle"
             />
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={fetchData}
-              size="middle"
-            />
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
-              size="middle"
-              className="bg-blue-600"
+            <div
+              className="flex gap-2"
+              style={{ width: isMobile ? "100%" : "auto" }}
             >
-              Thêm nhân viên
-            </Button>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={fetchData}
+                size="middle"
+              />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleAdd}
+                size="middle"
+                className="bg-blue-600"
+                block={isMobile}
+                style={{ flex: isMobile ? 1 : "initial" }}
+              >
+                Thêm nhân viên
+              </Button>
+            </div>
           </Space>
         </div>
 
@@ -829,6 +853,33 @@ const UserManagePage = () => {
           ]}
         />
       </Modal>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: #f8fafc;
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+          .ant-table-wrapper {
+            margin-left: -4px;
+            margin-right: -4px;
+          }
+          .ant-table-pagination.ant-pagination {
+            margin: 16px 0 !important;
+            justify-content: center !important;
+          }
+        }
+        .manage-card {
+          border-radius: 12px;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+      `}</style>
     </div>
   );
 };

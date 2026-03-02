@@ -164,12 +164,12 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
   ];
 
   return (
-    <div>
+    <div className="ton-kho-container">
       {/* Filter */}
       <div style={{ marginBottom: 16 }}>
         <Select
           placeholder="Chọn kho"
-          style={{ width: 200 }}
+          style={{ width: isMobile ? "100%" : 200 }}
           value={selectedKho}
           onChange={setSelectedKho}
         >
@@ -182,32 +182,33 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
       </div>
 
       {/* Statistics */}
-      <Row gutter={16} style={{ marginBottom: 16 }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={12} md={8}>
-          <Card size="small">
+          <Card size="small" className="stat-card">
             <Statistic
               title="Tổng số lượng"
               value={tongSoLuong}
               prefix={<MotorcycleIcon />}
+              valueStyle={{ fontSize: isMobile ? 18 : 24 }}
             />
           </Card>
         </Col>
         <Col xs={12} md={8}>
-          <Card size="small">
+          <Card size="small" className="stat-card">
             <Statistic
-              title="Loại xe tồn kho"
+              title="Loại xe"
               value={loaiXeTonKho}
-              styles={{ content: { color: "#3f8600" } }}
+              valueStyle={{ color: "#3f8600", fontSize: isMobile ? 18 : 24 }}
             />
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card size="small">
+          <Card size="small" className="stat-card">
             <Statistic
-              title="Giá trị tồn kho"
+              title="Giá trị tồn"
               value={tongGiaTri}
               formatter={(value) => formatService.formatCurrency(value)}
-              styles={{ content: { color: "#1890ff" } }}
+              valueStyle={{ color: "#1890ff", fontSize: isMobile ? 18 : 24 }}
             />
           </Card>
         </Col>
@@ -221,15 +222,15 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
           `${record.ma_kho}-${record.ma_loai_xe}-${record.ma_mau}`
         }
         loading={loading}
-        scroll={{ x: 1100 }}
+        scroll={{ x: isMobile ? 800 : 1100 }}
         expandable={{
           expandedRowRender: (record) => (
             <Table
               columns={[
-                { title: "Xe Key", dataIndex: "xe_key", width: 150 },
-                { title: "Số khung", dataIndex: "so_khung", width: 180 },
-                { title: "Số máy", dataIndex: "so_may", width: 150 },
-                {
+                { title: "Xe Key", dataIndex: "xe_key", width: 120 },
+                { title: "Sổ khung", dataIndex: "so_khung", width: 150 },
+                { title: "Số máy", dataIndex: "so_may", width: 120 },
+                !isMobile && {
                   title: "Ngày nhập",
                   dataIndex: "ngay_nhap",
                   render: (d) => formatService.formatDateTime(d),
@@ -240,11 +241,12 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
                   align: "right",
                   render: (v) => formatService.formatCurrency(v),
                 },
-              ]}
+              ].filter(Boolean)}
               dataSource={record.vehicles}
               pagination={false}
               size="small"
               rowKey="xe_key"
+              scroll={{ x: isMobile ? 500 : undefined }}
             />
           ),
         }}
@@ -252,11 +254,27 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
           pageSize: 20,
           showSizeChanger: true,
           showTotal: (total) => `Tổng ${total} dòng`,
+          size: "small",
         }}
         locale={{
           emptyText: "Không có dữ liệu tồn kho",
         }}
+        size="small"
       />
+      <style>{`
+        .ton-kho-container {
+          padding: 0;
+        }
+        .stat-card {
+           border-radius: 8px;
+           box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        @media (max-width: 640px) {
+           .ant-table {
+              font-size: 13px;
+           }
+        }
+      `}</style>
     </div>
   );
 };

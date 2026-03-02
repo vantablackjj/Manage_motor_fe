@@ -33,11 +33,13 @@ import { postSaleAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import dayjs from "dayjs";
 import { useDebounce } from "../../../hooks/useDebounce";
+import { useResponsive } from "../../../hooks/useResponsive";
 
 const { Option } = Select;
 const { Text, Title } = Typography;
 
 const PostSaleManagePage = () => {
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [stats, setStats] = useState({
@@ -295,7 +297,7 @@ const PostSaleManagePage = () => {
   ];
 
   return (
-    <div style={{ padding: "16px" }}>
+    <div className="manage-page-container">
       <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
         <Col xs={24} sm={12} md={6}>
           <Card size="small" style={{ borderLeft: "4px solid #1890ff" }}>
@@ -353,6 +355,7 @@ const PostSaleManagePage = () => {
               prefix={<SearchOutlined />}
               onChange={(e) => handleFilterChange("search", e.target.value)}
               allowClear
+              size={isMobile ? "small" : "middle"}
             />
           </Col>
           <Col xs={24} md={6}>
@@ -361,6 +364,7 @@ const PostSaleManagePage = () => {
               style={{ width: "100%" }}
               onChange={(val) => handleFilterChange("status", val)}
               allowClear
+              size={isMobile ? "small" : "middle"}
             >
               <Option value="chua_dang_ky">Chưa đăng ký biển</Option>
               <Option value="chua_dang_kiem">Chưa có giấy tờ gốc</Option>
@@ -368,8 +372,17 @@ const PostSaleManagePage = () => {
               <Option value="hoan_thanh">Đã hoàn thành</Option>
             </Select>
           </Col>
-          <Col xs={24} md={10} style={{ textAlign: "right" }}>
-            <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
+          <Col
+            xs={24}
+            md={10}
+            style={{ textAlign: isMobile ? "left" : "right" }}
+          >
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => fetchData()}
+              size={isMobile ? "small" : "middle"}
+              block={isMobile}
+            >
               Làm mới
             </Button>
           </Col>
@@ -433,6 +446,27 @@ const PostSaleManagePage = () => {
           </Form.Item>
         </Form>
       </Modal>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+          .ant-statistic-title {
+            font-size: 12px;
+          }
+          .ant-statistic-content {
+            font-size: 16px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

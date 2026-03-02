@@ -8,13 +8,14 @@
 }
 
 .ant-layout-sider {
-  background: #001529 !important;
   border-right: none !important;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1) !important;
+  border-inline-end: none !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  background: #001529 !important;
 }
 
 .ant-layout-header {
-  background: #ffffff !important;
+  background: var(--bg-primary);
   padding: 0 24px !important;
   height: 64px !important;
   line-height: 64px !important;
@@ -32,6 +33,21 @@
   bottom: 0;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
   z-index: 100;
+  border-right: none !important;
+}
+
+.ant-drawer-content {
+  background-color: #001529 !important;
+}
+
+.ant-drawer-header {
+  border-bottom: none !important;
+  background-color: #001529 !important;
+}
+
+.ant-drawer-body {
+  padding: 0 !important;
+  border-right: none !important;
 }
 
 .sidebar-logo {
@@ -60,7 +76,8 @@
 }
 
 .sidebar-menu {
-  border-right: none;
+  border-right: none !important;
+  border-inline-end: none !important;
 }
 
 .sidebar-menu .ant-menu-item,
@@ -175,7 +192,7 @@
 }
 
 .content-wrapper {
-  padding: 24px;
+  padding: 16px 24px;
   min-height: calc(100vh - 64px);
 }
 
@@ -188,7 +205,7 @@
   }
   
   .content-wrapper {
-    padding: 16px;
+    padding: 12px 16px;
   }
   
   .layout-content {
@@ -218,13 +235,13 @@
   }
   
   .layout-content {
-    margin-left: 0;
+    margin-left: 0 !important;
     min-height: calc(100vh - 52px);
   }
   
   .content-wrapper {
-    padding: 8px;
-    min-height: calc(100vh - 60px);
+    padding: 8px 4px;
+    min-height: calc(100vh - 52px);
   }
   
   .user-info {

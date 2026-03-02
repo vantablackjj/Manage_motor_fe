@@ -489,7 +489,7 @@ const LogisticsReportPage = () => {
   };
 
   return (
-    <div style={{ padding: 16 }}>
+    <div className="manage-page-container">
       <Card
         title={
           <Space>
@@ -508,7 +508,13 @@ const LogisticsReportPage = () => {
           ]}
         />
 
-        <Card size="small" style={{ marginBottom: 16, background: "var(--bg-secondary, #fafafa)" }}>
+        <Card
+          size="small"
+          style={{
+            marginBottom: 16,
+            background: "var(--bg-secondary, #fafafa)",
+          }}
+        >
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={8} md={4}>
               <Text strong>Chọn kho:</Text>
@@ -568,10 +574,17 @@ const LogisticsReportPage = () => {
               xs={24}
               sm={8}
               flex="auto"
-              style={{ textAlign: "right", marginTop: 22 }}
+              style={{
+                textAlign: isMobile ? "left" : "right",
+                marginTop: isMobile ? 8 : 22,
+              }}
             >
-              <Space>
-                <Button icon={<ReloadOutlined />} onClick={fetchData}>
+              <Space wrap>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={fetchData}
+                  size={isMobile ? "small" : "middle"}
+                >
                   Làm mới
                 </Button>
                 <Button
@@ -579,12 +592,14 @@ const LogisticsReportPage = () => {
                   icon={<FileExcelOutlined />}
                   danger
                   onClick={() => handleExport("excel")}
+                  size={isMobile ? "small" : "middle"}
                 >
                   Excel
                 </Button>
                 <Button
                   icon={<FilePdfOutlined />}
                   onClick={() => handleExport("pdf")}
+                  size={isMobile ? "small" : "middle"}
                 >
                   PDF
                 </Button>
@@ -617,6 +632,21 @@ const LogisticsReportPage = () => {
           }}
         />
       </Card>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

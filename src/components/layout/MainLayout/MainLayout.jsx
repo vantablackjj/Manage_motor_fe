@@ -90,16 +90,8 @@ const MainLayout = ({ children }) => {
       // Nhập hàng
       if (hasPermission("purchase_orders", "view")) {
         transactionChildren.push({
-          key: "/purchase",
+          key: "/purchase/vehicles",
           label: "Nhập xe & Phụ tùng",
-        });
-      }
-
-      // Phê duyệt
-      if (hasPermission("products", "approve")) {
-        transactionChildren.push({
-          key: "/xe/phe-duyet",
-          label: "Phê duyệt xe nhập lẻ",
         });
       }
 
@@ -285,13 +277,15 @@ const MainLayout = ({ children }) => {
         { key: "/he-thong/nguoi-dung", label: "Người dùng" },
       ];
 
-      // Chỉ ADMIN mới thấy phân quyền và cài hình
+      // Cấu hình & Phân quyền tạm thời không dùng tới theo yêu cầu
+      /*
       if (hasRole("ADMIN")) {
         heThongChildren.push(
           { key: "/he-thong/phan-quyen", label: "Phân quyền" },
           { key: "/he-thong/cau-hinh", label: "Cấu hình" },
         );
       }
+      */
 
       items.push({
         key: "/he-thong",
@@ -312,12 +306,14 @@ const MainLayout = ({ children }) => {
       label: "Thông tin cá nhân",
       onClick: () => navigate("/profile"),
     },
+    /*
     {
       key: "settings",
       icon: <SettingOutlined />,
       label: "Cài đặt",
       onClick: () => navigate("/settings"),
     },
+    */
     { type: "divider" },
     {
       key: "logout",
@@ -328,7 +324,13 @@ const MainLayout = ({ children }) => {
     },
   ];
 
-  const handleMenuClick = ({ key }) => navigate(key);
+  const handleMenuClick = ({ key }) => {
+    if (key === "close-drawer") {
+      setMobileDrawerVisible(false);
+      return;
+    }
+    navigate(key);
+  };
 
   const toggleSidebar = () => {
     if (isMobile) setMobileDrawerVisible(true);
@@ -339,6 +341,7 @@ const MainLayout = ({ children }) => {
     <Layout className="main-layout">
       {!isMobile && (
         <Sidebar
+          isMobile={false}
           collapsed={collapsed}
           menuItems={menuItems}
           onMenuClick={handleMenuClick}
@@ -350,10 +353,16 @@ const MainLayout = ({ children }) => {
           placement="left"
           open={mobileDrawerVisible}
           onClose={() => setMobileDrawerVisible(false)}
-          styles={{ body: { padding: 0 } }}
-          width={250}
+          styles={{
+            body: { padding: 0, backgroundColor: "#001529" },
+            header: { display: "none" },
+            mask: { backdropFilter: "blur(4px)" },
+          }}
+          width={280}
+          closable={false}
         >
           <Sidebar
+            isMobile={true}
             collapsed={false}
             menuItems={menuItems}
             onMenuClick={handleMenuClick}
@@ -377,7 +386,7 @@ const MainLayout = ({ children }) => {
         >
           <div
             className="content-wrapper"
-            style={{ background: token.colorBgLayout, padding: "16px 24px" }}
+            style={{ background: token.colorBgLayout }}
           >
             {children}
           </div>

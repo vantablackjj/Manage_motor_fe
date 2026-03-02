@@ -258,7 +258,7 @@ const KhachHangManage = () => {
       title: "Thao tác",
       key: "action",
       width: 150,
-      fixed: "right",
+      fixed: isMobile ? false : "right",
       render: (_, record) => (
         <Space size="small">
           {record.status !== false ? (
@@ -310,13 +310,7 @@ const KhachHangManage = () => {
   ].filter(Boolean);
 
   return (
-    <div
-      style={{
-        padding: "16px 8px",
-        background: "var(--bg-layout, #f0f2f5)",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="manage-page-container">
       <Card size="small">
         <Row
           justify="space-between"
@@ -612,6 +606,22 @@ const KhachHangManage = () => {
         </Form>
       </Modal>
       <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+          h2 {
+            font-size: 1.25rem !important;
+          }
+        }
         .inactive-row {
           background-color: var(--bg-secondary, #fafafa) !important;
           color: #bfbfbf !important;

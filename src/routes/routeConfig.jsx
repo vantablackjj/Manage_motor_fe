@@ -192,12 +192,6 @@ export const privateRoutes = [
     layout: MainLayout,
     permissions: "inventory.view",
   },
-  {
-    path: "/xe/phe-duyet",
-    component: VehicleApprovalList,
-    layout: MainLayout,
-    permissions: "products.approve",
-  },
 
   // Quản lý phụ tùng
   {

@@ -37,12 +37,14 @@ import {
   storageService,
 } from "../../../services";
 import { TRANG_THAI_COLORS } from "../../../utils/constant";
+import { useResponsive } from "../../../hooks/useResponsive";
 
 const { Option } = Select;
 const { Search } = Input;
 const { confirm } = Modal;
 
 const DonHangListPage = () => {
+  const { isMobile } = useResponsive();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -278,7 +280,7 @@ const DonHangListPage = () => {
       title: "Thao tác",
       key: "action",
       width: 200,
-      fixed: "right",
+      fixed: isMobile ? false : "right",
       render: (_, record) => (
         <Space size="small">
           <Tooltip title="Xem chi tiết">
@@ -342,7 +344,7 @@ const DonHangListPage = () => {
   ];
 
   return (
-    <div className="page-container">
+    <div className="manage-page-container">
       {/* Page Header */}
       <div className="page-header">
         <div>
@@ -427,7 +429,7 @@ const DonHangListPage = () => {
 
           <Select
             placeholder="Trạng thái"
-            style={{ width: 150 }}
+            style={{ width: isMobile ? "100%" : 150 }}
             value={filters.trang_thai}
             onChange={(value) => handleFilterChange("trang_thai", value)}
             allowClear
@@ -441,7 +443,7 @@ const DonHangListPage = () => {
 
           <Search
             placeholder="Tìm số phiếu, NCC..."
-            style={{ width: 300 }}
+            style={{ width: isMobile ? "100%" : 300 }}
             onSearch={(value) => handleFilterChange("search", value)}
             onChange={(e) => handleFilterChange("search", e.target.value)}
             allowClear
@@ -483,6 +485,26 @@ const DonHangListPage = () => {
           }}
         />
       </Card>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+           .page-header {
+             flex-direction: column;
+             align-items: flex-start !important;
+             gap: 12px;
+           }
+        }
+      `}</style>
     </div>
   );
 };

@@ -153,7 +153,7 @@ const DashboardPage = () => {
           </Text>
           <div
             style={{
-              fontSize: 24,
+              fontSize: isMobile ? 20 : 24,
               fontWeight: 700,
               color: "var(--ant-color-text)",
             }}
@@ -287,7 +287,7 @@ const DashboardPage = () => {
   ];
 
   return (
-    <div style={{ padding: "0 8px" }}>
+    <div className="manage-page-container">
       {/* Hero Welcome Section */}
       <div
         style={{
@@ -305,12 +305,21 @@ const DashboardPage = () => {
           <Row gutter={[24, 24]} align="middle">
             <Col xs={24} md={16}>
               <Title
-                level={isMobile ? 3 : 2}
-                style={{ color: "white", margin: 0 }}
+                level={isMobile ? 4 : 2}
+                style={{
+                  color: "white",
+                  margin: 0,
+                  fontSize: isMobile ? "1.25rem" : "2rem",
+                }}
               >
                 Chào buổi sáng, {user?.ho_ten || user?.username} 🚀
               </Title>
-              <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 16 }}>
+              <Text
+                style={{
+                  color: "rgba(255,255,255,0.65)",
+                  fontSize: isMobile ? 14 : 16,
+                }}
+              >
                 Hệ thống đã sẵn sàng. Bạn có {maintenanceReminders.length} nhắc
                 nhở bảo trì cần xử lý hôm nay.
               </Text>
@@ -615,6 +624,21 @@ const DashboardPage = () => {
           </Row>
         </Card>
       )}
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

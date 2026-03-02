@@ -37,12 +37,14 @@ import { thuChiAPI, khoAPI, khachHangAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { TRANG_THAI_COLORS, LOAI_THU_CHI } from "../../../utils/constant";
 import { useDebounce } from "../../../hooks/useDebounce";
+import { useResponsive } from "../../../hooks/useResponsive";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
 
 const ThuChiList = () => {
+  const { isMobile } = useResponsive();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -243,7 +245,7 @@ const ThuChiList = () => {
   ];
 
   return (
-    <div style={{ padding: "16px 8px" }}>
+    <div className="manage-page-container">
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={8}>
           <Card bordered={false} size="small">
@@ -251,7 +253,12 @@ const ThuChiList = () => {
               title="Tổng Thu"
               value={summary.tong_thu}
               precision={0}
-              styles={{ content: { color: "#3f8600", fontSize: "18px" } }}
+              styles={{
+                content: {
+                  color: "#3f8600",
+                  fontSize: isMobile ? "16px" : "18px",
+                },
+              }}
               prefix={<ArrowUpOutlined />}
               suffix="₫"
             />
@@ -263,7 +270,12 @@ const ThuChiList = () => {
               title="Tổng Chi"
               value={summary.tong_chi}
               precision={0}
-              styles={{ content: { color: "#cf1322", fontSize: "18px" } }}
+              styles={{
+                content: {
+                  color: "#cf1322",
+                  fontSize: isMobile ? "16px" : "18px",
+                },
+              }}
               prefix={<ArrowDownOutlined />}
               suffix="₫"
             />
@@ -278,7 +290,7 @@ const ThuChiList = () => {
               styles={{
                 content: {
                   color: summary.chenh_lech >= 0 ? "#3f8600" : "#cf1322",
-                  fontSize: "18px",
+                  fontSize: isMobile ? "16px" : "18px",
                 },
               }}
               suffix="₫"
@@ -294,9 +306,9 @@ const ThuChiList = () => {
           gutter={[8, 16]}
           style={{ marginBottom: 16 }}
         >
-          <Col xs={24} md={10}>
-            <Space align="center" size="large">
-              <Title level={4} style={{ margin: 0 }}>
+          <Col xs={24} md={12}>
+            <Space align="center" size={isMobile ? "small" : "large"} wrap>
+              <Title level={isMobile ? 5 : 4} style={{ margin: 0 }}>
                 <DollarOutlined /> Quản lý Thu Chi
               </Title>
               <Segmented
@@ -310,22 +322,27 @@ const ThuChiList = () => {
                 ]}
                 value={viewMode}
                 onChange={setViewMode}
+                size={isMobile ? "small" : "middle"}
               />
             </Space>
           </Col>
-          <Col xs={24} md={14} style={{ textAlign: "right" }}>
+          <Col
+            xs={24}
+            md={12}
+            style={{ textAlign: isMobile ? "left" : "right" }}
+          >
             <Space wrap>
               <ImportButton
                 module="thu-chi"
                 title="Phiếu Thu Chi"
                 onSuccess={fetchData}
+                size={isMobile ? "small" : "middle"}
               />
-              <ExportButton
-                module="thu-chi"
-                title="Phiếu Thu Chi"
-                params={filters}
-              />
-              <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => fetchData()}
+                size={isMobile ? "small" : "middle"}
+              >
                 Làm mới
               </Button>
               <Button
@@ -333,6 +350,8 @@ const ThuChiList = () => {
                 icon={<PlusOutlined />}
                 style={{ background: "#52c41a", borderColor: "#52c41a" }}
                 onClick={() => navigate("/thu-chi/create?loai=THU")}
+                size={isMobile ? "small" : "middle"}
+                block={isMobile}
               >
                 Thu
               </Button>
@@ -341,6 +360,8 @@ const ThuChiList = () => {
                 danger
                 icon={<PlusOutlined />}
                 onClick={() => navigate("/thu-chi/create?loai=CHI")}
+                size={isMobile ? "small" : "middle"}
+                block={isMobile}
               >
                 Chi
               </Button>
@@ -486,6 +507,24 @@ const ThuChiList = () => {
           />
         )}
       </Card>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+          h5 {
+            font-size: 1rem !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

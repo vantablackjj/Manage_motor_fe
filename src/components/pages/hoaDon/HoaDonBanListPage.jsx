@@ -11,10 +11,12 @@ import { hoaDonAPI, khoAPI, khachHangAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { TRANG_THAI_COLORS, TRANG_THAI_LABELS } from "../../../utils/constant";
 import { useDebounce } from "../../../hooks/useDebounce";
+import { useResponsive } from "../../../hooks/useResponsive";
 
 const { Option } = Select;
 
 const HoaDonBanListPage = () => {
+  const { isMobile } = useResponsive();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -168,7 +170,7 @@ const HoaDonBanListPage = () => {
   ];
 
   return (
-    <div style={{ padding: "16px 8px" }}>
+    <div className="manage-page-container">
       <Card size="small">
         <Row
           justify="space-between"
@@ -177,17 +179,31 @@ const HoaDonBanListPage = () => {
           style={{ marginBottom: 16 }}
         >
           <Col xs={24} md={12}>
-            <h3 style={{ margin: 0 }}>Danh sách hóa đơn bán</h3>
+            <h3
+              style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.75rem" }}
+            >
+              Danh sách hóa đơn bán
+            </h3>
           </Col>
-          <Col xs={24} md={12} style={{ textAlign: "right" }}>
+          <Col
+            xs={24}
+            md={12}
+            style={{ textAlign: isMobile ? "left" : "right" }}
+          >
             <Space wrap>
-              <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => fetchData()}
+                size={isMobile ? "small" : "middle"}
+              >
                 Làm mới
               </Button>
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => navigate("/sales/invoices/create")}
+                size={isMobile ? "small" : "middle"}
+                block={isMobile}
               >
                 Tạo hóa đơn
               </Button>
@@ -287,6 +303,21 @@ const HoaDonBanListPage = () => {
           onChange={handleTableChange}
         />
       </Card>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

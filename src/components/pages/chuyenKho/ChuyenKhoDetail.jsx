@@ -261,13 +261,7 @@ const ChuyenKhoDetail = () => {
     tongSoLuong > 0 ? Math.round((tongDaNhap / tongSoLuong) * 100) : 0;
 
   return (
-    <div
-      style={{
-        padding: "16px 8px",
-        background: "var(--bg-layout, #f0f2f5)",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="manage-page-container">
       <Card
         title={
           <Space wrap>
@@ -618,6 +612,21 @@ const ChuyenKhoDetail = () => {
           />
         )}
       </Modal>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

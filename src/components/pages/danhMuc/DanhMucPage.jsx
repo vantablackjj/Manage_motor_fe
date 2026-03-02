@@ -303,7 +303,7 @@ const DanhMucPage = () => {
     title: "Thao tác",
     key: "action",
     width: 100,
-    fixed: "right",
+    fixed: isMobile ? false : "right",
     render: (_, record) => (
       <Space size="small">
         {record.status !== false ? (
@@ -681,9 +681,7 @@ const DanhMucPage = () => {
   };
 
   return (
-    <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
-    >
+    <div className="manage-page-container">
       <div style={{ marginBottom: 16 }}>
         <Row justify="space-between" align="middle" gutter={[8, 16]}>
           <Col xs={24} sm={16}>
@@ -912,6 +910,25 @@ const DanhMucPage = () => {
           color: #bfbfbf !important;
         }
         .inactive-row .ant-tag {
+          opacity: 0.6;
+        }
+      `}</style>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+        }
+        .inactive-row {
+          background-color: #fafafa;
           opacity: 0.6;
         }
       `}</style>

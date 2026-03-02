@@ -47,7 +47,7 @@ const DanhSachXeBiKhoa = ({ ma_kho }) => {
       fetchData();
     } catch (error) {
       notificationService.error(
-        error?.response?.data?.message || "Không thể mở khóa xe"
+        error?.response?.data?.message || "Không thể mở khóa xe",
       );
     }
   };
@@ -111,7 +111,7 @@ const DanhSachXeBiKhoa = ({ ma_kho }) => {
       title: "Thao tác",
       key: "action",
       width: 100,
-      fixed: "right",
+      fixed: isMobile ? false : "right",
       render: (_, record) => (
         <Space size="small">
           {authService.canEdit() && (
@@ -130,7 +130,7 @@ const DanhSachXeBiKhoa = ({ ma_kho }) => {
   ];
 
   return (
-    <div>
+    <div className="manage-page-container">
       <div style={{ marginBottom: 16, textAlign: "right" }}>
         <Button icon={<ReloadOutlined />} onClick={fetchData}>
           Làm mới
@@ -151,6 +151,11 @@ const DanhSachXeBiKhoa = ({ ma_kho }) => {
           emptyText: "Không có xe bị khóa",
         }}
       />
+      <style>{`
+        .manage-page-container {
+          padding: 8px 4px;
+        }
+      `}</style>
     </div>
   );
 };

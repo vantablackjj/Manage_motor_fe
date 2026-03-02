@@ -17,8 +17,8 @@ export const authAPI = {
   },
 
   // Refresh token
-  refreshToken: async (refreshToken) => {
-    return axiosInstance.post(API_ENDPOINTS.REFRESH_TOKEN, { refreshToken });
+  refreshToken: async () => {
+    return axiosInstance.post(API_ENDPOINTS.REFRESH_TOKEN);
   },
 
   signin: async (credentials) => {

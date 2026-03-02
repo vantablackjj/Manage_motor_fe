@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  const login = (userData, access_token, refresh_token) => {
+  const login = (userData, access_token) => {
     const currentStatus =
       userData.status !== undefined ? userData.status : userData.trang_thai;
     const isLocked =
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
       );
     }
 
-    authService.setTokens(access_token, refresh_token);
+    authService.setTokens(access_token);
     // userData phải chứa: { id, username, vai_tro, permissions?: {...}, role_id }
     authService.setUser(userData);
     setUser(userData);

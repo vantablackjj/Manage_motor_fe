@@ -194,7 +194,7 @@ const XeLoaiPage = () => {
     {
       title: "Thao tác",
       width: 120,
-      fixed: "right",
+      fixed: isMobile ? false : "right",
       render: (_, record) => (
         <Space>
           <Tooltip title="Xem">
@@ -261,7 +261,7 @@ const XeLoaiPage = () => {
   ];
   console.log(authService.canCreate());
   return (
-    <div className="page-container">
+    <div className="manage-page-container">
       {/* Header */}
       <div className="page-header">
         <div>
@@ -395,6 +395,26 @@ const XeLoaiPage = () => {
           }}
         />
       </Modal>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+           .page-header {
+             flex-direction: column;
+             align-items: flex-start !important;
+             gap: 12px;
+           }
+        }
+      `}</style>
     </div>
   );
 };

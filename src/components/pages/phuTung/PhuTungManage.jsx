@@ -56,6 +56,11 @@ const PhuTungManage = () => {
   const [trangThaiTon, setTrangThaiTon] = useState(undefined);
   const [nhomPTList, setNhomPTList] = useState([]);
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [hasMore, setHasMore] = useState(true);
+
   // Modal states
   const [formVisible, setFormVisible] = useState(false);
   const [formMode, setFormMode] = useState("create");
@@ -68,12 +73,16 @@ const PhuTungManage = () => {
   const debouncedSearchText = useDebounce(searchText, 500);
 
   useEffect(() => {
+    setPage(1); // Reset page on filter change
+  }, [activeTab, nhomPT, debouncedSearchText, trangThaiTon]);
+
+  useEffect(() => {
     if (activeTab === "danh-sach") {
       loadDanhSach();
     } else if (activeTab === "ton-kho") {
       loadTonKho();
     }
-  }, [activeTab, nhomPT, debouncedSearchText, trangThaiTon]);
+  }, [activeTab, nhomPT, debouncedSearchText, trangThaiTon, page, pageSize]);
 
   useEffect(() => {
     fetchFilters();
@@ -97,6 +106,8 @@ const PhuTungManage = () => {
         ma_nh: nhomPT,
         search: debouncedSearchText,
         status: "all",
+        page,
+        limit: pageSize,
       });
       if (response.success) {
         const mappedData = response.data.map((item) => ({
@@ -110,6 +121,7 @@ const PhuTungManage = () => {
           vat: Number(item.vat),
         }));
         setData(mappedData);
+        setHasMore(mappedData.length >= pageSize);
       }
     } catch (error) {
       message.error("Không thể tải danh sách!");
@@ -127,21 +139,18 @@ const PhuTungManage = () => {
     try {
       const res = await tonKhoAPI.getAll({
         ma_pt: debouncedSearchText || undefined,
+        page,
+        limit: pageSize,
       });
       if (res.success) {
         setTonKhoData(res.data);
+        setHasMore(res.data.length >= pageSize);
       }
     } catch (e) {
       message.error("Không thể tải tồn kho");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCreate = () => {
-    setFormMode("create");
-    setEditingRecord(null);
-    setFormVisible(true);
   };
 
   const handleEdit = (record) => {
@@ -227,7 +236,7 @@ const PhuTungManage = () => {
       dataIndex: "ma_pt",
       key: "ma_pt",
       width: 100,
-      fixed: "left",
+      fixed: isMobile ? false : "left",
     },
     {
       title: "Tên phụ tùng",
@@ -291,7 +300,7 @@ const PhuTungManage = () => {
     {
       title: "Thao tác",
       key: "action",
-      fixed: "right",
+      fixed: isMobile ? false : "right",
       width: 180,
       render: (_, record) => (
         <Space size="small">
@@ -425,13 +434,7 @@ const PhuTungManage = () => {
   const khoHetHang = tonKhoData.filter((i) => i.so_luong_ton === 0).length;
 
   return (
-    <div
-      style={{
-        padding: "16px 8px",
-        background: "var(--bg-layout, #f0f2f5)",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="manage-page-container">
       <Card size="small">
         <div style={{ marginBottom: 16 }}>
           <Row justify="space-between" align="middle" gutter={[8, 16]}>
@@ -455,11 +458,6 @@ const PhuTungManage = () => {
               <Space>
                 {activeTab === "danh-sach" && (
                   <Space wrap>
-                    <ImportButton
-                      module="part"
-                      title="Phụ tùng"
-                      onSuccess={loadDanhSach}
-                    />
                     <ExportButton
                       module="part"
                       title="Phụ tùng"
@@ -467,17 +465,6 @@ const PhuTungManage = () => {
                     />
                   </Space>
                 )}
-                {activeTab === "danh-sach" &&
-                  authService.hasPermission("products", "create") && (
-                    <Button
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={handleCreate}
-                      block={isMobile}
-                    >
-                      Thêm phụ tùng
-                    </Button>
-                  )}
               </Space>
             </Col>
           </Row>
@@ -591,14 +578,6 @@ const PhuTungManage = () => {
                 >
                   Tải lại
                 </Button>
-                {activeTab === "danh-sach" && (
-                  <ExportButton
-                    module="part"
-                    title="Danh sách phụ tùng"
-                    params={{ nhom_pt: nhomPT, search: searchText }}
-                    size="small"
-                  />
-                )}
               </Space>
             </Col>
           </Row>
@@ -620,9 +599,18 @@ const PhuTungManage = () => {
               record.status === false ? "inactive-row" : ""
             }
             pagination={{
-              pageSize: 10,
+              current: page,
+              pageSize: pageSize,
+              onChange: (p, s) => {
+                setPage(p);
+                setPageSize(s);
+              },
               showSizeChanger: true,
-              showTotal: (total) => `Tổng: ${total}`,
+              pageSizeOptions: ["20", "50", "100"],
+              showTotal: (total, range) => `Bản ghi ${range[0]} - ${range[1]}`,
+              total: hasMore
+                ? page * pageSize + 1
+                : (page - 1) * pageSize + data.length,
               size: "small",
             }}
           />
@@ -644,9 +632,18 @@ const PhuTungManage = () => {
               return classes.join(" ");
             }}
             pagination={{
-              pageSize: 10,
+              current: page,
+              pageSize: pageSize,
+              onChange: (p, s) => {
+                setPage(p);
+                setPageSize(s);
+              },
               showSizeChanger: true,
-              showTotal: (total) => `Tổng: ${total}`,
+              pageSizeOptions: ["20", "50", "100"],
+              showTotal: (total, range) => `Bản ghi ${range[0]} - ${range[1]}`,
+              total: hasMore
+                ? page * pageSize + 1
+                : (page - 1) * pageSize + tonKhoData.length,
               size: "small",
             }}
           />
@@ -672,6 +669,16 @@ const PhuTungManage = () => {
       />
 
       <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+        }
         .low-stock-row { background-color: #fff1f0 !important; }
         .low-stock-row:hover { background-color: #ffe7e7 !important; }
         .inactive-row { background-color: var(--bg-secondary, #fafafa) !important; opacity: 0.6; }

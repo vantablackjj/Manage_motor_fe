@@ -259,13 +259,7 @@ const KhachHangListPage = () => {
   ];
 
   return (
-    <div
-      style={{
-        padding: "16px 8px",
-        background: "var(--bg-layout, #f0f2f5)",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="manage-page-container">
       <div style={{ marginBottom: 16 }}>
         <Row justify="space-between" align="middle" gutter={[8, 16]}>
           <Col xs={24} sm={16}>
@@ -314,7 +308,11 @@ const KhachHangListPage = () => {
           size="small"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ width: "100%", maxWidth: isMobile ? "100%" : 400 }}
+          style={{
+            width: "100%",
+            maxWidth: isMobile ? "100%" : 400,
+            marginBottom: isMobile ? 8 : 0,
+          }}
         />
       </Card>
 
@@ -566,6 +564,21 @@ const KhachHangListPage = () => {
           </Form.Item>
         </Form>
       </Modal>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

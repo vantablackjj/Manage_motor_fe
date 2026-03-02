@@ -41,11 +41,7 @@ const LoginPage = () => {
           storageService.remove("savedCredentials");
         }
 
-        login(
-          result.data.user,
-          result.data.access_token,
-          result.data.refresh_token,
-        );
+        login(result.data.user, result.data.access_token);
         navigate("/", { replace: true });
         notificationService.loginSuccess();
       } else {

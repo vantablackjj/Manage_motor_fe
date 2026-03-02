@@ -169,7 +169,7 @@ const KhoManage = () => {
       title: "Thao tác",
       key: "action",
       width: 150,
-      fixed: "right",
+      fixed: isMobile ? false : "right",
       render: (_, record) => (
         <Space size="small">
           {authService.canEdit() && (
@@ -201,9 +201,7 @@ const KhoManage = () => {
   ].filter(Boolean);
 
   return (
-    <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
-    >
+    <div className="manage-page-container">
       <Card size="small">
         <div style={{ marginBottom: 16 }}>
           <Row justify="space-between" align="middle" gutter={[8, 16]}>
@@ -354,6 +352,24 @@ const KhoManage = () => {
           </Form.Item>
         </Form>
       </Modal>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+          h2 {
+            font-size: 1.25rem !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

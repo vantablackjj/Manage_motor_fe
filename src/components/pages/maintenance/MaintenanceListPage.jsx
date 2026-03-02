@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDebounce } from "../../../hooks/useDebounce";
+import { useResponsive } from "../../../hooks/useResponsive";
 import { maintenanceAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { TRANG_THAI_LABELS, TRANG_THAI_COLORS } from "../../../utils/constant";
@@ -34,6 +35,7 @@ const { RangePicker } = DatePicker;
 
 const MaintenanceListPage = () => {
   const navigate = useNavigate();
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [filters, setFilters] = useState({
@@ -163,7 +165,7 @@ const MaintenanceListPage = () => {
   ];
 
   return (
-    <div style={{ padding: "16px 8px" }}>
+    <div className="manage-page-container">
       <Card size="small">
         <Row
           justify="space-between"
@@ -171,10 +173,15 @@ const MaintenanceListPage = () => {
           gutter={[8, 16]}
           style={{ marginBottom: 16 }}
         >
-          <Col xs={24} md={10}>
-            <Space align="center" size="large">
-              <h2 style={{ margin: 0 }}>
-                <ToolOutlined style={{ marginRight: 8 }} />
+          <Col xs={24} md={12}>
+            <Space align="center" size={isMobile ? "small" : "large"} wrap>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: isMobile ? "1.25rem" : "1.75rem",
+                }}
+              >
+                <ToolOutlined />
                 Quản lý Dịch vụ
               </h2>
               <Segmented
@@ -188,21 +195,37 @@ const MaintenanceListPage = () => {
                 ]}
                 value={viewMode}
                 onChange={setViewMode}
+                size={isMobile ? "small" : "middle"}
               />
             </Space>
           </Col>
-          <Col xs={24} md={14} style={{ textAlign: "right" }}>
+          <Col
+            xs={24}
+            md={12}
+            style={{ textAlign: isMobile ? "left" : "right" }}
+          >
             <Space wrap>
-              <Button icon={<ScanOutlined />}>Quét mã</Button>
-              <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
+              <Button
+                icon={<ScanOutlined />}
+                size={isMobile ? "small" : "middle"}
+              >
+                Quét mã
+              </Button>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => fetchData()}
+                size={isMobile ? "small" : "middle"}
+              >
                 Làm mới
               </Button>
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => navigate("/maintenance/create")}
+                size={isMobile ? "small" : "middle"}
+                block={isMobile}
               >
-                Tạo phiếu dịch vụ
+                Tạo phiếu
               </Button>
             </Space>
           </Col>
@@ -297,6 +320,24 @@ const MaintenanceListPage = () => {
           />
         )}
       </Card>
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+          h2 {
+            font-size: 1.25rem !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

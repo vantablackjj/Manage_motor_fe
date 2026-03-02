@@ -178,7 +178,7 @@ const HeaderBar = ({
       </div>
 
       <div className="header-right">
-        <Space size={isMobile ? 4 : "large"}>
+        <Space size={isMobile ? 8 : "large"}>
           <Tooltip title={isDarkMode ? "Chế độ sáng" : "Chế độ tối"}>
             <Switch
               checkedChildren={<MoonOutlined style={{ fontSize: 12 }} />}

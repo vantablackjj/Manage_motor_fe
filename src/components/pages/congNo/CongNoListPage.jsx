@@ -10,6 +10,7 @@ import {
   Select,
   DatePicker,
 } from "antd";
+import { useResponsive } from "../../../hooks/useResponsive";
 import {
   DollarOutlined,
   EyeOutlined,
@@ -27,6 +28,7 @@ const { Option } = Select;
 const { Title, Text } = Typography;
 
 const CongNoListPage = () => {
+  const { isMobile } = useResponsive();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -164,13 +166,13 @@ const CongNoListPage = () => {
   );
 
   return (
-    <div style={{ padding: "0" }}>
+    <div className="manage-page-container">
       {/* Hero Summary Card */}
       <div
         style={{
           background: "linear-gradient(135deg, #ff9c6e 0%, #ff7a45 100%)",
           borderRadius: 20,
-          padding: "32px",
+          padding: isMobile ? "24px" : "32px",
           marginBottom: 32,
           position: "relative",
           overflow: "hidden",
@@ -189,7 +191,13 @@ const CongNoListPage = () => {
             >
               Tổng công nợ hệ thống
             </Title>
-            <div style={{ fontSize: 40, fontWeight: 700, margin: "8px 0" }}>
+            <div
+              style={{
+                fontSize: isMobile ? 32 : 40,
+                fontWeight: 700,
+                margin: "8px 0",
+              }}
+            >
               {formatService.formatCurrency(totalDebt)}
             </div>
           </div>
@@ -326,6 +334,24 @@ const CongNoListPage = () => {
         }}
         initData={selectedPair}
       />
+      <style>{`
+        .manage-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .manage-page-container {
+            padding: 8px 4px;
+          }
+          .ant-card-body {
+            padding: 12px !important;
+          }
+          h5 {
+            font-size: 1rem !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

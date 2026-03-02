@@ -218,13 +218,7 @@ const XeDetailPage = () => {
   ];
 
   return (
-    <div
-      style={{
-        padding: "16px 8px",
-        background: "var(--bg-layout, #f0f2f5)",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="detail-page-container">
       {/* Header */}
       <div style={{ marginBottom: 16 }}>
         <Row justify="space-between" align="middle" gutter={[8, 16]}>
@@ -553,6 +547,18 @@ const XeDetailPage = () => {
           </Card>
         </TabPane>
       </Tabs>
+      <style>{`
+        .detail-page-container {
+          padding: 16px;
+          background: var(--bg-layout, #f0f2f5);
+          min-height: 100vh;
+        }
+        @media (max-width: 640px) {
+          .detail-page-container {
+            padding: 8px 4px;
+          }
+        }
+      `}</style>
     </div>
   );
 };
