@@ -12,11 +12,7 @@ import {
   Row,
   Col,
 } from "antd";
-import {
-  HistoryOutlined,
-  ReloadOutlined,
-  CarOutlined,
-} from "@ant-design/icons";
+import { HistoryOutlined, ReloadOutlined } from "@ant-design/icons";
 
 import { xeAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";

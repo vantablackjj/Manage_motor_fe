@@ -14,7 +14,6 @@ import {
   Typography,
 } from "antd";
 import {
-  CarOutlined,
   ToolOutlined,
   ShoppingCartOutlined,
   DollarOutlined,
@@ -27,6 +26,7 @@ import {
   UserOutlined,
   BarChartOutlined,
 } from "@ant-design/icons";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 import { useAuth } from "../../../contexts/AuthContext";
 import { reportAPI, maintenanceAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
@@ -390,7 +390,7 @@ const DashboardPage = () => {
               <StatCard
                 title="Xe trong kho"
                 value={stats.stock_xe}
-                icon={<CarOutlined />}
+                icon={<MotorcycleIcon />}
                 color="#1890ff"
               />
             </Col>
@@ -606,7 +606,7 @@ const DashboardPage = () => {
             <Col span={12}>
               <Button
                 block
-                icon={<CarOutlined />}
+                icon={<MotorcycleIcon />}
                 onClick={() => (window.location.href = "/xe/danh-sach")}
               >
                 Khai kho

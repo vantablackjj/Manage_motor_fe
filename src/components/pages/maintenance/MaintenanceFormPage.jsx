@@ -26,11 +26,11 @@ import {
   SaveOutlined,
   ArrowLeftOutlined,
   SearchOutlined,
-  CarOutlined,
   UserOutlined,
   InfoCircleOutlined,
   ToolOutlined,
 } from "@ant-design/icons";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 import dayjs from "dayjs";
 import {
   phuTungAPI,
@@ -674,7 +674,7 @@ const MaintenanceFormPage = () => {
                               label={`${x.so_khung || x.so_may} - ${x.ten_loai}`}
                             >
                               <Space size="small">
-                                <CarOutlined style={{ color: "#1890ff" }} />
+                                <MotorcycleIcon style={{ color: "#1890ff" }} />
                                 <span style={{ fontWeight: 500 }}>
                                   {x.so_khung || x.so_may}
                                 </span>

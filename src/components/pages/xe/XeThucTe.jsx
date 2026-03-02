@@ -24,11 +24,15 @@ import {
   EditOutlined,
   ReloadOutlined,
   ExportOutlined,
-  CarOutlined,
   StopOutlined,
   UnlockOutlined,
   LockOutlined,
+  TableOutlined,
+  ProjectOutlined,
 } from "@ant-design/icons";
+import { Segmented, Typography } from "antd";
+import OrderKanban from "../../features/OrderKanban/OrderKanban";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 
 import { xeAPI, khoAPI, danhMucAPI } from "../../../api";
 import {
@@ -47,6 +51,7 @@ import ExportButton from "../../../components/features/Export/ExportButton";
 
 const { Option } = Select;
 const { Search } = Input;
+const { Text } = Typography;
 
 const XeThucTe = () => {
   const { isMobile } = useResponsive();
@@ -88,6 +93,7 @@ const XeThucTe = () => {
     dangChuyen: 0,
     biKhoa: 0,
   });
+  const [viewMode, setViewMode] = useState("table");
 
   const debouncedFilters = useDebounce(filters, 500);
 
@@ -446,22 +452,36 @@ const XeThucTe = () => {
         {/* Header */}
         <div style={{ marginBottom: 16 }}>
           <Row justify="space-between" align="middle" gutter={[8, 16]}>
-            <Col xs={24} sm={12}>
-              <h2 style={{ margin: 0 }}>
-                <Space wrap>
-                  <CarOutlined />
-                  <span>Quản lý xe</span>
-                  <Badge
-                    count={stats.total}
-                    showZero
-                    style={{ backgroundColor: "#52c41a" }}
-                  />
-                </Space>
-              </h2>
+            <Col xs={24} sm={16}>
+              <Space align="center" size="large">
+                <h2 style={{ margin: 0 }}>
+                  <Space wrap>
+                    <MotorcycleIcon style={{ marginRight: 8 }} />
+                    <span>Quản lý xe</span>
+                    <Badge
+                      count={stats.total}
+                      showZero
+                      style={{ backgroundColor: "#52c41a" }}
+                    />
+                  </Space>
+                </h2>
+                <Segmented
+                  options={[
+                    { label: "Bảng", value: "table", icon: <TableOutlined /> },
+                    {
+                      label: "Kanban",
+                      value: "kanban",
+                      icon: <ProjectOutlined />,
+                    },
+                  ]}
+                  value={viewMode}
+                  onChange={setViewMode}
+                />
+              </Space>
             </Col>
             <Col
               xs={24}
-              sm={12}
+              sm={8}
               style={{ textAlign: isMobile ? "left" : "right" }}
             >
               <Space wrap>
@@ -534,7 +554,9 @@ const XeThucTe = () => {
                     }
                     value={stats.total}
                     prefix={
-                      <CarOutlined style={{ fontSize: isMobile ? 16 : 20 }} />
+                      <MotorcycleIcon
+                        style={{ fontSize: isMobile ? 16 : 20 }}
+                      />
                     }
                     styles={{
                       content: {
@@ -734,34 +756,65 @@ const XeThucTe = () => {
             </Card>
 
             {/* Table */}
-            <Table
-              rowSelection={
-                authService.hasPermission("products", "edit")
-                  ? rowSelection
-                  : null
-              }
-              columns={columns}
-              dataSource={data}
-              rowKey="xe_key"
-              loading={loading}
-              scroll={{ x: 1200 }}
-              size="small"
-              pagination={{
-                current: page,
-                pageSize: pageSize,
-                total: total,
-                showSizeChanger: true,
-                showTotal: (total) => `Tổng: ${total}`,
-                size: "small",
-                onChange: (page, pageSize) => {
-                  setPage(page);
-                  setPageSize(pageSize);
-                },
-              }}
-              locale={{
-                emptyText: "Không có dữ liệu",
-              }}
-            />
+            {viewMode === "table" ? (
+              <Table
+                rowSelection={
+                  authService.hasPermission("products", "edit")
+                    ? rowSelection
+                    : null
+                }
+                columns={columns}
+                dataSource={data}
+                rowKey="xe_key"
+                loading={loading}
+                scroll={{ x: 1200 }}
+                size="small"
+                pagination={{
+                  current: page,
+                  pageSize: pageSize,
+                  total: total,
+                  showSizeChanger: true,
+                  showTotal: (total) => `Tổng: ${total}`,
+                  size: "small",
+                  onChange: (page, pageSize) => {
+                    setPage(page);
+                    setPageSize(pageSize);
+                  },
+                }}
+                locale={{
+                  emptyText: "Không có dữ liệu",
+                }}
+              />
+            ) : (
+              <OrderKanban
+                data={data}
+                loading={loading}
+                baseRoute="/xe"
+                idField="xe_key"
+                customColumns={[
+                  { title: "Tồn kho", status: "TON_KHO" },
+                  { title: "Đang chuyển", status: "DANG_CHUYEN" },
+                  { title: "Đã bán", status: "DA_BAN" },
+                ]}
+                renderCardBody={(item) => (
+                  <div key={item.xe_key}>
+                    <div style={{ marginBottom: 4 }}>
+                      <Text type="secondary">Loại: </Text>
+                      <Text strong>{item.ten_loai}</Text>
+                    </div>
+                    <div style={{ marginBottom: 4 }}>
+                      <Tag color={item.gia_tri_mau}>{item.ten_mau}</Tag>
+                    </div>
+                    <div>
+                      <Text type="secondary">Số khung: </Text>
+                      <Text style={{ fontSize: "12px" }}>
+                        {formatService.formatSoKhung(item.so_khung)}
+                      </Text>
+                    </div>
+                  </div>
+                )}
+              />
+            )}
           </>
         )}
 

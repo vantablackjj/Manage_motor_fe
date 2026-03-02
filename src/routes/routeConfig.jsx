@@ -31,13 +31,10 @@ import MaintenanceRemindersPage from "../components/pages/maintenance/Maintenanc
 import WorkshopBoard from "../components/pages/maintenance/WorkshopBoard";
 import PostSaleManagePage from "../components/pages/postSale/PostSaleManagePage";
 
-// Purchase - Xe
-import VehiclePurchaseList from "../components/pages/purchase/vehicles/VehiclePurchaseList";
+// Purchase - Unified
+import PurchaseOrderList from "../components/pages/purchase/PurchaseOrderList";
 import VehiclePurchaseCreate from "../components/pages/purchase/vehicles/VehiclePurchaseCreate";
 import VehiclePurchaseDetail from "../components/pages/purchase/vehicles/VehiclePurchaseDetail";
-
-// Purchase - Phụ Tùng
-import PartPurchaseList from "../components/pages/purchase/parts/PartPurchaseList";
 import PartPurchaseCreate from "../components/pages/purchase/parts/PartPurchaseCreate";
 import PartPurchaseDetail from "../components/pages/purchase/parts/PartPurchaseDetail";
 
@@ -83,14 +80,14 @@ export const privateRoutes = [
     layout: MainLayout,
   },
 
-  // === QUẢN LÝ MUA HÀNG (PURCHASE) ===
-  // 1. Mua Xe
+  // === QUẢN LÝ NHẬP HÀNG (PURCHASE) ===
   {
-    path: "/purchase/vehicles",
-    component: VehiclePurchaseList,
+    path: "/purchase",
+    component: PurchaseOrderList,
     layout: MainLayout,
     permissions: "purchase_orders.view",
   },
+  // Sub-routes for creation and details remain specific
   {
     path: "/purchase/vehicles/create",
     component: VehiclePurchaseCreate,
@@ -103,14 +100,6 @@ export const privateRoutes = [
     layout: MainLayout,
     permissions: "purchase_orders.view",
   },
-
-  // 2. Mua Phụ Tùng
-  {
-    path: "/purchase/parts",
-    component: PartPurchaseList,
-    layout: MainLayout,
-    permissions: "purchase_orders.view",
-  },
   {
     path: "/purchase/parts/create",
     component: PartPurchaseCreate,
@@ -120,6 +109,20 @@ export const privateRoutes = [
   {
     path: "/purchase/parts/:id",
     component: PartPurchaseDetail,
+    layout: MainLayout,
+    permissions: "purchase_orders.view",
+  },
+
+  // Legacy fallback
+  {
+    path: "/purchase/vehicles",
+    component: PurchaseOrderList,
+    layout: MainLayout,
+    permissions: "purchase_orders.view",
+  },
+  {
+    path: "/purchase/parts",
+    component: PurchaseOrderList,
     layout: MainLayout,
     permissions: "purchase_orders.view",
   },

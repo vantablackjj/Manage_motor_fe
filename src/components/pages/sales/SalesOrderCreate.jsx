@@ -14,7 +14,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Divider, Table, Popconfirm } from "antd";
 import {
-  CarOutlined,
   ToolOutlined,
   DeleteOutlined,
   PlusOutlined,
@@ -22,6 +21,7 @@ import {
   SendOutlined,
   ArrowLeftOutlined,
 } from "@ant-design/icons";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 import moment from "moment";
 import {
   orderAPI,

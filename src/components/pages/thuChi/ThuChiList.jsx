@@ -25,7 +25,11 @@ import {
   FileExcelOutlined,
   ImportOutlined,
   ExportOutlined,
+  TableOutlined,
+  ProjectOutlined,
 } from "@ant-design/icons";
+import { Segmented } from "antd";
+import OrderKanban from "../../features/OrderKanban/OrderKanban";
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
 import { useNavigate } from "react-router-dom";
@@ -36,7 +40,7 @@ import { useDebounce } from "../../../hooks/useDebounce";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const ThuChiList = () => {
   const navigate = useNavigate();
@@ -49,6 +53,7 @@ const ThuChiList = () => {
     pageSize: 20,
     total: 0,
   });
+  const [viewMode, setViewMode] = useState("table");
 
   const [summary, setSummary] = useState({
     tong_thu: 0,
@@ -289,12 +294,26 @@ const ThuChiList = () => {
           gutter={[8, 16]}
           style={{ marginBottom: 16 }}
         >
-          <Col xs={24} md={12}>
-            <Title level={4} style={{ margin: 0 }}>
-              <DollarOutlined /> Quản lý Thu Chi
-            </Title>
+          <Col xs={24} md={10}>
+            <Space align="center" size="large">
+              <Title level={4} style={{ margin: 0 }}>
+                <DollarOutlined /> Quản lý Thu Chi
+              </Title>
+              <Segmented
+                options={[
+                  { label: "Bảng", value: "table", icon: <TableOutlined /> },
+                  {
+                    label: "Kanban",
+                    value: "kanban",
+                    icon: <ProjectOutlined />,
+                  },
+                ]}
+                value={viewMode}
+                onChange={setViewMode}
+              />
+            </Space>
           </Col>
-          <Col xs={24} md={12} style={{ textAlign: "right" }}>
+          <Col xs={24} md={14} style={{ textAlign: "right" }}>
             <Space wrap>
               <ImportButton
                 module="thu-chi"
@@ -421,22 +440,51 @@ const ThuChiList = () => {
           </Space>
         </div>
 
-        <Table
-          dataSource={data}
-          columns={columns}
-          rowKey="so_phieu"
-          loading={loading}
-          size="small"
-          scroll={{ x: 900 }}
-          pagination={{
-            ...pagination,
-            showSizeChanger: true,
-            pageSizeOptions: ["20", "50", "100"],
-            showTotal: (total) => `Tổng: ${total}`,
-            size: "small",
-          }}
-          onChange={handleTableChange}
-        />
+        {viewMode === "table" ? (
+          <Table
+            dataSource={data}
+            columns={columns}
+            rowKey="so_phieu"
+            loading={loading}
+            size="small"
+            scroll={{ x: 900 }}
+            pagination={{
+              ...pagination,
+              showSizeChanger: true,
+              pageSizeOptions: ["20", "50", "100"],
+              showTotal: (total) => `Tổng: ${total}`,
+              size: "small",
+            }}
+            onChange={handleTableChange}
+          />
+        ) : (
+          <OrderKanban
+            data={data}
+            loading={loading}
+            baseRoute="/thu-chi"
+            idField="so_phieu"
+            renderCardBody={(item) => (
+              <div key={item.so_phieu}>
+                <div style={{ marginBottom: 4 }}>
+                  <Text type="secondary">Số tiền: </Text>
+                  <Text
+                    strong
+                    style={{
+                      color:
+                        item.loai === LOAI_THU_CHI.THU ? "#52c41a" : "#ff4d4f",
+                    }}
+                  >
+                    {formatService.formatCurrency(item.so_tien)}
+                  </Text>
+                </div>
+                <div>
+                  <Text type="secondary">Ngày: </Text>
+                  <Text>{formatService.formatDate(item.ngay_giao_dich)}</Text>
+                </div>
+              </div>
+            )}
+          />
+        )}
       </Card>
     </div>
   );

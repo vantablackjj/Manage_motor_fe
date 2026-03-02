@@ -13,7 +13,6 @@ import PushNotificationBanner from "../../common/PushNotificationBanner/PushNoti
 
 import {
   DashboardOutlined,
-  CarOutlined,
   ToolOutlined,
   ShoppingCartOutlined,
   FileTextOutlined,
@@ -33,6 +32,7 @@ import {
   ShopOutlined,
   AuditOutlined,
 } from "@ant-design/icons";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 
 import "./MainLayout.css";
 
@@ -90,12 +90,8 @@ const MainLayout = ({ children }) => {
       // Nhập hàng
       if (hasPermission("purchase_orders", "view")) {
         transactionChildren.push({
-          key: "/purchase/vehicles",
-          label: "Nhập Xe",
-        });
-        transactionChildren.push({
-          key: "/purchase/parts",
-          label: "Nhập Phụ Tùng",
+          key: "/purchase",
+          label: "Nhập xe & Phụ tùng",
         });
       }
 

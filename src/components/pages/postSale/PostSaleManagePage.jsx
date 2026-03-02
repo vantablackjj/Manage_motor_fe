@@ -24,11 +24,11 @@ import {
   EditOutlined,
   CheckCircleOutlined,
   AuditOutlined,
-  CarOutlined,
   ReloadOutlined,
   TruckOutlined,
   PrinterOutlined,
 } from "@ant-design/icons";
+import MotorcycleIcon from "../../../components/common/MotorcycleIcon";
 import { postSaleAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import dayjs from "dayjs";
@@ -302,7 +302,7 @@ const PostSaleManagePage = () => {
             <Statistic
               title="Tổng xe đã bán"
               value={stats.tong_cong}
-              prefix={<CarOutlined />}
+              prefix={<MotorcycleIcon />}
             />
           </Card>
         </Col>

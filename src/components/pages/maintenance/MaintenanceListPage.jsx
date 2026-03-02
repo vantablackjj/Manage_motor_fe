@@ -9,6 +9,8 @@ import {
   Col,
   DatePicker,
   Tooltip,
+  Segmented,
+  Tag,
 } from "antd";
 import {
   ReloadOutlined,
@@ -16,13 +18,17 @@ import {
   PlusOutlined,
   EyeOutlined,
   ToolOutlined,
+  TableOutlined,
+  ProjectOutlined,
+  ScanOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { maintenanceAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { TRANG_THAI_LABELS, TRANG_THAI_COLORS } from "../../../utils/constant";
-import { Tag } from "antd";
+import OrderKanban from "../../features/OrderKanban/OrderKanban";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 
 const { RangePicker } = DatePicker;
 
@@ -37,7 +43,16 @@ const MaintenanceListPage = () => {
     den_ngay: null,
   });
 
+  const [viewMode, setViewMode] = useState("table");
+
   const debouncedFilters = useDebounce(filters, 500);
+
+  const maintenanceColumns = [
+    { title: "Tiếp nhận", status: "TIEP_NHAN" },
+    { title: "Đang sửa", status: "DANG_SUA" },
+    { title: "Chờ T/Toán", status: "CHO_THANH_TOAN" },
+    { title: "Hoàn thành", status: "HOAN_THANH" },
+  ];
 
   useEffect(() => {
     fetchData(debouncedFilters);
@@ -156,13 +171,29 @@ const MaintenanceListPage = () => {
           gutter={[8, 16]}
           style={{ marginBottom: 16 }}
         >
-          <Col xs={24} md={12}>
-            <h2 style={{ margin: 0 }}>
-              <ToolOutlined /> Quản lý Dịch vụ & Sửa chữa
-            </h2>
+          <Col xs={24} md={10}>
+            <Space align="center" size="large">
+              <h2 style={{ margin: 0 }}>
+                <ToolOutlined style={{ marginRight: 8 }} />
+                Quản lý Dịch vụ
+              </h2>
+              <Segmented
+                options={[
+                  { label: "Bảng", value: "table", icon: <TableOutlined /> },
+                  {
+                    label: "Kanban",
+                    value: "kanban",
+                    icon: <ProjectOutlined />,
+                  },
+                ]}
+                value={viewMode}
+                onChange={setViewMode}
+              />
+            </Space>
           </Col>
-          <Col xs={24} md={12} style={{ textAlign: "right" }}>
+          <Col xs={24} md={14} style={{ textAlign: "right" }}>
             <Space wrap>
+              <Button icon={<ScanOutlined />}>Quét mã</Button>
               <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
                 Làm mới
               </Button>
@@ -221,18 +252,50 @@ const MaintenanceListPage = () => {
           </Row>
         </div>
 
-        <Table
-          dataSource={data}
-          columns={columns}
-          rowKey="id"
-          loading={loading}
-          size="small"
-          scroll={{ x: 800 }}
-          pagination={{
-            size: "small",
-            showTotal: (total) => `Tổng: ${total}`,
-          }}
-        />
+        {viewMode === "table" ? (
+          <Table
+            dataSource={data}
+            columns={columns}
+            rowKey="ma_phieu"
+            loading={loading}
+            size="small"
+            scroll={{ x: 800 }}
+            pagination={{
+              size: "small",
+              showTotal: (total) => `Tổng: ${total}`,
+            }}
+          />
+        ) : (
+          <OrderKanban
+            data={data}
+            loading={loading}
+            customColumns={maintenanceColumns}
+            baseRoute="/maintenance"
+            idField="ma_phieu"
+            renderCardBody={(item) => (
+              <div className="card-body">
+                <div className="info-row">
+                  <UserOutlined />
+                  <Text style={{ marginLeft: 6 }}>
+                    {item.ten_khach_hang || "---"}
+                  </Text>
+                </div>
+                <div className="info-row">
+                  <MotorcycleIcon />
+                  <Text type="secondary" style={{ marginLeft: 6 }}>
+                    Xe: {item.so_khung || item.ma_serial || "---"}
+                  </Text>
+                </div>
+                <div className="info-row">
+                  <ClockCircleOutlined />
+                  <Text type="secondary" style={{ marginLeft: 6 }}>
+                    {formatService.formatDate(item.ngay_bao_tri)}
+                  </Text>
+                </div>
+              </div>
+            )}
+          />
+        )}
       </Card>
     </div>
   );

@@ -11,6 +11,7 @@ import {
   Select,
   Row,
   Col,
+  Segmented,
 } from "antd";
 import {
   PlusOutlined,
@@ -19,9 +20,14 @@ import {
   EyeOutlined,
   ImportOutlined,
   ExportOutlined,
+  TableOutlined,
+  ProjectOutlined,
+  ScanOutlined,
+  SwapOutlined,
 } from "@ant-design/icons";
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
+import OrderKanban from "../../features/OrderKanban/OrderKanban";
 import { useNavigate } from "react-router-dom";
 import { chuyenKhoAPI, khoAPI } from "../../../api";
 import {
@@ -44,6 +50,8 @@ const ChuyenKhoList = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [khoList, setKhoList] = useState([]);
+
+  const [viewMode, setViewMode] = useState("table");
 
   const [filters, setFilters] = useState({
     ma_ben_xuat: null,
@@ -181,29 +189,46 @@ const ChuyenKhoList = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
+      style={{
+        padding: "16px 8px",
+        background: "var(--bg-layout, #f0f2f5)",
+        minHeight: "100vh",
+      }}
     >
       <Card size="small">
         <div style={{ marginBottom: 16 }}>
           <Row justify="space-between" align="middle" gutter={[8, 16]}>
-            <Col xs={24} md={12}>
-              <h2 style={{ margin: 0 }}>Chuyển kho</h2>
+            <Col xs={24} md={10}>
+              <Space align="center" size="large">
+                <h2 style={{ margin: 0 }}>
+                  <SwapOutlined style={{ marginRight: 8 }} />
+                  Chuyển kho
+                </h2>
+                <Segmented
+                  options={[
+                    { label: "Bảng", value: "table", icon: <TableOutlined /> },
+                    {
+                      label: "Kanban",
+                      value: "kanban",
+                      icon: <ProjectOutlined />,
+                    },
+                  ]}
+                  value={viewMode}
+                  onChange={setViewMode}
+                />
+              </Space>
             </Col>
-            <Col xs={24} md={12} style={{ textAlign: "right" }}>
+            <Col xs={24} md={14} style={{ textAlign: "right" }}>
               <Space wrap>
+                <Button icon={<ScanOutlined />}>Quét mã</Button>
                 <ImportButton
                   module="transfer-pt"
                   title="Phiếu Chuyển Kho"
                   onSuccess={fetchData}
                 />
                 <ExportButton
-                  module="transfer-xe"
-                  title="Phiếu Chuyển Xe"
-                  params={filters}
-                />
-                <ExportButton
                   module="transfer-pt"
-                  title="Phiếu Chuyển PT"
+                  title="Xuất Excel Phụ tùng"
                   params={filters}
                 />
                 <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>
@@ -278,20 +303,29 @@ const ChuyenKhoList = () => {
           </Row>
         </div>
 
-        <Table
-          dataSource={data}
-          columns={columns}
-          rowKey="ma_phieu"
-          loading={loading}
-          size="small"
-          scroll={{ x: 800 }}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Tổng ${total}`,
-            size: "small",
-          }}
-        />
+        {viewMode === "table" ? (
+          <Table
+            dataSource={data}
+            columns={columns}
+            rowKey="so_phieu"
+            loading={loading}
+            size="small"
+            scroll={{ x: 800 }}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Tổng ${total}`,
+              size: "small",
+            }}
+          />
+        ) : (
+          <OrderKanban
+            data={data}
+            loading={loading}
+            baseRoute="/chuyen-kho"
+            idField="so_phieu"
+          />
+        )}
       </Card>
     </div>
   );

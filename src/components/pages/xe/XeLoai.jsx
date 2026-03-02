@@ -19,12 +19,12 @@ import {
   EditOutlined,
   EyeOutlined,
   ReloadOutlined,
-  CarOutlined,
   StopOutlined,
   ImportOutlined,
   ExportOutlined,
   RollbackOutlined,
 } from "@ant-design/icons";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
 import { useDebounce } from "../../../hooks/useDebounce";
@@ -266,7 +266,7 @@ const XeLoaiPage = () => {
       <div className="page-header">
         <div>
           <h1 className="page-title">
-            <CarOutlined /> Danh sách loại xe
+            <MotorcycleIcon /> Danh sách loại xe
           </h1>
           <p style={{ color: "#8c8c8c" }}>Quản lý các dòng xe trong hệ thống</p>
         </div>

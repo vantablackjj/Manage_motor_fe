@@ -13,6 +13,7 @@ import {
   Select,
   Tooltip,
   Typography,
+  Segmented,
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -22,6 +23,8 @@ import {
   ReloadOutlined,
   SearchOutlined,
   InfoCircleOutlined,
+  TableOutlined,
+  ProjectOutlined,
 } from "@ant-design/icons";
 import { xeAPI, khoAPI } from "../../../api";
 import {
@@ -32,6 +35,8 @@ import {
 import { TRANG_THAI_COLORS, TRANG_THAI_LABELS } from "../../../utils/constant";
 import { useDebounce } from "../../../hooks/useDebounce";
 import XeForm from "./XeForm";
+import OrderKanban from "../../features/OrderKanban/OrderKanban";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -45,6 +50,7 @@ const VehicleApprovalList = () => {
     trang_thai: null,
     search: "",
   });
+  const [viewMode, setViewMode] = useState("table"); // 'table' or 'kanban'
 
   // Modal states
   const [formVisible, setFormVisible] = useState(false);
@@ -269,16 +275,31 @@ const VehicleApprovalList = () => {
           justify="space-between"
           align="middle"
           style={{ marginBottom: 16 }}
+          gutter={[8, 16]}
         >
-          <Col>
-            <Title level={4} style={{ margin: 0 }}>
-              <Space>
-                <CheckCircleOutlined />
-                Phê duyệt xe nhập lẻ
-              </Space>
-            </Title>
+          <Col xs={24} md={12}>
+            <Space align="center" size="large">
+              <Title level={4} style={{ margin: 0 }}>
+                <Space>
+                  <CheckCircleOutlined />
+                  Phê duyệt xe nhập lẻ
+                </Space>
+              </Title>
+              <Segmented
+                options={[
+                  { label: "Bảng", value: "table", icon: <TableOutlined /> },
+                  {
+                    label: "Kanban",
+                    value: "kanban",
+                    icon: <ProjectOutlined />,
+                  },
+                ]}
+                value={viewMode}
+                onChange={setViewMode}
+              />
+            </Space>
           </Col>
-          <Col>
+          <Col xs={24} md={12} style={{ textAlign: "right" }}>
             <Button icon={<ReloadOutlined />} onClick={fetchData}>
               Làm mới
             </Button>
@@ -310,18 +331,66 @@ const VehicleApprovalList = () => {
           </Col>
         </Row>
 
-        <Table
-          dataSource={data}
-          columns={columns}
-          rowKey="xe_key"
-          loading={loading}
-          size="small"
-          scroll={{ x: 1000 }}
-          pagination={{
-            size: "small",
-            showTotal: (total) => `Tổng cộng: ${total}`,
-          }}
-        />
+        {viewMode === "table" ? (
+          <Table
+            dataSource={data}
+            columns={columns}
+            rowKey="xe_key"
+            loading={loading}
+            size="small"
+            scroll={{ x: 1000 }}
+            pagination={{
+              size: "small",
+              showTotal: (total) => `Tổng cộng: ${total}`,
+            }}
+          />
+        ) : (
+          <OrderKanban
+            data={data}
+            loading={loading}
+            idField="xe_key"
+            customColumns={[
+              { title: "Nháp", status: "NHAP" },
+              { title: "Chờ duyệt", status: "CHO_DUYET" },
+              { title: "Từ chối", status: "DA_TU_CHOI" },
+            ]}
+            onCardClick={handleEdit}
+            renderCardBody={(record) => (
+              <div
+                className="card-body"
+                style={{ fontSize: "12px", padding: "8px 0" }}
+              >
+                <div style={{ marginBottom: 4 }}>
+                  <MotorcycleIcon style={{ marginRight: 6 }} />
+                  <Typography.Text strong>{record.ten_loai}</Typography.Text>
+                </div>
+                <div style={{ marginBottom: 4, color: "#8c8c8c" }}>
+                  Màu: {record.ten_mau}
+                </div>
+                <div style={{ marginBottom: 4 }}>
+                  SK: {formatService.formatSoKhung(record.so_khung)}
+                </div>
+                <div style={{ marginBottom: 4 }}>
+                  SM: {formatService.formatSoMay(record.so_may)}
+                </div>
+                {record.ly_do_tu_choi && record.trang_thai === "DA_TU_CHOI" && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      padding: 4,
+                      background: "#fff1f0",
+                      border: "1px solid #ffa39e",
+                      borderRadius: 4,
+                      color: "#cf1322",
+                    }}
+                  >
+                    Lý do: {record.ly_do_tu_choi}
+                  </div>
+                )}
+              </div>
+            )}
+          />
+        )}
       </Card>
 
       {/* Edit Form Modal */}

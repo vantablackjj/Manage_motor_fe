@@ -3,10 +3,10 @@ import { Modal, Input, List, Typography, Empty, Tag, Space } from "antd";
 import {
   SearchOutlined,
   FileTextOutlined,
-  CarOutlined,
   ToolOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
+import MotorcycleIcon from "../MotorcycleIcon";
 import { useNavigate } from "react-router-dom";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { orderAPI, xeAPI, phuTungAPI, khachHangAPI } from "../../../api";
@@ -114,7 +114,7 @@ const GlobalSearch = ({ visible, onClose }) => {
             id: x.xe_key || x.so_khung,
             title: x.xe_key || x.ten_xe,
             subtitle: `Xe - ${x.so_khung || ""}`,
-            icon: <CarOutlined style={{ color: "#52c41a" }} />,
+            icon: <MotorcycleIcon style={{ color: "#52c41a" }} />,
             type: "xe",
             link: `/xe/danh-sach?search=${x.xe_key}`,
           });

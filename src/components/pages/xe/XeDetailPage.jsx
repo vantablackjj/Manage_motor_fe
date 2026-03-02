@@ -17,11 +17,11 @@ import {
   ArrowLeftOutlined,
   EditOutlined,
   HistoryOutlined,
-  CarOutlined,
   InfoCircleOutlined,
   ToolOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 import { useParams, useNavigate } from "react-router-dom";
 import { maintenanceAPI, xeAPI } from "../../api";
 import { useResponsive } from "../../hooks/useResponsive";
@@ -233,7 +233,7 @@ const XeDetailPage = () => {
               style={{ margin: 0, fontSize: isMobile ? "1.25rem" : "1.5rem" }}
             >
               <Space wrap>
-                <CarOutlined />
+                <MotorcycleIcon />
                 <span>Xe: {xe.xe_key}</span>
               </Space>
             </h1>

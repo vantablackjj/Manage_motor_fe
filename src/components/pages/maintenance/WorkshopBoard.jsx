@@ -15,12 +15,12 @@ import {
 import {
   ToolOutlined,
   UserOutlined,
-  CarOutlined,
   ClockCircleOutlined,
   ReloadOutlined,
   PlusOutlined,
   ArrowRightOutlined,
 } from "@ant-design/icons";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 import { useNavigate } from "react-router-dom";
 import { maintenanceAPI } from "../../../api";
 import {
@@ -123,7 +123,7 @@ const WorkshopBoard = () => {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <CarOutlined style={{ color: "#8c8c8c" }} />
+              <MotorcycleIcon style={{ color: "#8c8c8c" }} />
               <Text strong>{lift.ma_serial}</Text>
             </div>
 

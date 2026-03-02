@@ -1,7 +1,7 @@
 // src/components/pages/xe/TonKhoXe.jsx
 import { useState, useEffect } from "react";
 import { Table, Card, Row, Col, Statistic, Tag, Select } from "antd";
-import { CarOutlined } from "@ant-design/icons";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 import { xeAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { useResponsive } from "../../../hooks/useResponsive";
@@ -188,7 +188,7 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
             <Statistic
               title="Tổng số lượng"
               value={tongSoLuong}
-              prefix={<CarOutlined />}
+              prefix={<MotorcycleIcon />}
             />
           </Card>
         </Col>

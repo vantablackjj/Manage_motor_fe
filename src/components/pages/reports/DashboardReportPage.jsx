@@ -15,13 +15,13 @@ import {
   DashboardOutlined,
   ReloadOutlined,
   DollarOutlined,
-  CarOutlined,
   TeamOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
   SwapOutlined,
   ToolOutlined,
 } from "@ant-design/icons";
+import MotorcycleIcon from "../../common/MotorcycleIcon";
 import { reportAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
 import { CheckCircleOutlined } from "@ant-design/icons";
@@ -191,7 +191,7 @@ const DashboardReportPage = () => {
             <StatBox
               title="Xe tồn kho"
               value={data.overview.stock_xe || 0}
-              icon={<CarOutlined />}
+              icon={<MotorcycleIcon />}
               color="#faad14"
               suffix=" xe"
             />

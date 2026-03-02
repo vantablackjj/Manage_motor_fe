@@ -16,12 +16,16 @@ import {
   SearchOutlined,
   ImportOutlined,
   ExportOutlined,
-  CarOutlined,
   PlusOutlined,
   EyeOutlined,
   DownloadOutlined,
   ScanOutlined,
+  TableOutlined,
+  ProjectOutlined,
 } from "@ant-design/icons";
+import { Segmented } from "antd";
+import OrderKanban from "../../../features/OrderKanban/OrderKanban";
+import MotorcycleIcon from "../../../common/MotorcycleIcon";
 import QRScannerModal from "../../../features/Scanner/QRScannerModal";
 import ImportButton from "../../../features/Import/ImportButton";
 import ExportButton from "../../../features/Export/ExportButton";
@@ -49,6 +53,7 @@ const VehiclePurchaseList = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [scannerVisible, setScannerVisible] = useState(false);
+  const [viewMode, setViewMode] = useState("table");
 
   const handleScanSuccess = (decodedText) => {
     setScannerVisible(false);
@@ -198,15 +203,29 @@ const VehiclePurchaseList = () => {
           gutter={[8, 16]}
           style={{ marginBottom: 16 }}
         >
-          <Col xs={24} md={12}>
-            <h2 style={{ margin: 0 }}>
-              <ImportOutlined /> Nhập Xe
-            </h2>
+          <Col xs={24} md={10}>
+            <Space align="center" size="large">
+              <h2 style={{ margin: 0 }}>
+                <ImportOutlined style={{ marginRight: 8 }} /> Nhập Xe
+              </h2>
+              <Segmented
+                options={[
+                  { label: "Bảng", value: "table", icon: <TableOutlined /> },
+                  {
+                    label: "Kanban",
+                    value: "kanban",
+                    icon: <ProjectOutlined />,
+                  },
+                ]}
+                value={viewMode}
+                onChange={setViewMode}
+              />
+            </Space>
           </Col>
-          <Col xs={24} md={12} style={{ textAlign: "right" }}>
+          <Col xs={24} md={14} style={{ textAlign: "right" }}>
             <Space wrap>
-              <Button 
-                icon={<ScanOutlined />} 
+              <Button
+                icon={<ScanOutlined />}
                 onClick={() => setScannerVisible(true)}
               >
                 Quét mã
@@ -302,18 +321,27 @@ const VehiclePurchaseList = () => {
           </Space>
         </div>
 
-        <Table
-          dataSource={data}
-          columns={columns}
-          rowKey="id"
-          loading={loading}
-          size="small"
-          scroll={{ x: 800 }}
-          pagination={{
-            size: "small",
-            showTotal: (total) => `Tổng: ${total}`,
-          }}
-        />
+        {viewMode === "table" ? (
+          <Table
+            dataSource={data}
+            columns={columns}
+            rowKey="id"
+            loading={loading}
+            size="small"
+            scroll={{ x: 800 }}
+            pagination={{
+              size: "small",
+              showTotal: (total) => `Tổng: ${total}`,
+            }}
+          />
+        ) : (
+          <OrderKanban
+            data={data}
+            loading={loading}
+            baseRoute="/purchase/vehicles"
+            idField="so_phieu"
+          />
+        )}
       </Card>
 
       <OrderReceiveModal
