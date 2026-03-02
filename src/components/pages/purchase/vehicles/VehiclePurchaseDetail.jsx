@@ -51,7 +51,7 @@ const VehiclePurchaseDetail = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
 
   const [printModalVisible, setPrintModalVisible] = useState(false);
-  const [printType, setPrintType] = useState("ORDER");
+  const [printType, setPrintType] = useState("PURCHASE");
 
   const handlePrintLocal = (type) => {
     setPrintType(type);
@@ -359,7 +359,7 @@ const VehiclePurchaseDetail = () => {
             )}
             <Button
               icon={<PrinterOutlined />}
-              onClick={() => handlePrintLocal("ORDER")}
+              onClick={() => handlePrintLocal("PURCHASE")}
             >
               In đơn hàng
             </Button>

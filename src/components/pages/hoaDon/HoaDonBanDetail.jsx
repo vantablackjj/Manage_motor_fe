@@ -28,6 +28,7 @@ import {
   PrinterOutlined,
   DollarOutlined,
 } from "@ant-design/icons";
+import PrintTemplate from "../../features/Print/PrintTemplate";
 import {
   hoaDonAPI,
   xeAPI,
@@ -53,6 +54,24 @@ const HoaDonBanDetail = () => {
   const [invoiceApprovalVisible, setInvoiceApprovalVisible] = useState(false);
   const [invoiceForm] = Form.useForm();
   const [form] = Form.useForm();
+
+  const [printModalVisible, setPrintModalVisible] = useState(false);
+  const [printType, setPrintType] = useState("INVOICE");
+
+  const handlePrintLocal = () => {
+    setPrintModalVisible(true);
+    setTimeout(() => {
+      const printContent = document.getElementById("print-content");
+      if (printContent) {
+        const originalContents = document.body.innerHTML;
+        const printContents = printContent.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload();
+      }
+    }, 500);
+  };
 
   useEffect(() => {
     fetchData();
@@ -190,19 +209,8 @@ const HoaDonBanDetail = () => {
   const isManager = authService.canApprove();
 
   // Print Invoice
-  const handlePrintInvoice = async () => {
-    try {
-      const response = await hoaDonAPI.inHoaDon(so_hd);
-      const url = window.URL.createObjectURL(new Blob([response]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `invoice-${so_hd}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
-    } catch (error) {
-      notificationService.error("Lỗi in hóa đơn");
-    }
+  const handlePrintInvoice = () => {
+    handlePrintLocal();
   };
 
   // Render action buttons based on status
@@ -704,6 +712,31 @@ const HoaDonBanDetail = () => {
             }
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Print Modal */}
+      <Modal
+        open={printModalVisible}
+        onCancel={() => setPrintModalVisible(false)}
+        footer={null}
+        width={800}
+        style={{ display: "none" }}
+      >
+        {data && (
+          <PrintTemplate
+            data={{
+              ...data,
+              chi_tiet: [
+                ...(data.chi_tiet_xe || []),
+                ...(data.chi_tiet_pt || []),
+              ],
+              ten_khach_hang: data.ten_ben_nhap,
+              ngay_lap: data.ngay_lap,
+              ma_phieu: data.so_hd,
+            }}
+            type={printType}
+          />
+        )}
       </Modal>
     </div>
   );

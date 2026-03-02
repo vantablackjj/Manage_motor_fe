@@ -49,7 +49,7 @@ const PartPurchaseDetail = () => {
   const [headerForm] = Form.useForm();
 
   const [printModalVisible, setPrintModalVisible] = useState(false);
-  const [printType, setPrintType] = useState("ORDER");
+  const [printType, setPrintType] = useState("PURCHASE");
 
   const handlePrintLocal = (type) => {
     setPrintType(type);
@@ -264,7 +264,10 @@ const PartPurchaseDetail = () => {
               </Space>
             )}
 
-            <Button icon={<PrinterOutlined />} onClick={() => handlePrintLocal("ORDER")}>
+            <Button
+              icon={<PrinterOutlined />}
+              onClick={() => handlePrintLocal("PURCHASE")}
+            >
               In đơn hàng
             </Button>
 

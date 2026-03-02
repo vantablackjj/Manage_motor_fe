@@ -20,6 +20,7 @@ import {
   CloseCircleOutlined,
   PrinterOutlined,
 } from "@ant-design/icons";
+import PrintTemplate from "../../features/Print/PrintTemplate";
 import { useParams, useNavigate } from "react-router-dom";
 import { chuyenKhoAPI, khoAPI } from "../../../api";
 import {
@@ -43,6 +44,24 @@ const ChuyenKhoDetail = () => {
   // Actions
   const [rejectModalHtml, setRejectModalHtml] = useState(false);
   const [reason, setReason] = useState("");
+
+  const [printModalVisible, setPrintModalVisible] = useState(false);
+  const [printType, setPrintType] = useState("STOCK_CARD");
+
+  const handlePrintLocal = () => {
+    setPrintModalVisible(true);
+    setTimeout(() => {
+      const printContent = document.getElementById("print-content");
+      if (printContent) {
+        const originalContents = document.body.innerHTML;
+        const printContents = printContent.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload();
+      }
+    }, 500);
+  };
 
   useEffect(() => {
     fetchKhoList();
@@ -213,19 +232,8 @@ const ChuyenKhoDetail = () => {
     }
   };
 
-  const handlePrint = async () => {
-    try {
-      const response = await chuyenKhoAPI.inPhieu(ma_phieu);
-      const url = window.URL.createObjectURL(new Blob([response]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `transfer-${phieu.so_phieu}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
-    } catch (error) {
-      notificationService.error("Lỗi in phiếu");
-    }
+  const handlePrint = () => {
+    handlePrintLocal();
   };
 
   const getKhoName = (ma_kho) => {
@@ -254,7 +262,11 @@ const ChuyenKhoDetail = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
+      style={{
+        padding: "16px 8px",
+        background: "var(--bg-layout, #f0f2f5)",
+        minHeight: "100vh",
+      }}
     >
       <Card
         title={
@@ -583,6 +595,28 @@ const ChuyenKhoDetail = () => {
           value={reason}
           onChange={(e) => setReason(e.target.value)}
         />
+      </Modal>
+
+      {/* Print Modal */}
+      <Modal
+        open={printModalVisible}
+        onCancel={() => setPrintModalVisible(false)}
+        footer={null}
+        width={800}
+        style={{ display: "none" }}
+      >
+        {phieu && (
+          <PrintTemplate
+            data={{
+              ...phieu,
+              chi_tiet: [...(chi_tiet_xe || []), ...(chi_tiet_phu_tung || [])],
+              ma_phieu: phieu.so_phieu,
+              ngay_lap: phieu.ngay_chuyen_kho,
+              ten_khach_hang: `Từ kho ${getKhoName(phieu.ma_kho_xuat)} -> ${getKhoName(phieu.ma_kho_nhap)}`,
+            }}
+            type={printType}
+          />
+        )}
       </Modal>
     </div>
   );

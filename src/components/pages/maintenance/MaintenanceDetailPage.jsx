@@ -20,6 +20,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
 } from "@ant-design/icons";
+import PrintTemplate from "../../features/Print/PrintTemplate";
 import { useNavigate, useParams } from "react-router-dom";
 import { maintenanceAPI, khoAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
@@ -34,6 +35,24 @@ const MaintenanceDetailPage = () => {
   const [khoList, setKhoList] = useState([]);
   const [statusLoading, setStatusLoading] = useState(false);
   const [form] = Form.useForm();
+
+  const [printModalVisible, setPrintModalVisible] = useState(false);
+  const [printType, setPrintType] = useState("MAINTENANCE");
+
+  const handlePrintLocal = () => {
+    setPrintModalVisible(true);
+    setTimeout(() => {
+      const printContent = document.getElementById("print-content");
+      if (printContent) {
+        const originalContents = document.body.innerHTML;
+        const printContents = printContent.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload();
+      }
+    }, 500);
+  };
 
   useEffect(() => {
     fetchDetail();
@@ -215,7 +234,7 @@ const MaintenanceDetailPage = () => {
                 Hủy phiếu
               </Button>
             )}
-            <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
+            <Button icon={<PrinterOutlined />} onClick={handlePrintLocal}>
               In phiếu
             </Button>
           </Space>
@@ -292,6 +311,17 @@ const MaintenanceDetailPage = () => {
           }}
         />
       </Card>
+
+      {/* Print Modal */}
+      <Modal
+        open={printModalVisible}
+        onCancel={() => setPrintModalVisible(false)}
+        footer={null}
+        width={800}
+        style={{ display: "none" }}
+      >
+        {data && <PrintTemplate data={data} type={printType} />}
+      </Modal>
     </div>
   );
 };
