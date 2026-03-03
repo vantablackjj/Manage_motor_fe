@@ -62,6 +62,11 @@ export const reportAPI = {
         params,
       });
     },
+    getDetailed: async (params) => {
+      return axiosInstance.get(`${BAO_CAO_BASE}/doanh-thu/chi-tiet`, {
+        params,
+      });
+    },
   },
 
   // ===== BÁO CÁO NHẬP XUẤT =====

@@ -12,19 +12,18 @@ import {
   DatePicker,
   Button,
   Typography,
+  Modal,
+  Badge,
+  Descriptions,
+  Popover,
 } from "antd";
 import {
   ToolOutlined,
-  ShoppingCartOutlined,
   DollarOutlined,
-  ArrowUpOutlined,
-  ArrowDownOutlined,
   ReloadOutlined,
-  FilterOutlined,
   SwapOutlined,
   TeamOutlined,
   UserOutlined,
-  BarChartOutlined,
 } from "@ant-design/icons";
 import MotorcycleIcon from "../../common/MotorcycleIcon";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -63,17 +62,27 @@ const DashboardPage = () => {
   const [stats, setStats] = useState({
     revenue_today: 0,
     revenue_month: 0,
+    cash_collection_today: 0,
+    cash_collection_month: 0,
     stock_xe: 0,
+    stock_xe_fixing: 0,
     low_stock_pt: 0,
     internal_debt: 0,
     customer_debt: 0,
     supplier_debt: 0,
+    revenue_today_detail: {},
+    revenue_month_detail: {},
+    cash_collection_today_detail: {},
+    cash_collection_month_detail: {},
   });
 
   const [revenueChart, setRevenueChart] = useState([]);
   const [inventoryChart, setInventoryChart] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [maintenanceReminders, setMaintenanceReminders] = useState([]);
+  const [lowStockDetail, setLowStockDetail] = useState([]);
+  const [lowStockModalOpen, setLowStockModalOpen] = useState(false);
+  const [loadingLowStock, setLoadingLowStock] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -94,7 +103,7 @@ const DashboardPage = () => {
           reportAPI.dashboard.getOverview(params),
           reportAPI.dashboard.getRevenueChart(params),
           reportAPI.dashboard.getInventoryChart(params),
-          maintenanceAPI.getReminders({ limit: 5 }), // Lấy 5 nhắc nhở gần nhất
+          maintenanceAPI.getReminders({ limit: 5, trang_thai: "CHUA_NHAC" }), // Lấy 5 nhắc nhở chưa xử lý gần nhất
         ]);
 
       const overview = overviewRes?.data || overviewRes;
@@ -124,19 +133,78 @@ const DashboardPage = () => {
     }
   };
 
-  const StatCard = ({ title, value, icon, color, isCurrency, suffix }) => (
-    <Card
-      hoverable
-      size="small"
-      style={{
-        borderRadius: 16,
-        border: "none",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
-        height: "100%",
-        overflow: "hidden",
-      }}
-      styles={{ body: { padding: 16 } }}
-    >
+  const fetchLowStockDetail = async () => {
+    setLoadingLowStock(true);
+    try {
+      const res = await reportAPI.inventory.getParts({
+        ma_kho: user?.ma_kho,
+        canh_bao: true,
+      });
+      setLowStockDetail(res?.data || (Array.isArray(res) ? res : []));
+      setLowStockModalOpen(true);
+    } catch (error) {
+      notificationService.error("Không thể tải chi tiết phụ tùng sắp hết");
+    } finally {
+      setLoadingLowStock(false);
+    }
+  };
+
+  const StatCard = ({
+    title,
+    value,
+    icon,
+    color,
+    isCurrency,
+    suffix,
+    onClick,
+    detail,
+    detailTitle,
+  }) => {
+    const renderDetail = () => {
+      if (!detail || Object.keys(detail).length === 0) return null;
+
+      const labels = {
+        SALES: "Bán hàng",
+        MAINTENANCE: "Dịch vụ & Bảo trì",
+        OTHER: "Khác",
+      };
+
+      return (
+        <div style={{ minWidth: 200 }}>
+          <div
+            style={{
+              fontWeight: 600,
+              marginBottom: 8,
+              borderBottom: "1px solid #f0f0f0",
+              paddingBottom: 4,
+            }}
+          >
+            {detailTitle || "Chi tiết"}
+          </div>
+          {Object.entries(detail).map(([key, val]) => (
+            <div
+              key={key}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: 4,
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {labels[key] || key}:
+              </Text>
+              <Text strong style={{ fontSize: 12 }}>
+                {isCurrency
+                  ? formatService.formatCurrency(val)
+                  : formatService.formatNumber(val)}
+              </Text>
+            </div>
+          ))}
+        </div>
+      );
+    };
+
+    const cardContent = (
       <div
         style={{
           display: "flex",
@@ -163,6 +231,14 @@ const DashboardPage = () => {
               : formatService.formatNumber(value)}
             {suffix}
           </div>
+          {onClick && (
+            <Text
+              type="link"
+              style={{ fontSize: 11, marginTop: 8, display: "block" }}
+            >
+              Chi tiết →
+            </Text>
+          )}
         </div>
         <div
           style={{
@@ -178,8 +254,39 @@ const DashboardPage = () => {
           {React.cloneElement(icon, { style: { fontSize: 22, color } })}
         </div>
       </div>
-    </Card>
-  );
+    );
+
+    return (
+      <Popover
+        content={renderDetail()}
+        trigger="hover"
+        placement="bottom"
+        mouseEnterDelay={0.2}
+        open={detail ? undefined : false}
+      >
+        <Card
+          hoverable
+          size="small"
+          onClick={onClick}
+          style={{
+            borderRadius: 16,
+            border: "none",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+            height: "100%",
+            overflow: "hidden",
+            cursor: onClick ? "pointer" : "default",
+            transition: "all 0.3s ease",
+          }}
+          styles={{
+            body: { padding: 16 },
+          }}
+          className="dashboard-stat-card"
+        >
+          {cardContent}
+        </Card>
+      </Popover>
+    );
+  };
 
   const activityColumns = [
     {
@@ -379,6 +486,9 @@ const DashboardPage = () => {
                 icon={<DollarOutlined />}
                 color="#722ed1"
                 isCurrency
+                onClick={() => navigate("/bao-cao/doanh-thu")}
+                detail={stats.revenue_today_detail}
+                detailTitle="Cơ cấu doanh thu hôm nay"
               />
             </Col>
             <Col xs={24} sm={12} lg={6}>
@@ -388,6 +498,9 @@ const DashboardPage = () => {
                 icon={<DollarOutlined />}
                 color="#eb2f96"
                 isCurrency
+                onClick={() => navigate("/bao-cao/doanh-thu")}
+                detail={stats.revenue_month_detail}
+                detailTitle="Cơ cấu doanh thu tháng"
               />
             </Col>
           </>
@@ -401,6 +514,16 @@ const DashboardPage = () => {
                 value={stats.stock_xe}
                 icon={<MotorcycleIcon />}
                 color="#1890ff"
+                onClick={() => navigate("/xe/danh-sach")}
+              />
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <StatCard
+                title="Xe đang sửa"
+                value={stats.stock_xe_fixing}
+                icon={<ToolOutlined />}
+                color="#52c41a"
+                onClick={() => navigate("/maintenance")}
               />
             </Col>
             <Col xs={24} sm={12} lg={6}>
@@ -409,6 +532,7 @@ const DashboardPage = () => {
                 value={stats.low_stock_pt}
                 icon={<ToolOutlined />}
                 color="#faad14"
+                onClick={fetchLowStockDetail}
               />
             </Col>
           </>
@@ -418,11 +542,24 @@ const DashboardPage = () => {
           <>
             <Col xs={24} sm={12} lg={6}>
               <StatCard
+                title="Thực thu hôm nay"
+                value={stats.cash_collection_today}
+                icon={<DollarOutlined />}
+                color="#52c41a"
+                isCurrency
+                onClick={() => navigate("/thu-chi")}
+                detail={stats.cash_collection_today_detail}
+                detailTitle="Cơ cấu thực thu hôm nay"
+              />
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <StatCard
                 title="Công nợ nội bộ"
                 value={stats.internal_debt}
                 icon={<SwapOutlined />}
                 color="#fa8c16"
                 isCurrency
+                onClick={() => navigate("/cong-no/quan-ly")}
               />
             </Col>
             <Col xs={24} sm={12} lg={6}>
@@ -432,6 +569,7 @@ const DashboardPage = () => {
                 icon={<TeamOutlined />}
                 color="#13c2c2"
                 isCurrency
+                onClick={() => navigate("/bao-cao/cong-no")}
               />
             </Col>
             <Col xs={24} sm={12} lg={6}>
@@ -441,6 +579,7 @@ const DashboardPage = () => {
                 icon={<UserOutlined />}
                 color="#ff4d4f"
                 isCurrency
+                onClick={() => navigate("/bao-cao/cong-no")}
               />
             </Col>
           </>
@@ -451,107 +590,50 @@ const DashboardPage = () => {
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={16}>
           <Card
-            title="Biểu đồ doanh thu"
+            title="Xu hướng doanh thu"
             size="small"
             extra={
-              <Button type="link" size="small">
+              <Button
+                type="link"
+                size="small"
+                onClick={() => navigate("/bao-cao/doanh-thu")}
+              >
                 Xem chi tiết
               </Button>
             }
           >
-            <Row gutter={[16, 16]}>
-              {hasPermission("reports", "view") && (
-                <Col xs={24} md={16}>
-                  <div style={{ height: 350, width: "100%" }}>
-                    {revenueChart.length === 0 ? (
-                      <div
-                        className="flex-center h-100"
-                        style={{ background: "#f5f5f5", borderRadius: 8 }}
-                      >
-                        <Text type="secondary">
-                          Không có dữ liệu biểu đồ doanh thu
-                        </Text>
-                      </div>
-                    ) : (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={revenueChart}>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            vertical={false}
-                          />
-                          <XAxis dataKey="thang" tick={{ fontSize: 12 }} />
-                          <YAxis
-                            tickFormatter={(v) => `${v / 1e6}M`}
-                            width={60}
-                          />
-                          <Tooltip
-                            formatter={(v) => formatService.formatCurrency(v)}
-                          />
-                          <Legend />
-                          <Bar
-                            name="Doanh thu"
-                            dataKey="doanh_thu"
-                            fill="#1890ff"
-                            radius={[4, 4, 0, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    )}
+            {hasPermission("reports", "view") && (
+              <div style={{ height: 350, width: "100%", marginTop: 16 }}>
+                {revenueChart.length === 0 ? (
+                  <div
+                    className="flex-center h-100"
+                    style={{ background: "#f5f5f5", borderRadius: 8 }}
+                  >
+                    <Text type="secondary">
+                      Không có dữ liệu biểu đồ doanh thu
+                    </Text>
                   </div>
-                </Col>
-              )}
-
-              {hasPermission("inventory", "view") && (
-                <Col xs={24} md={8}>
-                  <div style={{ height: 350, width: "100%" }}>
-                    {inventoryChart.length === 0 ? (
-                      <div
-                        className="flex-center h-100"
-                        style={{ background: "#f5f5f5", borderRadius: 8 }}
-                      >
-                        <Text type="secondary">Không có dữ liệu tồn kho</Text>
-                      </div>
-                    ) : (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={inventoryChart}
-                            dataKey="so_luong"
-                            nameKey="ten_kho"
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={80}
-                            innerRadius={60}
-                            fill="#8884d8"
-                            paddingAngle={5}
-                            label={({ name, percent }) =>
-                              `${name} ${(percent * 100).toFixed(0)}%`
-                            }
-                          >
-                            {inventoryChart.map((_, index) => (
-                              <Cell
-                                key={`cell-${index}`}
-                                fill={
-                                  [
-                                    "#1890ff",
-                                    "#52c41a",
-                                    "#faad14",
-                                    "#ff4d4f",
-                                    "#722ed1",
-                                  ][index % 5]
-                                }
-                              />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                          <Legend iconType="circle" />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    )}
-                  </div>
-                </Col>
-              )}
-            </Row>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={revenueChart}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="thang" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={(v) => `${v / 1e6}M`} width={60} />
+                      <Tooltip
+                        formatter={(v) => formatService.formatCurrency(v)}
+                      />
+                      <Legend />
+                      <Bar
+                        name="Doanh thu"
+                        dataKey="doanh_thu"
+                        fill="#1890ff"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            )}
           </Card>
         </Col>
         <Col xs={24} lg={8}>
@@ -560,7 +642,11 @@ const DashboardPage = () => {
               title="Giao dịch mới nhất"
               size="small"
               extra={
-                <Button type="link" size="small">
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={() => navigate("/sales/orders")}
+                >
                   Tất cả
                 </Button>
               }
@@ -580,7 +666,11 @@ const DashboardPage = () => {
               title="Nhắc nhở bảo trì sắp tới"
               size="small"
               extra={
-                <Button type="link" size="small">
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={() => navigate("/maintenance/reminders")}
+                >
                   Xem thêm
                 </Button>
               }
@@ -599,36 +689,80 @@ const DashboardPage = () => {
         </Col>
       </Row>
 
-      {/* Quick Actions at bottom for mobile */}
-      {isMobile && (
-        <Card size="small" title="Thao tác nhanh" style={{ marginTop: 16 }}>
-          <Row gutter={[8, 8]}>
-            <Col span={12}>
-              <Button
-                block
-                icon={<ShoppingCartOutlined />}
-                onClick={() => (window.location.href = "/sales/orders/create")}
-              >
-                Bán hàng
-              </Button>
-            </Col>
-            <Col span={12}>
-              <Button
-                block
-                icon={<MotorcycleIcon />}
-                onClick={() => (window.location.href = "/xe/danh-sach")}
-              >
-                Khai kho
-              </Button>
-            </Col>
-          </Row>
-        </Card>
-      )}
+      {/* Modals for Quick Details */}
+      <Modal
+        title={
+          <Space>
+            <ToolOutlined style={{ color: "#faad14" }} />
+            <span>Phụ tùng sắp hết (Cảnh báo tồn kho)</span>
+          </Space>
+        }
+        open={lowStockModalOpen}
+        onCancel={() => setLowStockModalOpen(false)}
+        footer={[
+          <Button key="close" onClick={() => setLowStockModalOpen(false)}>
+            Đóng
+          </Button>,
+          <Button
+            key="report"
+            type="primary"
+            onClick={() => {
+              setLowStockModalOpen(false);
+              navigate("/phu-tung/danh-sach");
+            }}
+          >
+            Quản lý tồn kho
+          </Button>,
+        ]}
+        width={800}
+        loading={loadingLowStock}
+      >
+        <Table
+          size="small"
+          dataSource={lowStockDetail}
+          pagination={{ pageSize: 8 }}
+          rowKey={(record) => `${record.ma_pt}_${record.ten_kho}`}
+          columns={[
+            {
+              title: "Tên phụ tùng",
+              dataIndex: "ten_pt",
+              key: "ten_pt",
+            },
+            {
+              title: "Kho",
+              dataIndex: "ten_kho",
+              key: "ten_kho",
+            },
+            {
+              title: "Tồn thực",
+              dataIndex: "so_luong_ton",
+              key: "so_luong_ton",
+              align: "right",
+              render: (val, record) => (
+                <Text type="danger" strong>
+                  {val} {record.don_vi_tinh}
+                </Text>
+              ),
+            },
+            {
+              title: "Tối thiểu",
+              dataIndex: "so_luong_toi_thieu",
+              key: "so_luong_toi_thieu",
+              align: "right",
+            },
+          ]}
+        />
+      </Modal>
+
       <style>{`
         .manage-page-container {
           padding: 16px;
           background: var(--bg-layout, #f0f2f5);
           min-height: 100vh;
+        }
+        .dashboard-stat-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(0,0,0,0.08) !important;
         }
         @media (max-width: 640px) {
           .manage-page-container {

@@ -41,7 +41,7 @@ const SalesReportPage = () => {
     nam: dayjs().year(),
     tu_ngay: dayjs().startOf("month"),
     den_ngay: dayjs(),
-    loai: "XE", // For product report
+    loai: null, // For product & detailed report
   });
 
   useEffect(() => {
@@ -82,6 +82,8 @@ const SalesReportPage = () => {
         res = await reportAPI.sales.getByMonth(apiParams);
       } else if (activeTab === "doanh-thu-theo-san-pham") {
         res = await reportAPI.sales.getByProduct(apiParams);
+      } else if (activeTab === "doanh-thu-chi-tiet") {
+        res = await reportAPI.sales.getDetailed(apiParams);
       } else {
         res = await reportAPI.sales.getSummary(apiParams);
       }
@@ -100,7 +102,7 @@ const SalesReportPage = () => {
   const handleExport = async (type) => {
     try {
       let reportCode = activeTab.toUpperCase().replace(/-/g, "_");
-      if (activeTab === "doanh-thu-theo-thang") reportCode = "DOANH_THU_THANG";
+      if (activeTab === "doanh-thu-theo-thang") reportCode = "DOAN_THU_THANG";
 
       const exportParams = {
         loai_bao_cao: reportCode,
@@ -229,6 +231,86 @@ const SalesReportPage = () => {
     },
   ];
 
+  const detailedColumns = [
+    {
+      title: "Ngày",
+      dataIndex: "ngay",
+      key: "ngay",
+      width: 120,
+      render: (val) => formatService.formatDate(val),
+    },
+    {
+      title: "Số phiếu",
+      dataIndex: "so_phieu",
+      key: "so_phieu",
+      width: 140,
+    },
+    {
+      title: "Loại",
+      dataIndex: "loai_doanh_thu",
+      key: "loai_doanh_thu",
+      width: 100,
+      render: (val) => {
+        let color = "blue";
+        let text = val;
+        if (val === "XE") {
+          color = "green";
+          text = "Bán Xe";
+        } else if (val === "PHU_TUNG") {
+          color = "orange";
+          text = "Phụ Tùng";
+        } else if (val === "DICH_VU") {
+          color = "purple";
+          text = "Dịch Vụ";
+        }
+        return <Tag color={color}>{text}</Tag>;
+      },
+    },
+    {
+      title: "Khách hàng",
+      dataIndex: "khach_hang",
+      key: "khach_hang",
+      ellipsis: true,
+    },
+    {
+      title: "Nội dung",
+      dataIndex: "noi_dung",
+      key: "noi_dung",
+      ellipsis: true,
+    },
+    {
+      title: "SL",
+      dataIndex: "so_luong",
+      key: "so_luong",
+      align: "center",
+      width: 60,
+    },
+    {
+      title: "Đơn giá",
+      dataIndex: "don_gia",
+      key: "don_gia",
+      align: "right",
+      render: (val) => formatService.formatCurrency(val),
+    },
+    {
+      title: "Thành tiền",
+      dataIndex: "thanh_tien",
+      key: "thanh_tien",
+      align: "right",
+      render: (val) => (
+        <Text strong type="danger">
+          {formatService.formatCurrency(val)}
+        </Text>
+      ),
+    },
+    {
+      title: "Kho",
+      dataIndex: "kho",
+      key: "kho",
+      width: 120,
+    },
+  ];
+
   return (
     <div className="manage-page-container">
       <Card
@@ -248,6 +330,7 @@ const SalesReportPage = () => {
               key: "doanh-thu-theo-san-pham",
               label: "Doanh thu theo sản phẩm",
             },
+            { key: "doanh-thu-chi-tiet", label: "Doanh thu chi tiết" },
             { key: "doanh-thu-tong-hop", label: "Tổng hợp toàn hệ thống" },
           ]}
         />
@@ -294,7 +377,8 @@ const SalesReportPage = () => {
               </Col>
             )}
 
-            {activeTab === "doanh-thu-theo-san-pham" && (
+            {(activeTab === "doanh-thu-theo-san-pham" ||
+              activeTab === "doanh-thu-chi-tiet") && (
               <>
                 <Col xs={12} sm={8} md={4}>
                   <Text strong>Loại:</Text>
@@ -302,9 +386,21 @@ const SalesReportPage = () => {
                     style={{ width: "100%" }}
                     value={params.loai}
                     onChange={(val) => setParams({ ...params, loai: val })}
+                    allowClear
+                    placeholder="Tất cả"
                   >
-                    <Option value="XE">Xe</Option>
-                    <Option value="PHU_TUNG">Phụ tùng</Option>
+                    {activeTab === "doanh-thu-chi-tiet" ? (
+                      <>
+                        <Option value="XE">Bán Xe</Option>
+                        <Option value="PHU_TUNG">Phụ Tùng</Option>
+                        <Option value="DICH_VU">Dịch Vụ (Bảo trì)</Option>
+                      </>
+                    ) : (
+                      <>
+                        <Option value="XE">Xe</Option>
+                        <Option value="PHU_TUNG">Phụ tùng</Option>
+                      </>
+                    )}
                   </Select>
                 </Col>
                 <Col xs={24} sm={12} md={6}>
@@ -392,9 +488,12 @@ const SalesReportPage = () => {
               ? monthColumns
               : activeTab === "doanh-thu-theo-san-pham"
                 ? productColumns
-                : summaryColumns
+                : activeTab === "doanh-thu-chi-tiet"
+                  ? detailedColumns
+                  : summaryColumns
           }
           rowKey={(record) =>
+            record.so_phieu ||
             record.san_pham ||
             record.ma_sp ||
             record.thang ||
@@ -402,7 +501,7 @@ const SalesReportPage = () => {
             Math.random()
           }
           pagination={{ pageSize: 12 }}
-          scroll={{ x: 800 }}
+          scroll={{ x: 1000 }}
         />
       </Card>
       <style>{`

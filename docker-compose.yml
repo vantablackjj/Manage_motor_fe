@@ -1,0 +1,9 @@
+services:
+  manage_motor_fe:
+    build: .
+    ports:
+      - "3000:80"
+    restart: always
+    container_name: manage_motor_fe_container
+    environment:
+      - NODE_ENV=production

@@ -10,6 +10,7 @@ import {
   DatePicker,
   Button,
   Spin,
+  Popover,
 } from "antd";
 import {
   DashboardOutlined,
@@ -93,25 +94,96 @@ const DashboardReportPage = () => {
     }
   };
 
-  const StatBox = ({ title, value, icon, color, isCurrency, suffix }) => (
-    <Card
-      size="small"
-      style={{ height: "100%", borderTop: `4px solid ${color}` }}
-    >
-      <Statistic
-        title={<Text type="secondary">{title}</Text>}
-        value={value}
-        prefix={icon}
-        suffix={suffix}
-        formatter={(val) =>
-          isCurrency
-            ? formatService.formatCurrency(val)
-            : formatService.formatNumber(val)
-        }
-        valueStyle={{ color, fontSize: isMobile ? 18 : 24, fontWeight: "bold" }}
-      />
-    </Card>
-  );
+  const StatBox = ({
+    title,
+    value,
+    icon,
+    color,
+    isCurrency,
+    suffix,
+    detail,
+    detailTitle,
+  }) => {
+    const renderDetail = () => {
+      if (!detail || Object.keys(detail).length === 0) return null;
+
+      const labels = {
+        SALES: "Bán hàng",
+        MAINTENANCE: "Dịch vụ & Bảo trì",
+        OTHER: "Khác",
+      };
+
+      return (
+        <div style={{ minWidth: 200 }}>
+          <div
+            style={{
+              fontWeight: 600,
+              marginBottom: 8,
+              borderBottom: "1px solid #f0f0f0",
+              paddingBottom: 4,
+            }}
+          >
+            {detailTitle || "Chi tiết"}
+          </div>
+          {Object.entries(detail).map(([key, val]) => (
+            <div
+              key={key}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: 4,
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {labels[key] || key}:
+              </Text>
+              <Text strong style={{ fontSize: 12 }}>
+                {isCurrency
+                  ? formatService.formatCurrency(val)
+                  : formatService.formatNumber(val)}
+              </Text>
+            </div>
+          ))}
+        </div>
+      );
+    };
+
+    return (
+      <Popover
+        content={renderDetail()}
+        trigger="hover"
+        placement="bottom"
+        mouseEnterDelay={0.2}
+        open={detail ? undefined : false}
+      >
+        <Card
+          size="small"
+          style={{
+            height: "100%",
+            borderTop: `4px solid ${color}`,
+            cursor: detail ? "pointer" : "default",
+          }}
+        >
+          <Statistic
+            title={<Text type="secondary">{title}</Text>}
+            value={value}
+            prefix={icon}
+            suffix={suffix}
+            formatter={(val) =>
+              isCurrency
+                ? formatService.formatCurrency(val)
+                : formatService.formatNumber(val)
+            }
+            valueStyle={{
+              color,
+              fontSize: isMobile ? 18 : 24,
+              fontWeight: "bold",
+            }}
+          />
+        </Card>
+      </Popover>
+    );
+  };
 
   return (
     <div style={{ padding: 16 }}>
@@ -155,6 +227,8 @@ const DashboardReportPage = () => {
               icon={<ArrowUpOutlined />}
               color="#1890ff"
               isCurrency
+              detail={data.overview.revenue_month_detail}
+              detailTitle="Cơ cấu doanh thu tháng"
             />
           </Col>
           <Col xs={24} sm={12} md={8}>
@@ -164,6 +238,8 @@ const DashboardReportPage = () => {
               icon={<DollarOutlined />}
               color="#52c41a"
               isCurrency
+              detail={data.overview.cash_collection_month_detail}
+              detailTitle="Cơ cấu thực thu tháng"
             />
           </Col>
           <Col xs={24} sm={12} md={8}>

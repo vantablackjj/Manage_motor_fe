@@ -156,7 +156,7 @@ const LogisticsReportPage = () => {
       render: (val, record) => {
         const text = val || record.ma_kho_xuat;
         if (!text) return "-";
-        const isPartner = record.loai_giao_dich === "NHAP_KHO";
+        const isPartner = !record.ma_kho_xuat;
         return (
           <Space>
             {isPartner ? (
@@ -177,7 +177,7 @@ const LogisticsReportPage = () => {
       render: (val, record) => {
         const text = val || record.ma_kho_nhap;
         if (!text) return "-";
-        const isPartner = record.loai_giao_dich === "XUAT_KHO";
+        const isPartner = !record.ma_kho_nhap;
         return (
           <Space>
             {isPartner ? (
@@ -257,7 +257,7 @@ const LogisticsReportPage = () => {
       render: (val, record) => {
         const text = val || record.ma_kho_xuat;
         if (!text) return "-";
-        const isPartner = record.loai_giao_dich === "NHAP_KHO";
+        const isPartner = !record.ma_kho_xuat;
         return (
           <Space>
             {isPartner ? (
@@ -278,7 +278,7 @@ const LogisticsReportPage = () => {
       render: (val, record) => {
         const text = val || record.ma_kho_nhap;
         if (!text) return "-";
-        const isPartner = record.loai_giao_dich === "XUAT_KHO";
+        const isPartner = !record.ma_kho_nhap;
         return (
           <Space>
             {isPartner ? (
@@ -367,7 +367,7 @@ const LogisticsReportPage = () => {
       render: (val, record) => {
         const text = val || record.ma_kho_xuat;
         if (!text) return "-";
-        const isPartner = record.loai_giao_dich === "NHAP_KHO";
+        const isPartner = !record.ma_kho_xuat;
         return (
           <Space>
             {isPartner ? (
@@ -388,7 +388,7 @@ const LogisticsReportPage = () => {
       render: (val, record) => {
         const text = val || record.ma_kho_nhap;
         if (!text) return "-";
-        const isPartner = record.loai_giao_dich === "XUAT_KHO";
+        const isPartner = !record.ma_kho_nhap;
         return (
           <Space>
             {isPartner ? (

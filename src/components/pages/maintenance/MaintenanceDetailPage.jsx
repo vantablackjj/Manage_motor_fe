@@ -79,10 +79,18 @@ const MaintenanceDetailPage = () => {
     }
   };
 
-  const handleUpdateStatus = async (newStatus, ma_kho = null) => {
+  const handleUpdateStatus = async (
+    newStatus,
+    ma_kho = null,
+    hinh_thuc_thanh_toan = null,
+  ) => {
     setStatusLoading(true);
     try {
-      await maintenanceAPI.updateStatus(id, { trang_thai: newStatus, ma_kho });
+      await maintenanceAPI.updateStatus(id, {
+        trang_thai: newStatus,
+        ma_kho,
+        hinh_thuc_thanh_toan: hinh_thuc_thanh_toan || undefined,
+      });
       notificationService.success(
         `Cập nhật trạng thái [${TRANG_THAI_LABELS[newStatus]}] thành công`,
       );
@@ -200,23 +208,61 @@ const MaintenanceDetailPage = () => {
                 type="primary"
                 icon={<CheckCircleOutlined />}
                 onClick={() => {
+                  let defaultPaymentMethod = "TIEN_MAT";
                   Modal.confirm({
-                    title: "Xác nhận Hoàn thành & Xuất kho",
+                    title: "Xác nhận Hoàn thành & Thanh toán",
+                    width: 500,
                     content: (
                       <div>
                         <p>
-                          Hệ thống sẽ ghi nhận hoàn thành và trừ tồn kho phụ
-                          tùng.
+                          Hệ thống sẽ ghi nhận hoàn thành, trừ tồn kho phụ tùng
+                          và
+                          <strong> tạo phiếu thu</strong> cho số tiền:
+                          <span
+                            style={{
+                              color: "#f5222d",
+                              fontSize: "18px",
+                              marginLeft: "8px",
+                            }}
+                          >
+                            {formatService.formatCurrency(data.tong_tien)}
+                          </span>
                         </p>
-                        <p>
+                        <Divider />
+                        <Form layout="vertical">
+                          <Form.Item label="Hình thức thanh toán">
+                            <Select
+                              defaultValue="TIEN_MAT"
+                              onChange={(val) => {
+                                defaultPaymentMethod = val;
+                              }}
+                            >
+                              <Select.Option value="TIEN_MAT">
+                                Tiền mặt
+                              </Select.Option>
+                              <Select.Option value="CHUYEN_KHOAN">
+                                Chuyển khoản
+                              </Select.Option>
+                              <Select.Option value="THE">
+                                Quẹt thẻ
+                              </Select.Option>
+                            </Select>
+                          </Form.Item>
+                        </Form>
+                        <p style={{ fontSize: "12px", color: "#8c8c8c" }}>
                           Kho xuất:{" "}
                           <strong>{data.ten_kho || data.ma_kho}</strong>
                         </p>
                       </div>
                     ),
-                    okText: "Xác nhận hoàn thành",
+                    okText: "Hoàn tất & Thu tiền",
                     cancelText: "Quay lại",
-                    onOk: () => handleUpdateStatus("HOAN_THANH", data.ma_kho),
+                    onOk: () =>
+                      handleUpdateStatus(
+                        "HOAN_THANH",
+                        data.ma_kho,
+                        defaultPaymentMethod,
+                      ),
                   });
                 }}
                 loading={statusLoading}
