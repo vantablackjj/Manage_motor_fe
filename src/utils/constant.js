@@ -36,7 +36,7 @@ export const USER_ROLE_COLORS = {
   QUAN_LY: "green",
 };
 
-// Trạng thái giao dịch
+// Trạng thái giao dịch chung (Nhập, Xuất, Chuyển kho, Thu chi)
 export const TRANG_THAI = {
   NHAP: "NHAP",
   GUI_DUYET: "GUI_DUYET",
@@ -52,15 +52,31 @@ export const TRANG_THAI = {
   TU_CHOI: "TU_CHOI",
   DA_HUY: "DA_HUY",
 
-  // Trạng thái Bảo trì/Dịch vụ mới
+  // Trạng thái Bảo trì/Dịch vụ
   TIEP_NHAN: "TIEP_NHAN",
   DANG_SUA: "DANG_SUA",
   CHO_THANH_TOAN: "CHO_THANH_TOAN",
 
-  // Trạng thái phê duyệt XE
+  // Trạng thái phê duyệt XE nhập lẻ
   XE_NHAP: "NHAP",
   XE_CHO_DUYET: "CHO_DUYET",
   XE_TU_CHOI: "DA_TU_CHOI",
+};
+
+// Nhóm trạng thái để lọc (UI Filtering)
+export const TRANG_THAI_FILTER = {
+  // Dùng chung cho các loại chứng từ transaction
+  COMMON: ["NHAP", "GUI_DUYET", "DA_DUYET", "HOAN_THANH", "DA_HUY"],
+  // Dùng cho xưởng dịch vụ
+  MAINTENANCE: [
+    "TIEP_NHAN",
+    "DANG_SUA",
+    "CHO_THANH_TOAN",
+    "HOAN_THANH",
+    "DA_HUY",
+  ],
+  // Dùng cho phê duyệt xe nhập
+  XE_APPROVAL: ["NHAP", "CHO_DUYET", "DA_DUYET", "DA_TU_CHOI"],
 };
 
 export const TRANG_THAI_LABELS = {

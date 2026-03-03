@@ -35,7 +35,12 @@ import {
   notificationService,
   authService,
 } from "../../../services";
-import { TRANG_THAI_COLORS, LOAI_DON_HANG } from "../../../utils/constant";
+import {
+  TRANG_THAI_COLORS,
+  TRANG_THAI_LABELS,
+  TRANG_THAI_FILTER,
+  LOAI_DON_HANG,
+} from "../../../utils/constant";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -280,9 +285,11 @@ const SalesOrderList = () => {
                   allowClear
                   onChange={(v) => handleFilterChange("trang_thai", v)}
                 >
-                  <Option value="NHAP">Nháp</Option>
-                  <Option value="GUI_DUYET">Chờ duyệt</Option>
-                  <Option value="DA_DUYET">Đã duyệt</Option>
+                  {TRANG_THAI_FILTER.COMMON.map((key) => (
+                    <Option key={key} value={key}>
+                      {TRANG_THAI_LABELS[key]}
+                    </Option>
+                  ))}
                 </Select>
               </Col>
               <Col xs={24} sm={12} md={8}>
@@ -326,7 +333,12 @@ const SalesOrderList = () => {
             }}
           />
         ) : (
-          <OrderKanban data={data} loading={loading} />
+          <OrderKanban
+            data={data}
+            loading={loading}
+            baseRoute="/sales/orders"
+            idField="id"
+          />
         )}
       </Card>
 

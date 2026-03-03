@@ -40,6 +40,7 @@ import {
   TRANG_THAI,
   TRANG_THAI_COLORS,
   TRANG_THAI_LABELS,
+  TRANG_THAI_FILTER,
 } from "../../../utils/constant";
 import moment from "moment";
 
@@ -298,7 +299,7 @@ const ChuyenKhoList = () => {
                 allowClear
                 onChange={(val) => handleFilterChange("trang_thai", val)}
               >
-                {Object.keys(TRANG_THAI).map((key) => (
+                {TRANG_THAI_FILTER.COMMON.map((key) => (
                   <Option key={key} value={key}>
                     {TRANG_THAI_LABELS[key]}
                   </Option>

@@ -772,8 +772,7 @@ const XeThucTe = () => {
               <OrderKanban
                 data={data}
                 loading={loading}
-                baseRoute="/xe"
-                idField="xe_key"
+                onCardClick={handleView}
                 customColumns={[
                   { title: "Tồn kho", status: "TON_KHO" },
                   { title: "Đang chuyển", status: "DANG_CHUYEN" },

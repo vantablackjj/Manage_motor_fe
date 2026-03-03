@@ -4,7 +4,7 @@ import { HistoryOutlined } from "@ant-design/icons";
 import { phuTungAPI } from "../../../api";
 import { message } from "antd";
 
-const LichSuModal = ({ visible, onClose, ma_pt, ten_pt }) => {
+const LichSuModal = ({ open: visible, onClose, ma_pt, ten_pt }) => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
 

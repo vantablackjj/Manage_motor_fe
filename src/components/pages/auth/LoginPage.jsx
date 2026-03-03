@@ -3,21 +3,18 @@ import { Form, Input, Button, Card, Checkbox, Typography, Space } from "antd";
 import {
   UserOutlined,
   LockOutlined,
-  LoginOutlined,
-  InfoCircleFilled,
   ArrowRightOutlined,
   ControlOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { notificationService, storageService } from "../../../services";
 import { authAPI } from "../../../api";
-import { useResponsive } from "../../../hooks/useResponsive";
+
 import { useAuth } from "../../../contexts/AuthContext";
 
 const { Title, Text, Link } = Typography;
 
 const LoginPage = () => {
-  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
@@ -26,13 +23,7 @@ const LoginPage = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      // For demo purposes, we accept the credentials in the image too
-      const username =
-        values.username === "admin_demo" ? "admin3" : values.username;
-      const password =
-        values.password === "motor2024" ? "12345678" : values.password;
-
-      const result = await authAPI.login(username, password);
+      const result = await authAPI.login(values.username, values.password);
 
       if (result.success) {
         if (values.remember) {
@@ -220,57 +211,6 @@ const LoginPage = () => {
                 Sign In
               </Button>
             </Form.Item>
-
-            {/* Demo Account Callout */}
-            <div
-              style={{
-                backgroundColor: "#f0f7ff",
-                border: "1px solid #e1f0ff",
-                borderRadius: "10px",
-                padding: "16px",
-                display: "flex",
-                gap: "12px",
-                alignItems: "flex-start",
-              }}
-            >
-              <InfoCircleFilled
-                style={{ color: "#1890ff", marginTop: "4px" }}
-              />
-              <div>
-                <Text
-                  strong
-                  style={{
-                    fontSize: "11px",
-                    color: "#1890ff",
-                    textTransform: "uppercase",
-                    display: "block",
-                    marginBottom: "4px",
-                  }}
-                >
-                  Demo Account
-                </Text>
-                <div style={{ display: "flex", gap: "24px", fontSize: "12px" }}>
-                  <div>
-                    <Text
-                      type="secondary"
-                      style={{ display: "block", fontSize: "10px" }}
-                    >
-                      Username
-                    </Text>
-                    <Text strong>admin_demo</Text>
-                  </div>
-                  <div>
-                    <Text
-                      type="secondary"
-                      style={{ display: "block", fontSize: "10px" }}
-                    >
-                      Password
-                    </Text>
-                    <Text strong>motor2024</Text>
-                  </div>
-                </div>
-              </div>
-            </div>
           </Form>
         </div>
       </Card>

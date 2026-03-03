@@ -35,7 +35,12 @@ import ExportButton from "../../features/Export/ExportButton";
 import { useNavigate } from "react-router-dom";
 import { thuChiAPI, khoAPI, khachHangAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
-import { TRANG_THAI_COLORS, LOAI_THU_CHI } from "../../../utils/constant";
+import {
+  TRANG_THAI_COLORS,
+  TRANG_THAI_LABELS,
+  TRANG_THAI_FILTER,
+  LOAI_THU_CHI,
+} from "../../../utils/constant";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { useResponsive } from "../../../hooks/useResponsive";
 
@@ -414,10 +419,11 @@ const ThuChiList = () => {
                   allowClear
                   onChange={(v) => handleFilterChange("trang_thai", v)}
                 >
-                  <Option value="NHAP">Nháp</Option>
-                  <Option value="GUI_DUYET">Chờ duyệt</Option>
-                  <Option value="DA_DUYET">Đã duyệt</Option>
-                  <Option value="DA_HUY">Đã hủy</Option>
+                  {TRANG_THAI_FILTER.COMMON.map((key) => (
+                    <Option key={key} value={key}>
+                      {TRANG_THAI_LABELS[key]}
+                    </Option>
+                  ))}
                 </Select>
               </Col>
               <Col xs={24} sm={12} md={6}>

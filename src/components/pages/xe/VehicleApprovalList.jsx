@@ -32,7 +32,11 @@ import {
   notificationService,
   authService,
 } from "../../../services";
-import { TRANG_THAI_COLORS, TRANG_THAI_LABELS } from "../../../utils/constant";
+import {
+  TRANG_THAI_COLORS,
+  TRANG_THAI_LABELS,
+  TRANG_THAI_FILTER,
+} from "../../../utils/constant";
 import { useDebounce } from "../../../hooks/useDebounce";
 import XeForm from "./XeForm";
 import OrderKanban from "../../features/OrderKanban/OrderKanban";
@@ -324,9 +328,11 @@ const VehicleApprovalList = () => {
               allowClear
               onChange={(v) => setFilters({ ...filters, trang_thai: v })}
             >
-              <Option value="NHAP">Nháp</Option>
-              <Option value="CHO_DUYET">Chờ duyệt</Option>
-              <Option value="DA_TU_CHOI">Từ chối</Option>
+              {TRANG_THAI_FILTER.XE_APPROVAL.map((key) => (
+                <Option key={key} value={key}>
+                  {TRANG_THAI_LABELS[key]}
+                </Option>
+              ))}
             </Select>
           </Col>
         </Row>

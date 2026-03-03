@@ -85,6 +85,16 @@ const WorkshopBoard = () => {
           <Button
             type="link"
             icon={isBusy ? <ArrowRightOutlined /> : <PlusOutlined />}
+            onClick={(e) => {
+              e.stopPropagation(); // Ngăn sự kiện click lan lên Card
+              if (lift.ma_phieu) {
+                navigate(`/maintenance/${lift.ma_phieu}`);
+              } else {
+                navigate("/maintenance/create", {
+                  state: { ma_ban_nang: lift.ma_ban_nang },
+                });
+              }
+            }}
           >
             {isBusy ? "Chi tiết" : "Tiếp nhận"}
           </Button>,

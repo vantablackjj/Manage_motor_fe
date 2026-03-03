@@ -187,6 +187,10 @@ const OrderKanban = ({
                             icon={<EyeOutlined />}
                             size="small"
                             className="view-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCardClick(item);
+                            }}
                           />
                         </div>
                       </Card>

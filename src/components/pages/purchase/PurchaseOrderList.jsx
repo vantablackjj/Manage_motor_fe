@@ -45,6 +45,7 @@ import {
   TRANG_THAI,
   TRANG_THAI_COLORS,
   TRANG_THAI_LABELS,
+  TRANG_THAI_FILTER,
   LOAI_HANG,
 } from "../../../utils/constant";
 import OrderReceiveModal from "./OrderReceiveModal";
@@ -412,7 +413,7 @@ const PurchaseOrderList = () => {
                 allowClear
                 onChange={(val) => handleFilterChange("trang_thai", val)}
               >
-                {Object.keys(TRANG_THAI).map((key) => (
+                {TRANG_THAI_FILTER.COMMON.map((key) => (
                   <Option key={key} value={key}>
                     {TRANG_THAI_LABELS[key]}
                   </Option>

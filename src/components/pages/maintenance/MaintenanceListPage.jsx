@@ -4,6 +4,7 @@ import {
   Card,
   Button,
   Input,
+  Select,
   Space,
   Row,
   Col,
@@ -27,11 +28,16 @@ import { useDebounce } from "../../../hooks/useDebounce";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { maintenanceAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
-import { TRANG_THAI_LABELS, TRANG_THAI_COLORS } from "../../../utils/constant";
+import {
+  TRANG_THAI_LABELS,
+  TRANG_THAI_COLORS,
+  TRANG_THAI_FILTER,
+} from "../../../utils/constant";
 import OrderKanban from "../../features/OrderKanban/OrderKanban";
 import MotorcycleIcon from "../../common/MotorcycleIcon";
 
 const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 const MaintenanceListPage = () => {
   const navigate = useNavigate();
@@ -41,6 +47,7 @@ const MaintenanceListPage = () => {
   const [filters, setFilters] = useState({
     ma_xe: "",
     ten_khach_hang: "",
+    trang_thai: null,
     tu_ngay: null,
     den_ngay: null,
   });
@@ -233,7 +240,7 @@ const MaintenanceListPage = () => {
 
         <div style={{ marginBottom: 16 }}>
           <Row gutter={[8, 8]}>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={4}>
               <Input
                 placeholder="Mã xe/Số khung"
                 value={filters.ma_xe}
@@ -242,9 +249,9 @@ const MaintenanceListPage = () => {
                 prefix={<SearchOutlined style={{ color: "rgba(0,0,0,.25)" }} />}
               />
             </Col>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={5}>
               <Input
-                placeholder="Tên khách hàng"
+                placeholder="Khách hàng"
                 value={filters.ten_khach_hang}
                 onChange={(e) =>
                   handleFilterChange("ten_khach_hang", e.target.value)
@@ -253,7 +260,7 @@ const MaintenanceListPage = () => {
                 prefix={<SearchOutlined style={{ color: "rgba(0,0,0,.25)" }} />}
               />
             </Col>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <RangePicker
                 style={{ width: "100%" }}
                 onChange={(dates) => {
@@ -262,6 +269,21 @@ const MaintenanceListPage = () => {
                 }}
               />
             </Col>
+            <Col xs={24} sm={12} md={5}>
+              <Select
+                placeholder="Trạng thái"
+                style={{ width: "100%" }}
+                allowClear
+                value={filters.trang_thai}
+                onChange={(v) => handleFilterChange("trang_thai", v)}
+              >
+                {TRANG_THAI_FILTER.MAINTENANCE.map((key) => (
+                  <Option key={key} value={key}>
+                    {TRANG_THAI_LABELS[key]}
+                  </Option>
+                ))}
+              </Select>
+            </Col>
             <Col xs={24} sm={12} md={4}>
               <Button
                 type="primary"
@@ -269,7 +291,7 @@ const MaintenanceListPage = () => {
                 onClick={() => fetchData()}
                 block
               >
-                Tìm kiếm
+                Tìm
               </Button>
             </Col>
           </Row>
