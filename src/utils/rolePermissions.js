@@ -39,6 +39,13 @@ export const ROLE_PERMISSIONS = {
       transfer: true,
       adjust: true,
     },
+    maintenance: {
+      view: true,
+      create: true,
+      edit: true,
+      delete: true,
+      approve: true,
+    },
     debt: { view: true, create: true, edit: true, delete: true },
     payments: {
       view: true,
@@ -80,6 +87,7 @@ export const ROLE_PERMISSIONS = {
       export: true,
       transfer: true,
     },
+    maintenance: { view: true, create: true, edit: true },
     debt: { view: true, create: true },
     payments: {
       view: true,
@@ -119,6 +127,7 @@ export const ROLE_PERMISSIONS = {
       export: true,
       transfer: true,
     },
+    maintenance: { view: true, create: true, edit: true },
     debt: { view: true, create: true },
     payments: {
       view: true,
@@ -157,6 +166,7 @@ export const ROLE_PERMISSIONS = {
       transfer: true,
       adjust: true,
     },
+    maintenance: { view: true, create: true, edit: true },
     debt: { view: false },
     payments: { view: false },
     reports: { view: true, export: true, view_financial: false },
@@ -173,6 +183,7 @@ export const ROLE_PERMISSIONS = {
     sales_orders: { view: true, edit: true, approve: true },
     invoices: { view: true, create: true, edit: true },
     inventory: { view: true, import: true, export: true },
+    maintenance: { view: true, edit: true },
     debt: { view: true, create: true, edit: true, delete: true },
     payments: {
       view: true,
@@ -216,6 +227,13 @@ export const ROLE_PERMISSIONS = {
       export: true,
       transfer: true,
       adjust: true,
+    },
+    maintenance: {
+      view: true,
+      create: true,
+      edit: true,
+      delete: true,
+      approve: true,
     },
     debt: { view: true, create: true, edit: true },
     payments: {

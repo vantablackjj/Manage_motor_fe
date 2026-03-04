@@ -142,8 +142,14 @@ class AuthService {
     const user = this.getCurrentUser();
     if (!user) return false;
 
-    // Normalize user role mapping
-    const userRole = (user.vai_tro || "").toUpperCase();
+    // Normalize user role mapping (handle lowercase/mixed case from server)
+    const roleAliasMap = {
+      QUAN_LY_CTY: "QUAN_LY",
+      QUAN_LY_CHI_NHANH: "QUAN_LY",
+      NHAN_VIEN: "BAN_HANG",
+    };
+    const rawRole = (user.vai_tro || "").toUpperCase();
+    const userRole = roleAliasMap[rawRole] || rawRole;
 
     // ADMIN luôn có tất cả quyền
     if (userRole === "ADMIN") return true;

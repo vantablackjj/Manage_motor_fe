@@ -57,6 +57,9 @@ export default defineConfig({
         injectionPoint: "self.__WB_MANIFEST",
         maximumFileSizeToCacheInBytes: 5000000, // 5MB
       },
+      workbox: {
+        navigateFallbackDenylist: [/^\/api/],
+      },
       devOptions: {
         enabled: false,
         type: "module",
@@ -69,12 +72,12 @@ export default defineConfig({
     allowedHosts: ["jaclyn-uncaged-ecliptically.ngrok-free.dev"],
     proxy: {
       "/api": {
-        target: "https://motor-manage.onrender.com",
+        target: "http://54.254.173.166:32000",
         changeOrigin: true,
         secure: false,
       },
       "/socket.io": {
-        target: "https://motor-manage.onrender.com",
+        target: "http://54.254.173.166:32000",
         ws: true,
         changeOrigin: true,
         secure: false,
