@@ -428,7 +428,8 @@ const DashboardPage = () => {
                 }}
               >
                 Hệ thống đã sẵn sàng. Bạn có {maintenanceReminders.length} nhắc
-                nhở bảo trì cần xử lý hôm nay.
+                nhở bảo trì cần xử lý hôm nay. (Vai trò:{" "}
+                {user?.vai_tro || "Trống"}) | Phiên bản: v1.0.2
               </Text>
             </Col>
             <Col
