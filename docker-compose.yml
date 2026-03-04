@@ -1,6 +1,7 @@
 services:
   manage_motor_fe:
     build: .
+    image: vantablackj/motor-manage-fe:latest
     ports:
       - "3000:80"
     restart: always
