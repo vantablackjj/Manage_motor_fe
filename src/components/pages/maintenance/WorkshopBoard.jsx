@@ -30,12 +30,14 @@ import {
   TRANG_THAI_COLORS,
   TRANG_THAI_LABELS,
 } from "../../../utils/constant";
+import { useAuth } from "../../../contexts/AuthContext";
 import { formatService, notificationService } from "../../../services";
 
 const { Title, Text } = Typography;
 
 const WorkshopBoard = () => {
   const navigate = useNavigate();
+  const { user, activeWarehouse } = useAuth();
   const [loading, setLoading] = useState(false);
   const [lifts, setLifts] = useState([]);
 
@@ -43,12 +45,14 @@ const WorkshopBoard = () => {
     fetchData();
     const interval = setInterval(fetchData, 30000); // Tự động làm mới mỗi 30 giây
     return () => clearInterval(interval);
-  }, []);
+  }, [user?.ma_kho, activeWarehouse]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await maintenanceAPI.getWorkshopBoard();
+      const res = await maintenanceAPI.getWorkshopBoard({
+        ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse : user?.ma_kho,
+      });
       setLifts(res.data || []);
     } catch (error) {
       notificationService.error("Lỗi tải dữ liệu bàn nâng");

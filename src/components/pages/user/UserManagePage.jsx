@@ -533,13 +533,18 @@ const UserManagePage = () => {
                 rules={[{ required: true, message: "Chọn vai trò" }]}
               >
                 <Select placeholder="-- Chọn vai trò --">
-                  {["ADMIN", "BAN_HANG", "KHO", "KE_TOAN", "QUAN_LY"].map(
-                    (key) => (
-                      <Select.Option key={key} value={key}>
-                        {USER_ROLE_LABELS[key]}
-                      </Select.Option>
-                    ),
-                  )}
+                  {[
+                    "ADMIN",
+                    "BAN_HANG",
+                    "KHO",
+                    "KE_TOAN",
+                    "QUAN_LY",
+                    "KY_THUAT",
+                  ].map((key) => (
+                    <Select.Option key={key} value={key}>
+                      {USER_ROLE_LABELS[key]}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>

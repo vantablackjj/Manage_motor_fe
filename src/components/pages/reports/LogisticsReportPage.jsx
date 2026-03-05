@@ -23,6 +23,7 @@ import {
 } from "@ant-design/icons";
 import { reportAPI, khoAPI, phuTungAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
+import { useAuth } from "../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import { useResponsive } from "../../../hooks/useResponsive";
 
@@ -32,6 +33,7 @@ const { Text } = Typography;
 
 const LogisticsReportPage = () => {
   const { isMobile } = useResponsive();
+  const { user, activeWarehouse } = useAuth();
   const [activeTab, setActiveTab] = useState("nhap-xuat-xe");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -40,7 +42,7 @@ const LogisticsReportPage = () => {
 
   // Filter params
   const [params, setParams] = useState({
-    ma_kho: null,
+    ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
     ma_pt: null,
     tu_ngay: dayjs().startOf("month"),
     den_ngay: dayjs(),
@@ -49,6 +51,14 @@ const LogisticsReportPage = () => {
   useEffect(() => {
     fetchInitialData();
   }, []);
+
+  useEffect(() => {
+    setParams((prev) => ({
+      ...prev,
+      ma_kho:
+        user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+    }));
+  }, [activeWarehouse, user]);
 
   useEffect(() => {
     fetchData();
@@ -522,6 +532,7 @@ const LogisticsReportPage = () => {
                 style={{ width: "100%" }}
                 placeholder="Tất cả kho"
                 allowClear
+                disabled={user?.vai_tro !== "ADMIN"}
                 value={params.ma_kho}
                 onChange={(val) => setParams({ ...params, ma_kho: val })}
               >

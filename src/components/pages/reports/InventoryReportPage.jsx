@@ -22,6 +22,7 @@ import {
 } from "@ant-design/icons";
 import { reportAPI, khoAPI, danhMucAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
+import { useAuth } from "../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import { useResponsive } from "../../../hooks/useResponsive";
 
@@ -30,6 +31,7 @@ const { Text } = Typography;
 
 const InventoryReportPage = () => {
   const { isMobile } = useResponsive();
+  const { user, activeWarehouse } = useAuth();
   const [activeTab, setActiveTab] = useState("ton-kho-xe");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -41,7 +43,7 @@ const InventoryReportPage = () => {
 
   // Filter params
   const [params, setParams] = useState({
-    ma_kho: null,
+    ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
     ma_loai_xe: null,
     ma_mau: null,
     nhom_pt: null,
@@ -56,6 +58,14 @@ const InventoryReportPage = () => {
   useEffect(() => {
     fetchFilterOptions();
   }, []);
+
+  useEffect(() => {
+    setParams((prev) => ({
+      ...prev,
+      ma_kho:
+        user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+    }));
+  }, [activeWarehouse, user]);
 
   useEffect(() => {
     setPage(1); // Reset to first page when filters change
@@ -312,6 +322,7 @@ const InventoryReportPage = () => {
                 style={{ width: "100%" }}
                 placeholder="Tất cả kho"
                 allowClear
+                disabled={user?.vai_tro !== "ADMIN"}
                 value={params.ma_kho}
                 onChange={(val) => setParams({ ...params, ma_kho: val })}
               >

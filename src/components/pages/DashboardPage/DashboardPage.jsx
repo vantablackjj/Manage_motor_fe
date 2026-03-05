@@ -51,7 +51,7 @@ import {
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { user, hasPermission } = useAuth();
+  const { user, hasPermission, activeWarehouse } = useAuth();
   const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState([
@@ -86,13 +86,13 @@ const DashboardPage = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [dateRange]);
+  }, [dateRange, activeWarehouse]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
       const params = {
-        ma_kho: user?.ma_kho,
+        ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse : user?.ma_kho,
         tu_ngay: dateRange[0].format("YYYY-MM-DD"),
         den_ngay: dateRange[1].format("YYYY-MM-DD"),
       };
@@ -137,7 +137,7 @@ const DashboardPage = () => {
     setLoadingLowStock(true);
     try {
       const res = await reportAPI.inventory.getParts({
-        ma_kho: user?.ma_kho,
+        ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse : user?.ma_kho,
         canh_bao: true,
       });
       setLowStockDetail(res?.data || (Array.isArray(res) ? res : []));

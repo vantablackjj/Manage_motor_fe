@@ -33,8 +33,8 @@ const maintenanceApi = {
   },
 
   // Lấy danh sách bàn nâng (Workshop Board)
-  getWorkshopBoard: () => {
-    return axiosInstance.get("/maintenance/ban-nang/list");
+  getWorkshopBoard: (params) => {
+    return axiosInstance.get("/maintenance/ban-nang/list", { params });
   },
 
   // Cập nhật trạng thái phiếu (Tiếp nhận -> Đang sửa -> Thanh toán -> Hoàn thành)

@@ -21,6 +21,7 @@ import {
 } from "@ant-design/icons";
 import { reportAPI, khoAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
+import { useAuth } from "../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import { useResponsive } from "../../../hooks/useResponsive";
 
@@ -30,6 +31,7 @@ const { Text } = Typography;
 
 const SalesReportPage = () => {
   const { isMobile } = useResponsive();
+  const { user, activeWarehouse } = useAuth();
   const [activeTab, setActiveTab] = useState("doanh-thu-theo-thang");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -37,7 +39,7 @@ const SalesReportPage = () => {
 
   // Filter params
   const [params, setParams] = useState({
-    ma_kho: null,
+    ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
     nam: dayjs().year(),
     tu_ngay: dayjs().startOf("month"),
     den_ngay: dayjs(),
@@ -47,6 +49,14 @@ const SalesReportPage = () => {
   useEffect(() => {
     fetchKhoList();
   }, []);
+
+  useEffect(() => {
+    setParams((prev) => ({
+      ...prev,
+      ma_kho:
+        user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+    }));
+  }, [activeWarehouse, user]);
 
   useEffect(() => {
     fetchData();
@@ -349,6 +359,7 @@ const SalesReportPage = () => {
                 style={{ width: "100%" }}
                 placeholder="Tất cả kho"
                 allowClear
+                disabled={user?.vai_tro !== "ADMIN"}
                 value={params.ma_kho}
                 onChange={(val) => setParams({ ...params, ma_kho: val })}
               >

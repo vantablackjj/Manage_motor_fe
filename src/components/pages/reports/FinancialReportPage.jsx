@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import { reportAPI, khoAPI } from "../../../api";
 import { formatService, notificationService } from "../../../services";
+import { useAuth } from "../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import { useResponsive } from "../../../hooks/useResponsive";
 
@@ -33,6 +34,7 @@ const { Text } = Typography;
 
 const FinancialReportPage = () => {
   const { isMobile } = useResponsive();
+  const { user, activeWarehouse } = useAuth();
   const [activeTab, setActiveTab] = useState("cong-no-noi-bo");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -41,7 +43,7 @@ const FinancialReportPage = () => {
 
   // Filter params
   const [params, setParams] = useState({
-    ma_kho: null,
+    ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
     tu_ngay: dayjs().startOf("month"),
     den_ngay: dayjs(),
     loai: "XE", // For profit report: XE or PHU_TUNG
@@ -53,6 +55,14 @@ const FinancialReportPage = () => {
   useEffect(() => {
     fetchKhoList();
   }, []);
+
+  useEffect(() => {
+    setParams((prev) => ({
+      ...prev,
+      ma_kho:
+        user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+    }));
+  }, [activeWarehouse, user]);
 
   useEffect(() => {
     fetchData();

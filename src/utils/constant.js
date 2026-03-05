@@ -10,6 +10,7 @@ export const USER_ROLES = {
   KHO: "KHO",
   KE_TOAN: "KE_TOAN",
   QUAN_LY: "QUAN_LY",
+  KY_THUAT: "KY_THUAT",
   // Legacy aliases (backward compat)
   QUAN_LY_CTY: "QUAN_LY",
   QUAN_LY_CHI_NHANH: "QUAN_LY",
@@ -18,14 +19,15 @@ export const USER_ROLES = {
 
 export const USER_ROLE_LABELS = {
   ADMIN: "Quản trị viên",
-  BAN_HANG: "Nhân viên nghiệp vụ",
+  BAN_HANG: "Nhân viên bán hàng",
   KHO: "Nhân viên kho",
   KE_TOAN: "Kế toán",
   QUAN_LY: "Quản lý",
+  KY_THUAT: "Kỹ thuật viên",
   // Legacy labels
   QUAN_LY_CTY: "Quản lý",
   QUAN_LY_CHI_NHANH: "Quản lý",
-  NHAN_VIEN: "Nhân viên nghiệp vụ",
+  NHAN_VIEN: "Nhân viên bán hàng",
 };
 
 export const USER_ROLE_COLORS = {
@@ -34,6 +36,7 @@ export const USER_ROLE_COLORS = {
   KHO: "orange",
   KE_TOAN: "purple",
   QUAN_LY: "green",
+  KY_THUAT: "cyan",
 };
 
 // Trạng thái giao dịch chung (Nhập, Xuất, Chuyển kho, Thu chi)

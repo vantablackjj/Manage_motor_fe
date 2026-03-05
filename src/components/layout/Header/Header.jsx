@@ -1,5 +1,5 @@
 // src/components/layout/Header/Header.jsx
-import React from "react";
+import React, { useState } from "react";
 import {
   Layout,
   Dropdown,
@@ -15,6 +15,7 @@ import {
   Tooltip,
   Switch,
   theme,
+  Select,
 } from "antd";
 import {
   MenuOutlined,
@@ -25,7 +26,10 @@ import {
   SearchOutlined,
   MoonOutlined,
   SunOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
+import { khoAPI } from "../../../api/kho.api";
+import { useAuth } from "../../../contexts/AuthContext";
 import { USER_ROLE_LABELS } from "../../../utils/constant";
 import { useNotification } from "../../../contexts/NotificationContext";
 import { useTheme } from "../../../contexts/ThemeContext";
@@ -48,6 +52,17 @@ const HeaderBar = ({
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
   const { token } = theme.useToken();
+  const { activeWarehouse, changeWarehouse } = useAuth();
+  const [warehouses, setWarehouses] = useState([]);
+
+  React.useEffect(() => {
+    if (user?.vai_tro === "ADMIN") {
+      khoAPI
+        .getAll()
+        .then((res) => setWarehouses(res || []))
+        .catch(console.error);
+    }
+  }, [user]);
 
   const handleNotificationClick = (item) => {
     if (!item.is_read) {
@@ -179,6 +194,21 @@ const HeaderBar = ({
 
       <div className="header-right">
         <Space size={isMobile ? 8 : "large"}>
+          {user?.vai_tro === "ADMIN" && (
+            <Select
+              placeholder="Tất cả kho"
+              value={activeWarehouse}
+              onChange={changeWarehouse}
+              allowClear
+              style={{ width: isMobile ? 120 : 180 }}
+              suffixIcon={<EnvironmentOutlined />}
+              options={(warehouses || []).map((k) => ({
+                label: k.ten_kho,
+                value: k.ma_kho,
+              }))}
+            />
+          )}
+
           <Tooltip title={isDarkMode ? "Chế độ sáng" : "Chế độ tối"}>
             <Switch
               checkedChildren={<MoonOutlined style={{ fontSize: 12 }} />}

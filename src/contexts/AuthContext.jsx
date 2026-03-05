@@ -6,6 +6,9 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeWarehouse, setActiveWarehouse] = useState(
+    () => localStorage.getItem("activeWarehouse") || null,
+  );
 
   useEffect(() => {
     const initAuth = () => {
@@ -60,14 +63,27 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
+  const changeWarehouse = (ma_kho) => {
+    if (ma_kho) {
+      localStorage.setItem("activeWarehouse", ma_kho);
+    } else {
+      localStorage.removeItem("activeWarehouse");
+    }
+    setActiveWarehouse(ma_kho);
+  };
+
   const logout = () => {
     authService.clearAuth();
     setUser(null);
+    localStorage.removeItem("activeWarehouse");
+    setActiveWarehouse(null);
   };
 
   const value = {
     user,
     loading,
+    activeWarehouse,
+    changeWarehouse,
     isAuthenticated: authService.isAuthenticated(),
     login,
     logout,
