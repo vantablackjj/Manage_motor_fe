@@ -20,14 +20,6 @@ const AppRoutes = () => {
             </MainLayout>
           }
         />
-        <Route
-          path="/purchase"
-          element={
-            <MainLayout>
-              <Navigate to="/purchase/vehicles" replace />
-            </MainLayout>
-          }
-        />
 
         {/* Public routes */}
         {publicRoutes.map((route, index) => {

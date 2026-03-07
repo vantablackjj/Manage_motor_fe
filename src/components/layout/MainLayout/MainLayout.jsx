@@ -90,12 +90,8 @@ const MainLayout = ({ children }) => {
       // Nhập hàng
       if (hasPermission("purchase_orders", "view")) {
         transactionChildren.push({
-          key: "/purchase/vehicles",
-          label: "Nhập xe",
-        });
-        transactionChildren.push({
-          key: "/purchase/parts",
-          label: "Nhập phụ tùng",
+          key: "/purchase",
+          label: "Nhập hàng (Xe & PT)",
         });
       }
 

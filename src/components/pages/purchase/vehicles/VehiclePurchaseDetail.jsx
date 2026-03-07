@@ -263,7 +263,7 @@ const VehiclePurchaseDetail = () => {
         <Empty description="Không tìm thấy thông tin đơn hàng" />
         <Button
           icon={<ArrowLeftOutlined />}
-          onClick={() => navigate("/purchase/vehicles")}
+          onClick={() => navigate("/purchase")}
           style={{ marginTop: 16 }}
         >
           Quay lại danh sách
@@ -283,10 +283,8 @@ const VehiclePurchaseDetail = () => {
   );
   const printItems = receivedItems.length > 0 ? receivedItems : items;
   const printTotal =
-    printItems.reduce(
-      (sum, item) => sum + Number(item.thanh_tien || 0),
-      0,
-    ) || Number(header.tong_tien || header.thanh_tien || 0);
+    printItems.reduce((sum, item) => sum + Number(item.thanh_tien || 0), 0) ||
+    Number(header.tong_tien || header.thanh_tien || 0);
   const printData = {
     ...header,
     chi_tiet: printItems,
@@ -309,7 +307,7 @@ const VehiclePurchaseDetail = () => {
           <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
-              onClick={() => navigate("/purchase/vehicles")}
+              onClick={() => navigate("/purchase")}
             />
             <span>Đơn mua: {header.so_phieu}</span>
             {/* Status Tag Logic */}
@@ -666,12 +664,7 @@ const VehiclePurchaseDetail = () => {
         width={800}
         style={{ display: "none" }}
       >
-        {header && (
-          <PrintTemplate
-            data={printData}
-            type={printType}
-          />
-        )}
+        {header && <PrintTemplate data={printData} type={printType} />}
       </Modal>
 
       {/* ADD DETAIL MODAL */}

@@ -308,7 +308,7 @@ const VehiclePurchaseCreate = () => {
           <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
-              onClick={() => navigate("/purchase/vehicles")}
+              onClick={() => navigate("/purchase")}
             />
             <span>Tạo Đơn Mua Xe</span>
           </Space>

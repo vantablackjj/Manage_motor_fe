@@ -189,7 +189,7 @@ const PartPurchaseDetail = () => {
         <Empty description="Không tìm thấy thông tin đơn hàng phụ tùng" />
         <Button
           icon={<ArrowLeftOutlined />}
-          onClick={() => navigate("/purchase/parts")}
+          onClick={() => navigate("/purchase")}
           style={{ marginTop: 16 }}
         >
           Quay lại danh sách
@@ -225,7 +225,7 @@ const PartPurchaseDetail = () => {
           <Space wrap>
             <Button
               icon={<ArrowLeftOutlined />}
-              onClick={() => navigate("/purchase/parts")}
+              onClick={() => navigate("/purchase")}
             />
             <span>Đơn mua: {displayId}</span>
             <Tag color={TRANG_THAI_COLORS[trang_thai]} style={{ margin: 0 }}>

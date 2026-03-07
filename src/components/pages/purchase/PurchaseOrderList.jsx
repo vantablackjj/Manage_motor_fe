@@ -328,7 +328,7 @@ const PurchaseOrderList = () => {
               <Space align="center" size="large">
                 <h2 style={{ margin: 0 }}>
                   <ImportOutlined style={{ marginRight: 8 }} />
-                  Nhập hàng
+                  Nhập hàng (Xe &amp; PT)
                 </h2>
                 <Segmented
                   options={[
@@ -406,6 +406,7 @@ const PurchaseOrderList = () => {
                 placeholder="Loại hàng"
                 style={{ width: "100%" }}
                 allowClear
+                value={filters.loai_hang}
                 onChange={(val) => handleFilterChange("loai_hang", val)}
               >
                 <Option value={LOAI_HANG.XE}>Xe</Option>
