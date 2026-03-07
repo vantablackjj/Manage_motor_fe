@@ -275,6 +275,24 @@ const VehiclePurchaseDetail = () => {
   const header = data;
   const items = data.chi_tiet || data.items || [];
 
+  // Items & totals for printing:
+  // - Khi đã có xe nhập (so_luong_da_giao > 0) thì chỉ in các dòng đã nhập
+  // - Nếu chưa nhập gì thì in toàn bộ chi tiết đặt hàng
+  const receivedItems = items.filter(
+    (item) => (item.so_luong_da_giao || 0) > 0,
+  );
+  const printItems = receivedItems.length > 0 ? receivedItems : items;
+  const printTotal =
+    printItems.reduce(
+      (sum, item) => sum + Number(item.thanh_tien || 0),
+      0,
+    ) || Number(header.tong_tien || header.thanh_tien || 0);
+  const printData = {
+    ...header,
+    chi_tiet: printItems,
+    tong_tien: printTotal,
+  };
+
   // Check if order is fully received
   const isFullyReceived =
     items.length > 0 &&
@@ -347,16 +365,19 @@ const VehiclePurchaseDetail = () => {
                 </Button>
               </Space>
             )}
-            {/* Show Receipt Button if Approved AND Not Fully Received */}
-            {header.trang_thai === "DA_DUYET" && !isFullyReceived && (
-              <Button
-                type="primary"
-                icon={<ImportOutlined />}
-                onClick={handleOpenReceipt}
-              >
-                Nhập kho
-              </Button>
-            )}
+            {/* Show Receipt Button if Approved/Delivering AND Not Fully Received */}
+            {["DA_DUYET", "DANG_NHAP_KHO", "DANG_GIAO"].includes(
+              header.trang_thai,
+            ) &&
+              !isFullyReceived && (
+                <Button
+                  type="primary"
+                  icon={<ImportOutlined />}
+                  onClick={handleOpenReceipt}
+                >
+                  Nhập kho
+                </Button>
+              )}
             <Button
               icon={<PrinterOutlined />}
               onClick={() => handlePrintLocal("PURCHASE")}
@@ -647,7 +668,7 @@ const VehiclePurchaseDetail = () => {
       >
         {header && (
           <PrintTemplate
-            data={{ ...header, chi_tiet: items }}
+            data={printData}
             type={printType}
           />
         )}

@@ -233,6 +233,18 @@ const ChuyenKhoList = () => {
                 >
                   Quét mã
                 </Button>
+                <ExportButton
+                  module="transfer-xe"
+                  title="DS Chuyển Kho Xe"
+                  params={filters}
+                  size={isMobile ? "small" : "middle"}
+                />
+                <ExportButton
+                  module="transfer-pt"
+                  title="DS Chuyển Kho PT"
+                  params={filters}
+                  size={isMobile ? "small" : "middle"}
+                />
                 <ImportButton
                   module="transfer-pt"
                   title="Phiếu Chuyển Kho"

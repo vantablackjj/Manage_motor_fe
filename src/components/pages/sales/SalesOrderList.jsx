@@ -234,8 +234,13 @@ const SalesOrderList = () => {
                 onSuccess={fetchData}
               />
               <ExportButton
+                module="xuat-kho-xe"
+                title="DS Xuất Xe"
+                params={filters}
+              />
+              <ExportButton
                 module="xuat-kho"
-                title="Hóa Đơn Xuất Kho"
+                title="DS Xuất Phụ tùng"
                 params={filters}
               />
               <Button icon={<ReloadOutlined />} onClick={() => fetchData()}>

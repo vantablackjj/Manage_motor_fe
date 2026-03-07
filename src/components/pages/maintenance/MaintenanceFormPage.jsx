@@ -104,10 +104,26 @@ const MaintenanceFormPage = () => {
   useEffect(() => {
     if (watchedMaKho) {
       fetchStock(watchedMaKho);
+      fetchWarehouseLiftsAndTechs(watchedMaKho);
     } else {
       setStockMap({});
+      setLiftList([]);
+      setUserList([]);
     }
   }, [watchedMaKho]);
+
+  const fetchWarehouseLiftsAndTechs = async (ma_kho) => {
+    try {
+      const [liftRes, techRes] = await Promise.all([
+        maintenanceAPI.getWorkshopBoard({ ma_kho }),
+        maintenanceAPI.getTechnicians({ ma_kho }),
+      ]);
+      setLiftList(liftRes?.data || liftRes || []);
+      setUserList(techRes?.data || techRes || []);
+    } catch (error) {
+      console.error("Error fetching lifts/techs", error);
+    }
+  };
 
   const fetchStock = async (ma_kho) => {
     try {
@@ -127,47 +143,42 @@ const MaintenanceFormPage = () => {
     try {
       const settle = await Promise.allSettled([
         phuTungAPI.getAll({ limit: 100 }),
-        userAPI.getAll(),
         productsAPI.getAll({ type: "XE", limit: 50 }),
         khachHangAPI.getAll({ limit: 100 }),
-        maintenanceAPI.getWorkshopBoard(),
         khoAPI.getAll(),
         xeAPI.getAll({ limit: 20 }),
       ]);
 
-      const [ptRes, userRes, prodRes, partnerRes, liftRes, khoRes, xeRes] =
-        settle.map((s) => (s.status === "fulfilled" ? s.value : null));
+      const [ptRes, prodRes, partnerRes, khoRes, xeRes] = settle.map((s) =>
+        s.status === "fulfilled" ? s.value : null,
+      );
 
       // 1. Phụ tùng
       const ptList = ptRes?.data || ptRes || [];
       setPhuTungList(Array.isArray(ptList) ? ptList : []);
 
-      // 2. Kỹ thuật viên (User)
-      const allUsers = userRes?.data || userRes || [];
-      const technicians = Array.isArray(allUsers)
-        ? allUsers.filter(
-            (u) =>
-              u.status &&
-              (u.vai_tro === "BAN_HANG" || u.vai_tro === "NHAN_VIEN"),
-          )
-        : [];
-      setUserList(technicians);
-
-      // 3. Loại xe
+      // 2. Loại xe
       const pList = prodRes?.data || prodRes || [];
       setProductList(Array.isArray(pList) ? pList : []);
 
-      // 4. Khách hàng
+      // 3. Khách hàng
       const kList = partnerRes?.data || partnerRes || [];
       setPartnerList(Array.isArray(kList) ? kList : []);
 
-      // 5. Bàn nâng
-      setLiftList(liftRes?.data || liftRes || []);
+      // 4. Kho
+      const listKho = khoRes?.data || khoRes || [];
+      setKhoList(listKho);
 
-      // 6. Kho
-      setKhoList(khoRes?.data || khoRes || []);
+      // Nếu có kho, tự động chọn kho đầu tiên nếu chưa có
+      if (listKho.length > 0 && !form.getFieldValue("ma_kho")) {
+        form.setFieldsValue({ ma_kho: listKho[0].ma_kho });
+      } else if (form.getFieldValue("ma_kho")) {
+        // Nếu đã có kho (ví dụ từ state chuyển sang), load dữ liệu phụ thuộc
+        fetchWarehouseLiftsAndTechs(form.getFieldValue("ma_kho"));
+        fetchStock(form.getFieldValue("ma_kho"));
+      }
 
-      // 7. Xe (Initial list)
+      // 5. Xe (Initial list)
       setXeList(xeRes?.data?.data || xeRes?.data || xeRes || []);
 
       console.log("Master Data loaded:", {

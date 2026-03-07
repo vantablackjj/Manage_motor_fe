@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   Card,
@@ -458,6 +458,23 @@ const PhuTungManage = () => {
               <Space>
                 {activeTab === "danh-sach" && (
                   <Space wrap>
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      size={isMobile ? "small" : "middle"}
+                      onClick={() => {
+                        setFormMode("create");
+                        setEditingRecord(null);
+                        setFormVisible(true);
+                      }}
+                    >
+                      Thêm phụ tùng
+                    </Button>
+                    <ImportButton
+                      module="part"
+                      title="Phụ tùng"
+                      onSuccess={loadDanhSach}
+                    />
                     <ExportButton
                       module="part"
                       title="Phụ tùng"
@@ -653,7 +670,7 @@ const PhuTungManage = () => {
       </Card>
 
       <PhuTungForm
-        open={formVisible}
+        visible={formVisible}
         onClose={() => setFormVisible(false)}
         onSubmit={handleFormSubmit}
         initialValues={editingRecord}

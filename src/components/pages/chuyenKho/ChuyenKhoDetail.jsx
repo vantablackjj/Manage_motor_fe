@@ -606,9 +606,11 @@ const ChuyenKhoDetail = () => {
               chi_tiet: [...(chi_tiet_xe || []), ...(chi_tiet_phu_tung || [])],
               ma_phieu: phieu.so_phieu,
               ngay_lap: phieu.ngay_chuyen_kho,
+              ten_kho_xuat: getKhoName(phieu.ma_kho_xuat),
+              ten_kho_nhap: getKhoName(phieu.ma_kho_nhap),
               ten_khach_hang: `Từ kho ${getKhoName(phieu.ma_kho_xuat)} -> ${getKhoName(phieu.ma_kho_nhap)}`,
             }}
-            type={printType}
+            type="TRANSFER"
           />
         )}
       </Modal>

@@ -29,7 +29,7 @@ import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
 import QRScannerModal from "../../features/Scanner/QRScannerModal";
 import OrderKanban from "../../features/OrderKanban/OrderKanban";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   donHangMuaXeAPI,
   donHangAPI,
@@ -69,18 +69,32 @@ const PurchaseOrderList = () => {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [scannerVisible, setScannerVisible] = useState(false);
 
+  const { pathname } = useLocation();
   const [filters, setFilters] = useState({
     ma_kho: null,
     trang_thai: null,
     tu_ngay: null,
     den_ngay: null,
-    loai_hang: null,
+    loai_hang: pathname.includes("parts")
+      ? LOAI_HANG.PHU_TUNG
+      : pathname.includes("vehicles")
+        ? LOAI_HANG.XE
+        : null,
   });
 
   useEffect(() => {
     fetchMasterData();
-    fetchData();
-  }, []);
+    const initialFilters = {
+      ...filters,
+      loai_hang: pathname.includes("parts")
+        ? LOAI_HANG.PHU_TUNG
+        : pathname.includes("vehicles")
+          ? LOAI_HANG.XE
+          : null,
+    };
+    setFilters(initialFilters);
+    fetchData(initialFilters);
+  }, [pathname]);
 
   const fetchMasterData = async () => {
     try {
@@ -350,8 +364,14 @@ const PurchaseOrderList = () => {
                 />
 
                 <ExportButton
+                  module="nhap-kho-xe"
+                  title="DS Nhập Xe"
+                  params={filters}
+                />
+
+                <ExportButton
                   module="nhap-kho"
-                  title="Xuất Excel Phụ tùng"
+                  title="DS Nhập Phụ tùng"
                   params={filters}
                 />
 

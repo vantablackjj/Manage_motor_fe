@@ -11,6 +11,11 @@ import {
   Tooltip,
   Empty,
   Spin,
+  Modal,
+  Table,
+  Form,
+  Input,
+  Popconfirm,
 } from "antd";
 import {
   ToolOutlined,
@@ -19,6 +24,9 @@ import {
   ReloadOutlined,
   PlusOutlined,
   ArrowRightOutlined,
+  SettingOutlined,
+  DeleteOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import MotorcycleIcon from "../../common/MotorcycleIcon";
 import { useNavigate } from "react-router-dom";
@@ -40,6 +48,7 @@ const WorkshopBoard = () => {
   const { user, activeWarehouse } = useAuth();
   const [loading, setLoading] = useState(false);
   const [lifts, setLifts] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   useEffect(() => {
     fetchData();
@@ -54,6 +63,7 @@ const WorkshopBoard = () => {
         ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse : user?.ma_kho,
       });
       setLifts(res.data || []);
+      setLastUpdated(new Date());
     } catch (error) {
       notificationService.error("Lỗi tải dữ liệu bàn nâng");
     } finally {
@@ -206,6 +216,74 @@ const WorkshopBoard = () => {
     );
   };
 
+  const [isManageModalVisible, setIsManageModalVisible] = useState(false);
+  const [manageForm] = Form.useForm();
+  const [savingLift, setSavingLift] = useState(false);
+
+  const handleAddLift = async (values) => {
+    setSavingLift(true);
+    try {
+      const ma_kho = user?.vai_tro === "ADMIN" ? activeWarehouse : user?.ma_kho;
+      await maintenanceAPI.addBanNang({ ...values, ma_kho });
+      notificationService.success("Thêm bàn nâng thành công");
+      manageForm.resetFields();
+      fetchData();
+    } catch (error) {
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi thêm bàn nâng",
+      );
+    } finally {
+      setSavingLift(false);
+    }
+  };
+
+  const handleDeleteLift = async (id) => {
+    try {
+      await maintenanceAPI.deleteBanNang(id);
+      notificationService.success("Xóa bàn nâng thành công");
+      fetchData();
+    } catch (error) {
+      notificationService.error(
+        error?.response?.data?.message || "Lỗi xóa bàn nâng",
+      );
+    }
+  };
+
+  const manageColumns = [
+    { title: "Mã bàn nâng", dataIndex: "ma_ban_nang", key: "ma_ban_nang" },
+    { title: "Tên bàn nâng", dataIndex: "ten_ban_nang", key: "ten_ban_nang" },
+    {
+      title: "Trạng thái",
+      dataIndex: "trang_thai",
+      key: "trang_thai",
+      render: (val) => (
+        <Tag color={BAN_NANG_TRANG_THAI_COLORS[val]}>
+          {BAN_NANG_TRANG_THAI_LABELS[val]}
+        </Tag>
+      ),
+    },
+    {
+      title: "Thao tác",
+      key: "action",
+      render: (_, record) => (
+        <Space>
+          <Popconfirm
+            title="Xác nhận xóa bàn nâng?"
+            onConfirm={() => handleDeleteLift(record.id)}
+            disabled={record.trang_thai !== "TRONG"}
+          >
+            <Button
+              danger
+              size="small"
+              icon={<DeleteOutlined />}
+              disabled={record.trang_thai !== "TRONG"}
+            />
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
   return (
     <div style={{ padding: 24, background: "#f0f2f5", minHeight: "100vh" }}>
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
@@ -219,12 +297,22 @@ const WorkshopBoard = () => {
         </Col>
         <Col>
           <Space>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Cập nhật lúc: {formatService.formatTime(lastUpdated)}
+            </Text>
             <Button
+              type="primary"
               icon={<ReloadOutlined />}
               onClick={fetchData}
               loading={loading}
             >
               Làm mới
+            </Button>
+            <Button
+              icon={<SettingOutlined />}
+              onClick={() => setIsManageModalVisible(true)}
+            >
+              Quản lý Bàn nâng
             </Button>
             <Button
               type="primary"
@@ -252,6 +340,63 @@ const WorkshopBoard = () => {
           </Row>
         )}
       </Spin>
+
+      <Modal
+        title="Quản lý danh sách bàn nâng"
+        open={isManageModalVisible}
+        onCancel={() => setIsManageModalVisible(false)}
+        footer={null}
+        width={700}
+      >
+        <Card
+          size="small"
+          title="Thêm bàn nâng mới"
+          style={{ marginBottom: 16 }}
+        >
+          <Form
+            form={manageForm}
+            layout="inline"
+            onFinish={handleAddLift}
+            style={{ display: "flex", flexWrap: "wrap", gap: 8 }}
+          >
+            <Form.Item
+              name="ma_ban_nang"
+              rules={[{ required: true, message: "Nhập mã BN" }]}
+            >
+              <Input placeholder="Mã (vd: BN_05)" />
+            </Form.Item>
+            <Form.Item
+              name="ten_ban_nang"
+              rules={[{ required: true, message: "Nhập tên" }]}
+            >
+              <Input placeholder="Tên bàn nâng" />
+            </Form.Item>
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<PlusOutlined />}
+                loading={savingLift}
+              >
+                Thêm
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
+
+        <Table
+          dataSource={lifts}
+          columns={manageColumns}
+          rowKey="id"
+          size="small"
+          pagination={{ pageSize: 5 }}
+        />
+        <div style={{ marginTop: 8 }}>
+          <Text type="secondary">
+            * Chỉ có thể xóa bàn nâng ở trạng thái TRỐNG.
+          </Text>
+        </div>
+      </Modal>
 
       <style>{`
         .workshop-card {

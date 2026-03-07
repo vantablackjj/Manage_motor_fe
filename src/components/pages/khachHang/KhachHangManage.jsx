@@ -26,6 +26,7 @@ import {
   UserOutlined,
   SearchOutlined,
   RollbackOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import { khachHangAPI } from "../../../api";
 import ImportButton from "../../features/Import/ImportButton";
@@ -62,6 +63,7 @@ const KhachHangManage = () => {
   const [data, setData] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [isView, setIsView] = useState(false);
   const [searchText, setSearchText] = useState("");
   const debouncedSearchText = useDebounce(searchText, 500);
   const [form] = Form.useForm();
@@ -101,6 +103,7 @@ const KhachHangManage = () => {
 
   const handleAdd = () => {
     setEditingRecord(null);
+    setIsView(false);
     form.resetFields();
     // Pre-fill roles based on current tab if not ALL
     if (activeTab === LOAI_DOI_TAC.KHACH_HANG) {
@@ -115,8 +118,27 @@ const KhachHangManage = () => {
     setModalVisible(true);
   };
 
+  const handleView = (record) => {
+    setEditingRecord(record);
+    setIsView(true);
+    const roles = [];
+    if (record.loai_doi_tac === LOAI_DOI_TAC.KHACH_HANG) roles.push("KH");
+    else if (record.loai_doi_tac === LOAI_DOI_TAC.NHA_CUNG_CAP)
+      roles.push("NCC");
+    else if (record.loai_doi_tac === LOAI_DOI_TAC.CA_HAI)
+      roles.push("KH", "NCC");
+
+    form.setFieldsValue({
+      ...record,
+      roles,
+      ngay_sinh: record.ngay_sinh ? dayjs(record.ngay_sinh) : null,
+    });
+    setModalVisible(true);
+  };
+
   const handleEdit = (record) => {
     setEditingRecord(record);
+    setIsView(false);
     const roles = [];
     if (record.loai_doi_tac === LOAI_DOI_TAC.KHACH_HANG) roles.push("KH");
     else if (record.loai_doi_tac === LOAI_DOI_TAC.NHA_CUNG_CAP)
@@ -253,6 +275,7 @@ const KhachHangManage = () => {
       key: "dia_chi",
       width: 250,
       ellipsis: true,
+      render: (text, record) => text || record.ho_khau || "-",
     },
     {
       title: "Thao tác",
@@ -261,6 +284,14 @@ const KhachHangManage = () => {
       fixed: isMobile ? false : "right",
       render: (_, record) => (
         <Space size="small">
+          <Button
+            type="link"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => handleView(record)}
+          >
+            Xem
+          </Button>
           {record.status !== false ? (
             <>
               {authService.canEdit() && (
@@ -426,17 +457,24 @@ const KhachHangManage = () => {
       </Card>
 
       <Modal
-        title={editingRecord ? "Sửa đối tác" : "Thêm đối tác"}
+        title={
+          isView
+            ? "Chi tiết đối tác"
+            : editingRecord
+              ? "Sửa đối tác"
+              : "Thêm đối tác"
+        }
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
-        width={700}
+        width={800}
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
           size="small"
+          disabled={isView}
         >
           <Row gutter={16}>
             <Col span={12}>
@@ -459,7 +497,7 @@ const KhachHangManage = () => {
             <Col span={12}>
               <Form.Item
                 name="is_business"
-                label="Loại đối tác"
+                label="Loại hình đối tác"
                 initialValue={false}
               >
                 <Select
@@ -511,7 +549,7 @@ const KhachHangManage = () => {
                   <Col span={12}>
                     <Form.Item
                       name="ma_so_thue"
-                      label={isBusiness ? "Mã số thuế" : "Số CCCD/MST cá nhân"}
+                      label={isBusiness ? "Mã số thuế" : "Mã số thuế cá nhân"}
                       rules={[
                         {
                           required: isBusiness,
@@ -519,7 +557,7 @@ const KhachHangManage = () => {
                         },
                         {
                           pattern: /^[0-9]{10,13}$/,
-                          message: "Mã số thuế/CCCD không hợp lệ (10-13 số)",
+                          message: "Mã số thuế không hợp lệ (10-13 số)",
                         },
                       ]}
                     >
@@ -527,7 +565,7 @@ const KhachHangManage = () => {
                         placeholder={
                           isBusiness
                             ? "MST doanh nghiệp"
-                            : "Số CCCD hoặc MST cá nhân"
+                            : "Mã số thuế cá nhân (nếu có)"
                         }
                       />
                     </Form.Item>
@@ -536,6 +574,29 @@ const KhachHangManage = () => {
               );
             }}
           </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="so_cmnd"
+                label="Số CCCD / CMND"
+                rules={[
+                  {
+                    pattern: /^[0-9]{9,12}$/,
+                    message: "Số CCCD/CMND không hợp lệ (9-12 số)",
+                  },
+                ]}
+              >
+                <Input placeholder="Dành cho cá nhân" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="ho_khau" label="Hộ khẩu thường trú">
+                <Input placeholder="Địa chỉ hộ khẩu" />
+              </Form.Item>
+            </Col>
+          </Row>
+
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -561,6 +622,20 @@ const KhachHangManage = () => {
               </Form.Item>
             </Col>
           </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="tai_khoan" label="Số tài khoản ngân hàng">
+                <Input placeholder="Nhập số tài khoản" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="ngan_hang" label="Tại ngân hàng">
+                <Input placeholder="Tên ngân hàng - Chi nhánh" />
+              </Form.Item>
+            </Col>
+          </Row>
+
           <Form.Item
             noStyle
             shouldUpdate={(prevValues, currentValues) =>
@@ -592,17 +667,22 @@ const KhachHangManage = () => {
               );
             }}
           </Form.Item>
-          <Form.Item name="dia_chi" label="Địa chỉ">
+          <Form.Item name="dia_chi" label="Địa chỉ liên lạc">
             <Input.TextArea rows={2} placeholder="Địa chỉ chi tiết" />
           </Form.Item>
-          <div style={{ textAlign: "right" }}>
-            <Space>
-              <Button onClick={() => setModalVisible(false)}>Hủy</Button>
-              <Button type="primary" htmlType="submit">
-                Lưu
-              </Button>
-            </Space>
-          </div>
+          <Form.Item name="ghi_chu" label="Ghi chú">
+            <Input.TextArea rows={2} placeholder="Ghi chú thêm về đối tác" />
+          </Form.Item>
+          {!isView && (
+            <div style={{ textAlign: "right" }}>
+              <Space>
+                <Button onClick={() => setModalVisible(false)}>Hủy</Button>
+                <Button type="primary" htmlType="submit">
+                  Lưu
+                </Button>
+              </Space>
+            </div>
+          )}
         </Form>
       </Modal>
       <style>{`

@@ -37,6 +37,21 @@ const maintenanceApi = {
     return axiosInstance.get("/maintenance/ban-nang/list", { params });
   },
 
+  // Thêm bàn nâng mới
+  addBanNang: (data) => {
+    return axiosInstance.post("/maintenance/ban-nang", data);
+  },
+
+  // Cập nhật bàn nâng
+  updateBanNang: (id, data) => {
+    return axiosInstance.put(`/maintenance/ban-nang/${id}`, data);
+  },
+
+  // Xóa bàn nâng
+  deleteBanNang: (id) => {
+    return axiosInstance.delete(`/maintenance/ban-nang/${id}`);
+  },
+
   // Cập nhật trạng thái phiếu (Tiếp nhận -> Đang sửa -> Thanh toán -> Hoàn thành)
   updateStatus: (id, payload) => {
     return axiosInstance.put(`/maintenance/${id}/status`, payload);
@@ -50,6 +65,11 @@ const maintenanceApi = {
   // Cập nhật trạng thái nhắc nhở bảo trì
   updateReminderStatus: (id, payload) => {
     return axiosInstance.patch(`/maintenance/reminders/${id}`, payload);
+  },
+
+  // Lấy danh sách kỹ thuật viên theo kho
+  getTechnicians: (params) => {
+    return axiosInstance.get("/maintenance/technicians/list", { params });
   },
 };
 

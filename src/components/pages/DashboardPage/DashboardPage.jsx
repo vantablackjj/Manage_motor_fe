@@ -297,18 +297,20 @@ const DashboardPage = () => {
       render: (text, record) => {
         let link = "#";
         if (record.loai_giao_dich === "BAN_HANG")
-          link = `/sales/orders/${record.id}`;
+          link = `/sales/orders/view/${text}`;
         else if (record.loai_giao_dich === "NHAP_KHO")
-          link = `/purchase/vehicles/${text}`;
+          link = `/purchase/orders/view/${text}`;
         else if (record.loai_giao_dich === "CHUYEN_KHO")
           link = `/chuyen-kho/${text}`;
+        else if (record.loai_giao_dich === "DICH_VU_BAO_TRI")
+          link = `/maintenance/view/${text}`;
 
         return (
           <Button
             type="link"
             size="small"
             style={{ padding: 0 }}
-            onClick={() => navigate(link)}
+            onClick={() => link !== "#" && navigate(link)}
           >
             {text}
           </Button>
@@ -319,21 +321,36 @@ const DashboardPage = () => {
       title: "Loại",
       dataIndex: "loai_giao_dich",
       key: "loai_giao_dich",
-      width: 120,
+      width: 150,
+      render: (text) => {
+        const config = {
+          BAN_HANG: { color: "purple", label: "Bán hàng" },
+          NHAP_KHO: { color: "green", label: "Nhập kho" },
+          CHUYEN_KHO: { color: "orange", label: "Chuyển kho" },
+          DICH_VU_BAO_TRI: { color: "blue", label: "Sửa chữa & Bảo trì" },
+        };
+        const item = config[text] || { color: "default", label: text };
+        return <Tag color={item.color}>{item.label}</Tag>;
+      },
+    },
+    {
+      title: "Khách hàng / Đối tác",
+      dataIndex: "ten_doi_tac",
+      key: "ten_doi_tac",
+      width: 150,
+      ellipsis: true,
+      render: (text) => text || "N/A",
+    },
+    {
+      title: "Mô tả",
+      dataIndex: "dien_giai",
+      key: "dien_giai",
+      width: 200,
+      ellipsis: true,
       render: (text) => (
-        <Tag
-          color={
-            text === "BAN_HANG"
-              ? "purple"
-              : text === "NHAP_KHO"
-                ? "green"
-                : text === "CHUYEN_KHO"
-                  ? "orange"
-                  : "blue"
-          }
-        >
+        <Text type="secondary" style={{ fontSize: 12 }}>
           {text}
-        </Tag>
+        </Text>
       ),
     },
     {
@@ -341,6 +358,7 @@ const DashboardPage = () => {
       dataIndex: "tong_tien",
       key: "tong_tien",
       align: "right",
+      width: 120,
       render: (val) => formatService.formatCurrency(val),
     },
     {
@@ -659,7 +677,7 @@ const DashboardPage = () => {
                 pagination={false}
                 size="small"
                 loading={loading}
-                scroll={{ x: 300 }}
+                scroll={{ x: 800 }}
               />
             </Card>
 
@@ -683,7 +701,7 @@ const DashboardPage = () => {
                 pagination={false}
                 size="small"
                 loading={loading}
-                scroll={{ x: 300 }}
+                scroll={{ x: 800 }}
               />
             </Card>
           </Space>

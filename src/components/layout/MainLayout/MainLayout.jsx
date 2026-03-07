@@ -91,7 +91,11 @@ const MainLayout = ({ children }) => {
       if (hasPermission("purchase_orders", "view")) {
         transactionChildren.push({
           key: "/purchase/vehicles",
-          label: "Nhập xe & Phụ tùng",
+          label: "Nhập xe",
+        });
+        transactionChildren.push({
+          key: "/purchase/parts",
+          label: "Nhập phụ tùng",
         });
       }
 
@@ -99,7 +103,7 @@ const MainLayout = ({ children }) => {
       if (hasPermission("sales_orders", "view")) {
         transactionChildren.push({
           key: "/sales/orders",
-          label: "Xuất xe & Phụ tùng",
+          label: "Bán hàng (Xe & PT)",
         });
       }
 
