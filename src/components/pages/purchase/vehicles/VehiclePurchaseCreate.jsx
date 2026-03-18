@@ -29,6 +29,7 @@ import {
   danhMucAPI,
 } from "../../../../api";
 import { notificationService } from "../../../../services";
+import { useAuth } from "../../../../contexts/AuthContext";
 
 const { Option } = Select;
 
@@ -43,12 +44,22 @@ const VehiclePurchaseCreate = () => {
   const [vehicleTypes, setVehicleTypes] = useState([]);
   const [colors, setColors] = useState([]); // Or fetch per type if needed
 
+  const { user } = useAuth();
+  const isRestricted =
+    !!user?.ma_kho &&
+    (user.vai_tro === "KHO" ||
+      user.vai_tro === "BAN_HANG" ||
+      user.vai_tro === "NHAN_VIEN");
+
   // Table Rows
   const [items, setItems] = useState([]);
 
   useEffect(() => {
     loadMasterData();
-  }, []);
+    if (isRestricted) {
+      form.setFieldsValue({ ma_kho_nhap: user.ma_kho });
+    }
+  }, [user, isRestricted]);
 
   const loadMasterData = async () => {
     try {
@@ -355,7 +366,11 @@ const VehiclePurchaseCreate = () => {
                 label="Kho nhập"
                 rules={[{ required: true, message: "Chọn kho nhập" }]}
               >
-                <Select placeholder="Chọn kho" style={{ width: "100%" }}>
+                <Select
+                  placeholder="Chọn kho"
+                  style={{ width: "100%" }}
+                  disabled={isRestricted}
+                >
                   {khoList.map((k) => (
                     <Option key={k.ma_kho} value={k.ma_kho}>
                       {k.ten_kho}

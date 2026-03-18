@@ -26,7 +26,7 @@ const Sidebar = ({ collapsed, isMobile, menuItems, onMenuClick }) => {
             className="logo-text"
             style={{ color: "white", fontSize: 22, fontWeight: 800, margin: 0 }}
           >
-            MOTOR<span style={{ color: "#ff7a45" }}> MS</span>
+            MOTOR<span style={{ color: "#ff7a45" }}> MS v11</span>
           </h2>
         ) : (
           <h2

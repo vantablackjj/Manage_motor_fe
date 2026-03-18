@@ -311,26 +311,28 @@ const UserManagePage = () => {
       align: "center",
       fixed: isMobile ? false : "right",
       render: (_, record) => {
+        const canEditUsers = authService.hasPermission("users", "edit");
         const menuItems = [
-          {
+          canEditUsers && {
             key: "edit",
             label: "Chỉnh sửa",
             icon: <EditOutlined style={{ color: "#1890ff" }} />,
             onClick: () => handleEdit(record),
           },
-          {
+          canEditUsers && {
             key: "password",
             label: "Đổi mật khẩu",
             icon: <KeyOutlined style={{ color: "#faad14" }} />,
             onClick: () => handleResetPassword(record),
           },
-          {
+          canEditUsers && {
             key: "permission",
             label: "Phân quyền kho",
             icon: <HomeOutlined style={{ color: "#722ed1" }} />,
             onClick: () => handleManagePermissions(record),
           },
-        ];
+        ].filter(Boolean);
+        if (menuItems.length === 0) return null;
         return (
           <Dropdown
             menu={{ items: menuItems }}
@@ -390,17 +392,19 @@ const UserManagePage = () => {
                 onClick={fetchData}
                 size="middle"
               />
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAdd}
-                size="middle"
-                className="bg-blue-600"
-                block={isMobile}
-                style={{ flex: isMobile ? 1 : "initial" }}
-              >
-                Thêm nhân viên
-              </Button>
+              {authService.hasPermission("users", "create") && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleAdd}
+                  size="middle"
+                  className="bg-blue-600"
+                  block={isMobile}
+                  style={{ flex: isMobile ? 1 : "initial" }}
+                >
+                  Thêm nhân viên
+                </Button>
+              )}
             </div>
           </Space>
         </div>

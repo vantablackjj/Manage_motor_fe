@@ -172,7 +172,7 @@ const KhoManage = () => {
       fixed: isMobile ? false : "right",
       render: (_, record) => (
         <Space size="small">
-          {authService.canEdit() && (
+          {authService.hasPermission("warehouses", "edit") && (
             <Button
               type="link"
               size="small"
@@ -182,7 +182,7 @@ const KhoManage = () => {
               Sửa
             </Button>
           )}
-          {authService.canDelete() && (
+          {authService.hasPermission("warehouses", "delete") && (
             <Popconfirm
               title="Xác nhận xóa kho?"
               description="Bạn có chắc chắn muốn xóa kho này?"
@@ -221,13 +221,17 @@ const KhoManage = () => {
               style={{ textAlign: isMobile ? "left" : "right" }}
             >
               <Space wrap>
-                <ImportButton
-                  module="warehouse"
-                  title="Kho"
-                  onSuccess={fetchData}
-                  size="small"
-                />
-                <ExportButton module="warehouse" title="Kho" size="small" />
+                {authService.hasPermission("warehouses", "create") && (
+                  <ImportButton
+                    module="warehouse"
+                    title="Kho"
+                    onSuccess={fetchData}
+                    size="small"
+                  />
+                )}
+                {authService.hasPermission("reports", "export") && (
+                  <ExportButton module="warehouse" title="Kho" size="small" />
+                )}
                 <Button
                   icon={<ReloadOutlined />}
                   onClick={fetchData}
@@ -235,7 +239,7 @@ const KhoManage = () => {
                 >
                   Tải lại
                 </Button>
-                {authService.canCreate() && (
+                {authService.hasPermission("warehouses", "create") && (
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}

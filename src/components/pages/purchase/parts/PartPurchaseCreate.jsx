@@ -23,7 +23,7 @@ import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import { donHangAPI, khoAPI, khachHangAPI, phuTungAPI } from "../../../../api";
 import { notificationService } from "../../../../services";
-// import { LOAI_DON_HANG, LOAI_BEN } from "../../../../utils/constant";
+import { useAuth } from "../../../../contexts/AuthContext";
 
 const { Option } = Select;
 
@@ -37,12 +37,22 @@ const PartPurchaseCreate = () => {
   const [supplierList, setSupplierList] = useState([]);
   const [partList, setPartList] = useState([]);
 
+  const { user } = useAuth();
+  const isRestricted =
+    !!user?.ma_kho &&
+    (user.vai_tro === "KHO" ||
+      user.vai_tro === "BAN_HANG" ||
+      user.vai_tro === "NHAN_VIEN");
+
   // Table Rows
   const [items, setItems] = useState([]);
 
   useEffect(() => {
     loadMasterData();
-  }, []);
+    if (isRestricted) {
+      form.setFieldsValue({ ma_kho_nhap: user.ma_kho });
+    }
+  }, [user, isRestricted]);
 
   const loadMasterData = async () => {
     try {
@@ -356,7 +366,11 @@ const PartPurchaseCreate = () => {
                 label="Kho nhập"
                 rules={[{ required: true, message: "Chọn kho nhập" }]}
               >
-                <Select placeholder="Chọn kho" style={{ width: "100%" }}>
+                <Select
+                  placeholder="Chọn kho"
+                  style={{ width: "100%" }}
+                  disabled={isRestricted}
+                >
                   {khoList.map((k) => (
                     <Option key={k.ma_kho} value={k.ma_kho}>
                       {k.ten_kho}

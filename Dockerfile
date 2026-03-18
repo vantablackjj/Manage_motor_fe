@@ -19,6 +19,7 @@ RUN npm run build
 FROM nginx:stable-alpine
 
 # Copy the custom nginx configuration
+RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy build artifacts from build stage

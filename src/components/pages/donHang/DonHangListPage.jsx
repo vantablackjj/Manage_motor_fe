@@ -294,7 +294,7 @@ const DonHangListPage = () => {
           </Tooltip>
 
           {validationService.canEdit(record.trang_thai) &&
-            authService.canEdit() && (
+            authService.hasPermission("purchase_orders", "edit") && (
               <Tooltip title="Chỉnh sửa">
                 <Button
                   type="link"
@@ -358,7 +358,7 @@ const DonHangListPage = () => {
           <Button icon={<ReloadOutlined />} onClick={fetchData}>
             Làm mới
           </Button>
-          {authService.canCreate() && (
+          {authService.hasPermission("purchase_orders", "create") && (
             <Button
               type="primary"
               icon={<PlusOutlined />}

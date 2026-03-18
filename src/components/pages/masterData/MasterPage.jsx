@@ -19,6 +19,7 @@ import {
 import ImportButton from "../../features/Import/ImportButton";
 import ExportButton from "../../features/Export/ExportButton";
 
+import { authService } from "../../../services";
 import { useAuth } from "../../../contexts/AuthContext";
 import { MASTER_DATA_CONFIG } from "../../../utils/masterDataConfig";
 import { masterDataApi } from "../../../api/";
@@ -31,13 +32,31 @@ const MasterDataPage = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [form] = Form.useForm();
 
-  const canCreate = hasRole(["ADMIN", "MANAGER"]);
-  const canDelete = hasRole(["ADMIN", "MANAGER"]);
-  const canUpdate = hasRole(["ADMIN", "MANAGER"]);
-
   const { type } = useParams();
   const config = MASTER_DATA_CONFIG[type];
-  console.log(config);
+
+  // Map resource to module for granular permission checks
+  const getResourceModule = (resource) => {
+    if (resource === "users") return "users";
+    if (resource === "kho") return "warehouses";
+    if (resource === "khach-hang") return "partners";
+    return "products"; // Fallback for brand, color, loai-hinh, etc.
+  };
+
+  const moduleName = getResourceModule(config?.resource);
+
+  const canCreate =
+    hasRole(config?.permission?.create || ["ADMIN", "QUAN_LY"]) &&
+    authService.hasPermission(moduleName, "create");
+
+  const canDelete =
+    hasRole(config?.permission?.delete || ["ADMIN", "QUAN_LY"]) &&
+    authService.hasPermission(moduleName, "delete");
+
+  const canUpdate =
+    hasRole(config?.permission?.update || ["ADMIN", "QUAN_LY"]) &&
+    authService.hasPermission(moduleName, "edit");
+
   if (!config) {
     return <div>Master data not found</div>;
   }

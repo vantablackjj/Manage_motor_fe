@@ -76,7 +76,14 @@ class AuthService {
     const roleMap = {
       QUAN_LY_CTY: "QUAN_LY",
       QUAN_LY_CHI_NHANH: "QUAN_LY",
-      NHAN_VIEN: "BAN_HANG",
+      STAFF: "NHAN_VIEN",
+      NHAN_VIEN: "NHAN_VIEN",
+      MANAGER: "QUAN_LY",
+      WAREHOUSE: "KHO",
+      KHO: "KHO",
+      KE_TOAN: "KE_TOAN",
+      ACCOUNTANT: "KE_TOAN",
+      ADMIN: "ADMIN",
     };
     const userRole = (user.vai_tro || "").toUpperCase();
     const normalizedUserRole = roleMap[userRole] || userRole;
@@ -142,17 +149,42 @@ class AuthService {
     const user = this.getCurrentUser();
     if (!user) return false;
 
-    // Normalize user role mapping (handle lowercase/mixed case from server)
+    // Normalize user role mapping
     const roleAliasMap = {
       QUAN_LY_CTY: "QUAN_LY",
       QUAN_LY_CHI_NHANH: "QUAN_LY",
-      NHAN_VIEN: "BAN_HANG",
+      STAFF: "NHAN_VIEN",
+      NHAN_VIEN: "NHAN_VIEN",
+      MANAGER: "QUAN_LY",
+      WAREHOUSE: "KHO",
+      KHO: "KHO",
+      KE_TOAN: "KE_TOAN",
+      ACCOUNTANT: "KE_TOAN",
+      BAN_HANG: "BAN_HANG",
+      ADMIN: "ADMIN",
     };
     const rawRole = (user.vai_tro || "").toUpperCase();
     const userRole = roleAliasMap[rawRole] || rawRole;
 
     // ADMIN luôn có tất cả quyền
     if (userRole === "ADMIN") return true;
+
+    // Hardcoded safety block for sensitive modules
+    const sensitiveActions = ["create", "edit", "delete", "approve"];
+    if (
+      (userRole === "KHO" ||
+        userRole === "BAN_HANG" ||
+        userRole === "NHAN_VIEN") &&
+      moduleOrPermStr.includes("warehouses") &&
+      sensitiveActions.some(
+        (act) =>
+          action === act ||
+          (typeof moduleOrPermStr === "string" &&
+            moduleOrPermStr.endsWith("." + act)),
+      )
+    ) {
+      return false; // Explicitly block warehouse modifications for these roles
+    }
 
     // Special Case: Allow sales_orders.create for all staff roles regardless of granular permission object
     // This is a safety measure to ensure the "Create Slip" functionality is always available to authorized staff.
@@ -244,12 +276,12 @@ class AuthService {
 
   /** Có thể tạo mới không (legacy, dùng hasPermission thay thế) */
   canCreate() {
-    return this.hasRole(["ADMIN", "QUAN_LY", "BAN_HANG", "KHO", "KE_TOAN"]);
+    return this.hasRole(["ADMIN", "QUAN_LY"]);
   }
 
   /** Có thể chỉnh sửa không (legacy) */
   canEdit() {
-    return this.hasRole(["ADMIN", "QUAN_LY", "KE_TOAN"]);
+    return this.hasRole(["ADMIN", "QUAN_LY"]);
   }
 
   /** Có thể xóa không (legacy) */

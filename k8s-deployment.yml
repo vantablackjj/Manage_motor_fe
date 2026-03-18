@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: motor-fe
-          image: vantablackj/motor-fe:latest
+          image: vantablackj/motor-fe:v11
           ports:
             - containerPort: 80
           imagePullPolicy: Always

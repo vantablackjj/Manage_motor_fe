@@ -33,6 +33,7 @@ import {
 import { notificationService } from "../../../services";
 import { LOAI_DON_HANG, LOAI_BEN } from "../../../utils/constant";
 import QuickAddCustomerModal from "../khachHang/QuickAddCustomerModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const { Option } = Select;
 
@@ -47,9 +48,20 @@ const SalesOrderCreate = () => {
   const [customerList, setCustomerList] = useState([]);
   const [customerModalVisible, setCustomerModalVisible] = useState(false);
 
+  const { user } = useAuth();
+  const isRestricted =
+    !!user?.ma_kho &&
+    (user.vai_tro === "KHO" ||
+      user.vai_tro === "BAN_HANG" ||
+      user.vai_tro === "NHAN_VIEN");
+
   useEffect(() => {
     loadMasterData();
-  }, []);
+    if (isRestricted) {
+      form.setFieldsValue({ ma_kho_xuat: user.ma_kho });
+      fetchStock(user.ma_kho);
+    }
+  }, [user, isRestricted]);
 
   const fetchStock = async (ma_kho) => {
     if (!ma_kho) return;
@@ -422,6 +434,7 @@ const SalesOrderCreate = () => {
                 <Select
                   placeholder="Chọn kho"
                   style={{ width: "100%" }}
+                  disabled={isRestricted}
                   onChange={(val) => {
                     fetchStock(val);
                     setItems([]); // Reset items if warehouse changes

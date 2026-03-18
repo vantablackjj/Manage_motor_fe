@@ -294,7 +294,7 @@ const KhachHangManage = () => {
           </Button>
           {record.status !== false ? (
             <>
-              {authService.canEdit() && (
+              {authService.hasPermission("partners", "edit") && (
                 <Button
                   type="link"
                   size="small"
@@ -304,7 +304,7 @@ const KhachHangManage = () => {
                   Sửa
                 </Button>
               )}
-              {authService.canDelete() && (
+              {authService.hasPermission("partners", "delete") && (
                 <Popconfirm
                   title="Xác nhận ngừng sử dụng?"
                   onConfirm={() => handleDelete(record.ma_kh)}
@@ -396,7 +396,7 @@ const KhachHangManage = () => {
               >
                 Tải lại
               </Button>
-              {authService.canCreate() && (
+              {authService.hasPermission("partners", "create") && (
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}

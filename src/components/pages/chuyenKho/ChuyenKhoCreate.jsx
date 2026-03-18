@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { chuyenKhoAPI, khoAPI, xeAPI, phuTungAPI } from "../../../api";
 import { notificationService } from "../../../services";
 import moment from "moment";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const { Option } = Select;
 const { Step } = Steps;
@@ -48,9 +49,19 @@ const ChuyenKhoCreate = () => {
   // Form Info
   const [transferInfo, setTransferInfo] = useState({});
 
+  const { user } = useAuth();
+  const isRestricted =
+    !!user?.ma_kho &&
+    (user.vai_tro === "KHO" ||
+      user.vai_tro === "BAN_HANG" ||
+      user.vai_tro === "NHAN_VIEN");
+
   useEffect(() => {
     fetchKhoList();
-  }, []);
+    if (isRestricted) {
+      form.setFieldsValue({ ma_kho_xuat: user.ma_kho });
+    }
+  }, [user, isRestricted]);
 
   const fetchKhoList = async () => {
     try {
@@ -175,7 +186,11 @@ const ChuyenKhoCreate = () => {
             label="Kho xuất"
             rules={[{ required: true, message: "Chọn kho xuất" }]}
           >
-            <Select placeholder="Chọn kho xuất" onChange={handleKhoXuatChange}>
+            <Select
+              placeholder="Chọn kho xuất"
+              onChange={handleKhoXuatChange}
+              disabled={isRestricted}
+            >
               {khoList.map((k) => (
                 <Option key={k.ma_kho} value={k.ma_kho}>
                   {k.ten_kho}
@@ -553,7 +568,11 @@ const ChuyenKhoCreate = () => {
 
   return (
     <div
-      style={{ padding: "16px 8px", background: "var(--bg-layout, #f0f2f5)", minHeight: "100vh" }}
+      style={{
+        padding: "16px 8px",
+        background: "var(--bg-layout, #f0f2f5)",
+        minHeight: "100vh",
+      }}
     >
       <Card
         title={

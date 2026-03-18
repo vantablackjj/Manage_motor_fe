@@ -232,7 +232,7 @@ const KhachHangListPage = () => {
       fixed: isMobile ? false : "right",
       render: (_, record) => (
         <Space size="small">
-          {authService.canEdit() && (
+          {authService.hasPermission("partners", "edit") && (
             <Button
               type="link"
               size="small"
@@ -242,7 +242,7 @@ const KhachHangListPage = () => {
               Sửa
             </Button>
           )}
-          {authService.canDelete() && (
+          {authService.hasPermission("partners", "delete") && (
             <Button
               type="link"
               danger
@@ -284,7 +284,7 @@ const KhachHangListPage = () => {
                 onSuccess={fetchData}
                 size="small"
               />
-              {authService.canCreate() && (
+              {authService.hasPermission("partners", "create") && (
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}

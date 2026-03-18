@@ -458,18 +458,20 @@ const PhuTungManage = () => {
               <Space>
                 {activeTab === "danh-sach" && (
                   <Space wrap>
-                    <Button
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      size={isMobile ? "small" : "middle"}
-                      onClick={() => {
-                        setFormMode("create");
-                        setEditingRecord(null);
-                        setFormVisible(true);
-                      }}
-                    >
-                      Thêm phụ tùng
-                    </Button>
+                    {authService.hasPermission("products", "create") && (
+                      <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        size={isMobile ? "small" : "middle"}
+                        onClick={() => {
+                          setFormMode("create");
+                          setEditingRecord(null);
+                          setFormVisible(true);
+                        }}
+                      >
+                        Thêm phụ tùng
+                      </Button>
+                    )}
                     <ImportButton
                       module="part"
                       title="Phụ tùng"
