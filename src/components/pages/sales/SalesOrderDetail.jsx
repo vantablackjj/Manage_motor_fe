@@ -357,9 +357,14 @@ const SalesOrderDetail = () => {
   }
 
   const {
+    so_don_hang,
+    loai_don_hang,
+    ngay_dat_hang,
     created_at,
     ma_ben_nhap,
     ma_ben_xuat,
+    loai_ben_xuat,
+    loai_ben_nhap,
     tong_gia_tri,
     chiet_khau,
     vat_percentage,
@@ -368,6 +373,13 @@ const SalesOrderDetail = () => {
     trang_thai,
     ten_ben_xuat,
     ten_ben_nhap,
+    ten_nguoi_tao,
+    nguoi_duyet,
+    ngay_duyet,
+    nguoi_gui,
+    ngay_gui,
+    so_hoa_don_du_kien,
+    so_hoa_don_da_xuat,
     chi_tiet_xe = [],
     chi_tiet_pt = [],
   } = data;
@@ -446,22 +458,39 @@ const SalesOrderDetail = () => {
   ];
 
   const partColumns = [
-    { title: "Mã hàng", dataIndex: "ma_hang_hoa" },
+    { title: "STT", dataIndex: "stt", width: 50, align: "center" },
+    { title: "Mã hàng", dataIndex: "ma_hang_hoa", width: 110 },
     { title: "Tên sản phẩm", dataIndex: "ten_hang_hoa" },
-    { title: "ĐVT", dataIndex: "don_vi_tinh" },
+    { title: "ĐVT", dataIndex: "don_vi_tinh", width: 70, align: "center" },
     {
-      title: "Số lượng Đặt",
+      title: "SL Đặt",
       dataIndex: "so_luong_dat",
       align: "center",
+      width: 80,
       render: (val) => <b>{val}</b>,
     },
     {
       title: "Đã giao",
       dataIndex: "so_luong_da_giao",
       align: "center",
+      width: 80,
       render: (val) => (
         <Text type={val > 0 ? "success" : "secondary"}>{val || 0}</Text>
       ),
+    },
+    {
+      title: "Còn lại",
+      dataIndex: "so_luong_con_lai",
+      align: "center",
+      width: 80,
+      render: (val, record) => {
+        const remaining = val ?? ((record.so_luong_dat || 0) - (record.so_luong_da_giao || 0));
+        return (
+          <Tag color={remaining > 0 ? "warning" : "success"}>
+            {remaining}
+          </Tag>
+        );
+      },
     },
     {
       title: "Đơn giá",
@@ -616,17 +645,47 @@ const SalesOrderDetail = () => {
         size="small"
       >
         <Descriptions bordered column={{ xs: 1, sm: 2 }} size="small">
-          <Descriptions.Item label="Ngày lập">
+          <Descriptions.Item label="Số đơn hàng">
+            <b>{so_don_hang || data.id}</b>
+          </Descriptions.Item>
+          <Descriptions.Item label="Loại đơn hàng">
+            <Tag color="blue">{loai_don_hang || "—"}</Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày đặt hàng">
+            {ngay_dat_hang ? formatService.formatDate(ngay_dat_hang) : "—"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày tạo">
             {formatService.formatDateTime(created_at)}
           </Descriptions.Item>
-          <Descriptions.Item label="Khách hàng">
-            {getCustomerName(ma_ben_nhap)}
-          </Descriptions.Item>
           <Descriptions.Item label="Kho xuất">
-            {getKhoName(ma_ben_xuat)}
+            {getKhoName(ma_ben_xuat)}{loai_ben_xuat ? <Tag style={{ marginLeft: 6 }}>{loai_ben_xuat}</Tag> : null}
           </Descriptions.Item>
-          <Descriptions.Item label="Ghi chú">
-            {ghi_chu || "-"}
+          <Descriptions.Item label="Khách hàng (Bên nhận)">
+            {getCustomerName(ma_ben_nhap)}{loai_ben_nhap ? <Tag style={{ marginLeft: 6 }}>{loai_ben_nhap}</Tag> : null}
+          </Descriptions.Item>
+          <Descriptions.Item label="Người tạo">
+            {ten_nguoi_tao || "—"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Người duyệt / Ngày duyệt">
+            {nguoi_duyet ? (
+              <span>{nguoi_duyet}{ngay_duyet ? <span style={{ color: "#8c8c8c", marginLeft: 8 }}>({formatService.formatDateTime(ngay_duyet)})</span> : null}</span>
+            ) : "Chưa duyệt"}
+          </Descriptions.Item>
+          {(nguoi_gui || ngay_gui) && (
+            <Descriptions.Item label="Người gửi / Ngày gửi">
+              {nguoi_gui || "—"}{ngay_gui ? <span style={{ color: "#8c8c8c", marginLeft: 8 }}>({formatService.formatDateTime(ngay_gui)})</span> : null}
+            </Descriptions.Item>
+          )}
+          <Descriptions.Item label="Số HĐ dự kiến / Đã xuất">
+            <Space>
+              <Tag color="default">Dự kiến: {so_hoa_don_du_kien ?? "—"}</Tag>
+              <Tag color={so_hoa_don_da_xuat > 0 ? "success" : "default"}>
+                Đã xuất: {so_hoa_don_da_xuat ?? 0}
+              </Tag>
+            </Space>
+          </Descriptions.Item>
+          <Descriptions.Item label="Ghi chú" span={2}>
+            {ghi_chu || "—"}
           </Descriptions.Item>
         </Descriptions>
 

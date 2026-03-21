@@ -1,4 +1,4 @@
-﻿// src/pages/danhMuc/DanhMucPage.jsx
+// src/pages/danhMuc/DanhMucPage.jsx
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -125,7 +125,6 @@ const DanhMucPage = () => {
     setLoading(true);
     try {
       let res;
-      // Fetch all data (active & inactive) for Management Screen
       const params = { status: "all" };
       switch (tab) {
         case "brand":

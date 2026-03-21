@@ -245,6 +245,7 @@ const MainLayout = ({ children }) => {
           key: "/danh-muc/phu-tung",
           label: "Danh mục phụ tùng",
           children: [
+            { key: "/phu-tung/danh-sach", label: "Danh sách phụ tùng" },
             { key: "/danh-muc/nhom-phu-tung", label: "Nhóm phụ tùng" },
           ],
         });

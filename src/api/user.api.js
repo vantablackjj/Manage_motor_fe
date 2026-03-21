@@ -121,28 +121,44 @@ export const userAPI = {
 
   // Toggle user status (active/inactive)
   toggleStatus: async (id, record) => {
-    // Debug để xem backend đang trả về gì
-    console.log("Toggle user:", id, "Record data:", record);
-
-    // Lấy giá trị hiện tại (ưu tiên status, fallback trang_thai)
     const val = record.status !== undefined ? record.status : record.trang_thai;
-
-    // Kiểm tra chính xác xem có phải đang ACTIVE không
     const isActive =
       val === true ||
       val === 1 ||
       val === "1" ||
       (typeof val === "string" &&
         (val.toLowerCase() === "active" || val.toLowerCase() === "true"));
-
-    console.log("Is current user active?", isActive);
-
     if (isActive) {
-      console.log("Calling endpoint: DEACTIVATE");
       return axiosInstance.patch(USER_ENDPOINTS.DEACTIVATE(id));
     } else {
-      console.log("Calling endpoint: ACTIVATE");
       return axiosInstance.patch(USER_ENDPOINTS.ACTIVATE(id));
     }
+  },
+
+  // Get all roles with their permissions
+  getAllRoles: async () => {
+    const res = await axiosInstance.get(`/users/roles/all`);
+    return res.data;
+  },
+
+  // Get all authorities in the system
+  getAllAuthorities: async () => {
+    const res = await axiosInstance.get(`/users/authorities/all`);
+    return res.data;
+  },
+
+  // Update authorities for a role
+  updateRoleAuthorities: async (role_id, authorities) => {
+    const res = await axiosInstance.put(
+      `/users/roles/${role_id}/authorities`,
+      { authorities }
+    );
+    return res.data;
+  },
+
+  // Sync authorities from JSONB permissions
+  syncAuthorities: async () => {
+    const res = await axiosInstance.get(`/users/sync-authorities`);
+    return res.data;
   },
 };
