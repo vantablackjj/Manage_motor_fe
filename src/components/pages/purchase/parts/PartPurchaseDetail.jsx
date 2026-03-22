@@ -50,9 +50,11 @@ const PartPurchaseDetail = () => {
 
   const [printModalVisible, setPrintModalVisible] = useState(false);
   const [printType, setPrintType] = useState("PURCHASE");
+  const [printDataOverride, setPrintDataOverride] = useState(null);
 
-  const handlePrintLocal = (type) => {
+  const handlePrintLocal = (type, overrideData = null) => {
     setPrintType(type);
+    setPrintDataOverride(overrideData);
     setPrintModalVisible(true);
     setTimeout(() => {
       const printContent = document.getElementById("print-content");
@@ -74,7 +76,8 @@ const PartPurchaseDetail = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await donHangAPI.getById(id);
+      const api = await import("../../../../api");
+      const res = await api.donHangAPI.getById(id);
       setData(res?.data?.data || res?.data || {});
     } catch (error) {
       notificationService.error("Lỗi tải chi tiết đơn hàng");
@@ -83,9 +86,44 @@ const PartPurchaseDetail = () => {
     }
   };
 
+  const handlePrintBatch = async (soPhieu) => {
+    setLoading(true);
+    try {
+      const api = await import("../../../../api");
+      const res = await api.hoaDonBanAPI.getById(soPhieu);
+      const batchData = res?.data?.data || res?.data || res;
+      
+      // Map to template format if needed
+      const printData = {
+        ...batchData,
+        ma_phieu: batchData.so_hd,
+        ngay_bao_tri: batchData.ngay_ban || batchData.created_at,
+        // Combined details for template
+        chi_tiet: [
+          ...(batchData.chi_tiet_xe || []),
+          ...(batchData.chi_tiet_pt || [])
+        ].map(item => ({
+          ...item,
+          ten_hang_muc: item.ten_pt || item.ten_hang_hoa || "Sản phẩm",
+          so_luong: item.so_luong,
+          don_gia: item.don_gia,
+          thanh_tien: item.thanh_tien
+        }))
+      };
+
+      handlePrintLocal("INVOICE", printData);
+    } catch (error) {
+      console.error(error);
+      notificationService.error("Lỗi tải thông tin phiếu nhập");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSendApproval = async () => {
     try {
-      await donHangAPI.guiDuyet(id);
+      const api = await import("../../../../api");
+      await api.donHangAPI.guiDuyet(id);
       notificationService.success("Đã gửi duyệt");
       fetchData();
     } catch (error) {
@@ -99,7 +137,8 @@ const PartPurchaseDetail = () => {
       content: "Bạn có chắc chắn muốn duyệt đơn hàng này?",
       onOk: async () => {
         try {
-          await donHangAPI.pheDuyet(id);
+          const api = await import("../../../../api");
+          await api.donHangAPI.pheDuyet(id);
           notificationService.success("Đã phê duyệt");
           fetchData();
         } catch (error) {
@@ -125,7 +164,8 @@ const PartPurchaseDetail = () => {
       ),
       onOk: async () => {
         try {
-          await donHangAPI.huyDuyet(id);
+          const api = await import("../../../../api");
+          await api.donHangAPI.huyDuyet(id);
           notificationService.success("Đã từ chối");
           fetchData();
         } catch (error) {
@@ -137,7 +177,8 @@ const PartPurchaseDetail = () => {
 
   const handleUpdateHeader = async (values) => {
     try {
-      await donHangAPI.update(id, values);
+      const api = await import("../../../../api");
+      await api.donHangAPI.update(id, values);
       notificationService.success("Cập nhật đơn hàng thành công");
       setHeaderModalVisible(false);
       fetchData();
@@ -156,7 +197,8 @@ const PartPurchaseDetail = () => {
   const handlePrint = async () => {
     setLoading(true);
     try {
-      const response = await donHangAPI.inDonHang(id);
+      const api = await import("../../../../api");
+      const response = await api.donHangAPI.inDonHang(id);
       const url = window.URL.createObjectURL(
         new Blob([response], { type: "application/pdf" }),
       );
@@ -173,7 +215,7 @@ const PartPurchaseDetail = () => {
     }
   };
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div style={{ padding: "24px" }}>
         <Card>
@@ -214,7 +256,7 @@ const PartPurchaseDetail = () => {
     chi_tiet = [],
     created_at,
     created_by,
-  } = data;
+  } = data || {};
 
   const displayId = so_phieu || so_don_hang || orderId;
 
@@ -229,7 +271,7 @@ const PartPurchaseDetail = () => {
             />
             <span>Đơn mua: {displayId}</span>
             <Tag color={TRANG_THAI_COLORS[trang_thai]} style={{ margin: 0 }}>
-              {TRANG_THAI_LABELS[trang_thai] || trang_thai}
+              {TRANG_THAI_LABELS[trang_thai] || trang_thai || "..."}
             </Tag>
           </Space>
         }
@@ -296,7 +338,7 @@ const PartPurchaseDetail = () => {
           </Descriptions.Item>
           <Descriptions.Item label="Kho nhập">{ten_kho}</Descriptions.Item>
           <Descriptions.Item label="Người tạo">
-            {data.ten_nguoi_tao || data.nguoi_tao || created_by || "-"}
+            {data?.ten_nguoi_tao || data?.nguoi_tao || created_by || "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Ngày tạo">
             {formatService.formatDateTime(created_at)}
@@ -386,6 +428,7 @@ const PartPurchaseDetail = () => {
           pagination={false}
           size="small"
           scroll={{ x: 800 }}
+          title={() => <b style={{ fontSize: 16 }}>Chi tiết danh mục đặt hàng</b>}
           columns={[
             { title: "Mã phụ tùng", dataIndex: "ma_hang_hoa" },
             {
@@ -394,21 +437,33 @@ const PartPurchaseDetail = () => {
               render: (text, record) => text || record.ma_hang_hoa,
             },
             { title: "ĐVT", dataIndex: "don_vi_tinh" },
-            { title: "Số lượng", dataIndex: "so_luong" },
+            {
+              title: "Đặt mua",
+              dataIndex: "so_luong",
+              align: "right",
+              render: (val) => <b>{val}</b>,
+            },
             {
               title: "Đã giao",
               dataIndex: "so_luong_da_giao",
-              render: (val) => <span style={{ color: "blue" }}>{val}</span>,
+              align: "right",
+              render: (val) => <span style={{ color: "#1890ff" }}>{val}</span>,
             },
             {
               title: "Còn lại",
               key: "remaining",
+              align: "right",
               render: (_, record) => {
                 const ordered = record.so_luong || 0;
                 const delivered = record.so_luong_da_giao || 0;
                 const remaining = Math.max(0, ordered - delivered);
                 return (
-                  <span style={{ color: "red", fontWeight: "bold" }}>
+                  <span
+                    style={{
+                      color: remaining > 0 ? "#f5222d" : "#52c41a",
+                      fontWeight: "bold",
+                    }}
+                  >
                     {remaining}
                   </span>
                 );
@@ -428,6 +483,63 @@ const PartPurchaseDetail = () => {
             },
           ]}
         />
+
+        {data?.phieu_nhap && data.phieu_nhap.length > 0 && (
+          <div style={{ marginTop: 32 }}>
+            <Table
+              dataSource={data.phieu_nhap}
+              rowKey="so_phieu"
+              pagination={false}
+              size="small"
+              bordered
+              title={() => <b style={{ fontSize: 16, color: "#fa8c16" }}>Lịch sử các đợt nhập kho</b>}
+              columns={[
+                {
+                  title: "Mã phiếu nhập",
+                  dataIndex: "so_phieu",
+                  render: (text) => <Tag color="orange">{text}</Tag>,
+                },
+                {
+                  title: "Ngày nhập",
+                  dataIndex: "ngay_nhap",
+                  render: (val) => formatService.formatDate(val),
+                },
+                {
+                  title: "Tổng tiền (chưa VAT)",
+                  dataIndex: "tong_tien",
+                  align: "right",
+                  render: (v) => formatService.formatCurrency(v),
+                },
+                {
+                  title: "Thành tiền (có VAT)",
+                  dataIndex: "thanh_tien",
+                  align: "right",
+                  render: (v) => (
+                    <b style={{ color: "#f5222d" }}>
+                      {formatService.formatCurrency(v)}
+                    </b>
+                  ),
+                },
+                {
+                  title: "Thao tác",
+                  key: "action",
+                  align: "center",
+                  render: (_, record) => (
+                    <Button
+                      type="primary"
+                      ghost
+                      size="small"
+                      icon={<PrinterOutlined />}
+                      onClick={() => handlePrintBatch(record.so_phieu)}
+                    >
+                      In phiếu nhập
+                    </Button>
+                  ),
+                },
+              ]}
+            />
+          </div>
+        )}
       </Card>
 
       <PartReceiveModal
@@ -479,7 +591,7 @@ const PartPurchaseDetail = () => {
         width={800}
         style={{ display: "none" }}
       >
-        <PrintTemplate data={data} type={printType} />
+        <PrintTemplate data={printDataOverride || data} type={printType} />
       </Modal>
     </div>
   );

@@ -52,9 +52,11 @@ const VehiclePurchaseDetail = () => {
 
   const [printModalVisible, setPrintModalVisible] = useState(false);
   const [printType, setPrintType] = useState("PURCHASE");
+  const [printDataOverride, setPrintDataOverride] = useState(null);
 
-  const handlePrintLocal = (type) => {
+  const handlePrintLocal = (type, overrideData = null) => {
     setPrintType(type);
+    setPrintDataOverride(overrideData);
     setPrintModalVisible(true);
     setTimeout(() => {
       const printContent = document.getElementById("print-content");
@@ -103,6 +105,39 @@ const VehiclePurchaseDetail = () => {
       setData(res.data);
     } catch (error) {
       notificationService.error("Lỗi tải chi tiết đơn hàng");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrintBatch = async (soPhieu) => {
+    setLoading(true);
+    try {
+      const api = await import("../../../../api");
+      const res = await api.hoaDonBanAPI.getById(soPhieu);
+      const batchData = res?.data?.data || res?.data || res;
+      
+      // Map to template format for vehicles
+      const printData = {
+        ...batchData,
+        ma_phieu: batchData.so_hd,
+        ngay_bao_tri: batchData.ngay_ban || batchData.created_at,
+        chi_tiet: [
+          ...(batchData.chi_tiet_xe || []),
+          ...(batchData.chi_tiet_pt || [])
+        ].map(item => ({
+          ...item,
+          ten_hang_muc: item.ten_xe || item.ten_pt || item.ten_hang_hoa || "Xe",
+          so_luong: item.so_luong,
+          don_gia: item.don_gia,
+          thanh_tien: item.thanh_tien
+        }))
+      };
+
+      handlePrintLocal("INVOICE", printData);
+    } catch (error) {
+      console.error(error);
+      notificationService.error("Lỗi tải thông tin phiếu nhập");
     } finally {
       setLoading(false);
     }
@@ -247,7 +282,7 @@ const VehiclePurchaseDetail = () => {
     }
   };
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div style={{ padding: "24px" }}>
         <Card>
@@ -275,9 +310,7 @@ const VehiclePurchaseDetail = () => {
   const header = data;
   const items = data.chi_tiet || data.items || [];
 
-  // Items & totals for printing:
-  // - Khi đã có xe nhập (so_luong_da_giao > 0) thì chỉ in các dòng đã nhập
-  // - Nếu chưa nhập gì thì in toàn bộ chi tiết đặt hàng
+  // Items & totals for printing (Main PO):
   const receivedItems = items.filter(
     (item) => (item.so_luong_da_giao || 0) > 0,
   );
@@ -285,7 +318,7 @@ const VehiclePurchaseDetail = () => {
   const printTotal =
     printItems.reduce((sum, item) => sum + Number(item.thanh_tien || 0), 0) ||
     Number(header.tong_tien || header.thanh_tien || 0);
-  const printData = {
+  const printDataMain = {
     ...header,
     chi_tiet: printItems,
     tong_tien: printTotal,
@@ -320,7 +353,7 @@ const VehiclePurchaseDetail = () => {
                 color={TRANG_THAI_COLORS[header.trang_thai]}
                 style={{ margin: 0 }}
               >
-                {TRANG_THAI_LABELS[header.trang_thai] || header.trang_thai}
+                {TRANG_THAI_LABELS[header.trang_thai] || header.trang_thai || "..."}
               </Tag>
             )}
           </Space>
@@ -512,6 +545,7 @@ const VehiclePurchaseDetail = () => {
           pagination={false}
           size="small"
           scroll={{ x: 1200 }}
+          title={() => <b style={{ fontSize: 16 }}>Danh mục xe đặt mua</b>}
           columns={[
             {
               title: "STT",
@@ -520,24 +554,16 @@ const VehiclePurchaseDetail = () => {
               align: "center",
             },
             {
-              title: "Mã xe",
-              key: "ma_xe",
-              width: 160,
-              render: (_, record) =>
-                record.ma_xe ||
-                record.xe_key ||
-                (record.danh_sach_xe && record.danh_sach_xe[0]?.ma_xe) ||
-                "-",
-            },
-            {
               title: "Loại xe",
               key: "ten_loai_xe",
-              width: 150,
-              render: (_, record) =>
-                record.ten_loai_xe ||
-                vehicleTypes.find((t) => t.ma_loai === record.ma_loai_xe)
-                  ?.ten_loai ||
-                record.ma_loai_xe,
+              width: 200,
+              render: (_, record) => (
+                <b>
+                  {record.ten_loai_xe ||
+                    vehicleTypes.find((t) => t.ma_loai === record.ma_loai_xe)?.ten_loai ||
+                    record.ma_loai_xe}
+                </b>
+              ),
             },
             {
               title: "Màu sắc",
@@ -549,36 +575,19 @@ const VehiclePurchaseDetail = () => {
                 record.ma_mau,
             },
             {
-              title: "Số khung",
-              key: "so_khung",
-              width: 150,
-              render: (_, record) =>
-                record.so_khung ||
-                (record.danh_sach_xe && record.danh_sach_xe[0]?.so_khung) ||
-                "-",
-            },
-            {
-              title: "Số máy",
-              key: "so_may",
-              width: 150,
-              render: (_, record) =>
-                record.so_may ||
-                (record.danh_sach_xe && record.danh_sach_xe[0]?.so_may) ||
-                "-",
-            },
-            {
-              title: "SL Đặt",
+              title: "Số lượng đặt",
               dataIndex: "so_luong",
-              width: 60,
-              align: "center",
+              width: 100,
+              align: "right",
+              render: (val) => <b>{val}</b>,
             },
             {
               title: "Đã nhập",
               key: "delivered",
-              width: 80,
-              align: "center",
+              width: 100,
+              align: "right",
               render: (_, record) => (
-                <span style={{ color: "blue" }}>
+                <span style={{ color: "#1890ff", fontWeight: "bold" }}>
                   {record.so_luong_da_giao || 0}
                 </span>
               ),
@@ -586,44 +595,33 @@ const VehiclePurchaseDetail = () => {
             {
               title: "Còn lại",
               key: "remaining",
-              width: 80,
-              align: "center",
+              width: 100,
+              align: "right",
               render: (_, record) => {
                 const remaining =
                   record.so_luong_con_lai !== undefined
                     ? record.so_luong_con_lai
                     : record.so_luong - (record.so_luong_da_giao || 0);
-                return <span style={{ color: "red" }}>{remaining}</span>;
+                return (
+                  <span style={{ color: remaining > 0 ? "#f5222d" : "#52c41a", fontWeight: "bold" }}>
+                    {remaining}
+                  </span>
+                );
               },
             },
             {
               title: "Đơn giá",
               dataIndex: "don_gia",
-              width: 120,
+              width: 150,
               align: "right",
               render: (v) => formatService.formatCurrency(Number(v)),
             },
             {
               title: "Thành tiền",
               dataIndex: "thanh_tien",
-              width: 120,
+              width: 150,
               align: "right",
               render: (v) => formatService.formatCurrency(Number(v)),
-            },
-            {
-              title: "Trạng thái",
-              key: "status_nhap",
-              width: 100,
-              align: "center",
-              render: (_, record) => {
-                const ordered = record.so_luong || 0;
-                const delivered = record.so_luong_da_giao || 0;
-                if (delivered >= ordered && ordered > 0)
-                  return <Tag color="success">Đủ hàng</Tag>;
-                if (delivered > 0)
-                  return <Tag color="processing">Đang nhập</Tag>;
-                return <Tag color="default">Chưa nhập</Tag>;
-              },
             },
             ...(header.trang_thai === "NHAP"
               ? [
@@ -646,6 +644,61 @@ const VehiclePurchaseDetail = () => {
               : []),
           ]}
         />
+
+        {data?.phieu_nhap && data.phieu_nhap.length > 0 && (
+          <div style={{ marginTop: 32 }}>
+            <Table
+              dataSource={data.phieu_nhap}
+              rowKey="so_phieu"
+              pagination={false}
+              size="small"
+              bordered
+              title={() => <b style={{ fontSize: 16, color: "#fa8c16" }}>Lịch sử các đợt nhập xe (Phiếu nhập kho)</b>}
+              columns={[
+                {
+                  title: "Mã phiếu nhập",
+                  dataIndex: "so_phieu",
+                  render: (text) => <Tag color="orange">{text}</Tag>,
+                },
+                {
+                  title: "Ngày nhập",
+                  dataIndex: "ngay_nhap",
+                  render: (val) => formatService.formatDate(val),
+                },
+                {
+                  title: "Thành tiền (có VAT)",
+                  dataIndex: "thanh_tien",
+                  align: "right",
+                  render: (v) => (
+                    <b style={{ color: "#f5222d" }}>
+                      {formatService.formatCurrency(v)}
+                    </b>
+                  ),
+                },
+                {
+                  title: "Người nhập",
+                  dataIndex: "nguoi_nhap",
+                },
+                {
+                  title: "Thao tác",
+                  key: "action",
+                  align: "center",
+                  render: (_, record) => (
+                    <Button
+                      type="primary"
+                      ghost
+                      size="small"
+                      icon={<PrinterOutlined />}
+                      onClick={() => handlePrintBatch(record.so_phieu)}
+                    >
+                      In phiếu nhập
+                    </Button>
+                  ),
+                },
+              ]}
+            />
+          </div>
+        )}
       </Card>
 
       {/* RECEIPT MODAL */}
@@ -664,7 +717,7 @@ const VehiclePurchaseDetail = () => {
         width={800}
         style={{ display: "none" }}
       >
-        {header && <PrintTemplate data={printData} type={printType} />}
+        <PrintTemplate data={printDataOverride || printDataMain} type={printType} />
       </Modal>
 
       {/* ADD DETAIL MODAL */}

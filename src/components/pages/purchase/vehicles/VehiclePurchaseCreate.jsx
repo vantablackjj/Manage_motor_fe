@@ -181,6 +181,8 @@ const VehiclePurchaseCreate = () => {
         dien_giai: values.dien_giai,
         vat_percentage: vatPct,
         chiet_khau: chietKhau,
+        nguoi_tao: user?.username || user?.ho_ten,
+        created_by: user?.id,
         chi_tiet: explodedItems.map((item) => ({
           ma_loai_xe: item.ma_loai_xe,
           ma_mau: item.mau_sac || null,

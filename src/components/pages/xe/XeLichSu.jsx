@@ -1,4 +1,4 @@
-﻿// src/pages/xe/XeLichSuPage.jsx
+// src/pages/xe/XeLichSuPage.jsx
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -45,9 +45,14 @@ const XeLichSuPage = () => {
   }, [debouncedXeKey]);
 
   const fetchData = async (key = xeKey) => {
+    if (!key || key === "null") {
+      setData([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      // Nếu key rỗng, API có thể trả về toàn bộ/lịch sử gần đây
       const res = await xeAPI.getLichSu(key);
       const rawData = Array.isArray(res?.data) ? res.data : [];
 

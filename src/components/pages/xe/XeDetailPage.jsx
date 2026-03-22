@@ -1,4 +1,4 @@
-﻿// src/pages/xe/XeDetailPage.jsx
+// src/pages/xe/XeDetailPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -63,6 +63,7 @@ const XeDetailPage = () => {
   };
 
   const fetchLichSu = async () => {
+    if (!xe_key || xe_key === "null") return;
     setLoadingLichSu(true);
     try {
       const data = await xeAPI.getLichSu(xe_key);

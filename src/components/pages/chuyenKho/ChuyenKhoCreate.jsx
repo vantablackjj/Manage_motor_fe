@@ -1,4 +1,4 @@
-﻿// src/components/pages/chuyenKho/ChuyenKhoCreate.jsx
+// src/components/pages/chuyenKho/ChuyenKhoCreate.jsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -131,6 +131,8 @@ const ChuyenKhoCreate = () => {
         ma_kho_xuat: transferInfo.ma_kho_xuat,
         ma_kho_nhap: transferInfo.ma_kho_nhap,
         dien_giai: transferInfo.dien_giai || "",
+        nguoi_tao: user?.username || user?.ho_ten,
+        created_by: user?.id,
       };
 
       const createRes = await chuyenKhoAPI.create(headerPayload);

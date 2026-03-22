@@ -212,6 +212,8 @@ const SalesOrderCreate = () => {
         vat_percentage: values.vat_percentage || 0,
         chiet_khau: values.chiet_khau || 0,
         status: true,
+        nguoi_tao: user?.username || user?.ho_ten,
+        created_by: user?.id,
       };
 
       const res = await orderAPI.create(payload);

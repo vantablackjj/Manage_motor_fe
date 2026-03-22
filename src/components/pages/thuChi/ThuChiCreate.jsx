@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 import { thuChiAPI, khoAPI, khachHangAPI } from "../../../api";
 import { notificationService, formatService } from "../../../services";
 import { LOAI_THU_CHI } from "../../../utils/constant";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const { Option } = Select;
 
@@ -28,6 +29,7 @@ const ThuChiCreate = () => {
   const [loading, setLoading] = useState(false);
   const [khoList, setKhoList] = useState([]);
   const [partners, setPartners] = useState([]);
+  const { user } = useAuth();
 
   // Get default type from URL query param
   const defaultLoai = searchParams.get("loai") || LOAI_THU_CHI.THU;
@@ -55,6 +57,8 @@ const ThuChiCreate = () => {
       const payload = {
         ...values,
         ngay_giao_dich: values.ngay_giao_dich.format("YYYY-MM-DD"),
+        nguoi_tao: user?.username || user?.ho_ten,
+        created_by: user?.id,
       };
 
       const res = await thuChiAPI.create(payload);

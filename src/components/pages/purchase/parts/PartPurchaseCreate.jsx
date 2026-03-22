@@ -152,6 +152,8 @@ const PartPurchaseCreate = () => {
         dien_giai: values.dien_giai || "",
         vat_percentage: values.vat_percentage || 0,
         chiet_khau: values.chiet_khau || 0,
+        nguoi_tao: user?.username || user?.ho_ten,
+        created_by: user?.id,
       };
 
       const res = await donHangAPI.create(headerPayload);

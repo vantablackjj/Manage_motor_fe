@@ -49,11 +49,13 @@ import {
   LOAI_BAO_TRI_LABELS,
   LOAI_DOI_TAC,
 } from "../../../utils/constant";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const { Option } = Select;
 
 const MaintenanceFormPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [searchingXe, setSearchingXe] = useState(false);
@@ -402,6 +404,8 @@ const MaintenanceFormPage = () => {
         ma_hang_hoa: isExternal ? values.ma_hang_hoa_xe : null, // ID loại xe từ products
         so_khung: isExternal ? values.so_khung_thuc_te : null,
         tong_tien: items.reduce((sum, item) => sum + (item.thanh_tien || 0), 0),
+        nguoi_tao: user?.username || user?.ho_ten,
+        created_by: user?.id,
         chi_tiet: items.map((item) => ({
           ma_hang_hoa: item.ma_hang_hoa,
           ten_hang_muc: item.ten_hang_muc,

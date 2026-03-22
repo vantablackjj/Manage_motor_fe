@@ -304,6 +304,8 @@ const DashboardPage = () => {
           link = `/chuyen-kho/${text}`;
         else if (record.loai_giao_dich === "DICH_VU_BAO_TRI")
           link = `/maintenance/view/${text}`;
+        else if (record.loai_giao_dich === "PHIEU_THU" || record.loai_giao_dich === "PHIEU_CHI")
+          link = `/financial/details/${text}`;
 
         return (
           <Button
@@ -328,6 +330,8 @@ const DashboardPage = () => {
           NHAP_KHO: { color: "green", label: "Nhập kho" },
           CHUYEN_KHO: { color: "orange", label: "Chuyển kho" },
           DICH_VU_BAO_TRI: { color: "blue", label: "Sửa chữa & Bảo trì" },
+          PHIEU_THU: { color: "cyan", label: "Phiếu thu" },
+          PHIEU_CHI: { color: "volcano", label: "Phiếu chi" },
         };
         const item = config[text] || { color: "default", label: text };
         return <Tag color={item.color}>{item.label}</Tag>;

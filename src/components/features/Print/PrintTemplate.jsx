@@ -555,22 +555,33 @@ const PurchaseTemplate = ({ data, type }) => {
 
   // Process items and recalculate totals based on delivered quantity if available
   const processedItems = items.map((item) => {
-    // For transfer/delivery notes, prioritize delivered quantity
-    const useDelivered =
-      type === "STOCK_CARD" ||
-      type === "TRANSFER" ||
-      data.trang_thai === "DA_GIAO" ||
-      data.trang_thai === "HOAN_THANH";
-    const qty = Number(
-      useDelivered && item.so_luong_da_giao !== undefined
-        ? item.so_luong_da_giao
-        : item.so_luong || item.so_luong_dat || 1,
-    );
+    const isMainPurchase = type === "PURCHASE";
+    const ordered = Number(item.so_luong || item.so_luong_dat || 0);
+    const delivered = Number(item.so_luong_da_giao || 0);
+
+    // Default quantity to show
+    let displayQty = ordered;
+    let qtyString = null;
+
+    if (type === "INVOICE") {
+      // For receipt slips, show the quantity in this batch
+      displayQty = ordered;
+    } else if (isMainPurchase && delivered > 0 && delivered < ordered) {
+      // For partial purchase orders, show progress
+      qtyString = `${delivered} / ${ordered}`;
+      displayQty = delivered; // Use delivered for total calculation if we want "paid so far" or leave as is?
+      // Usually PO shows total ordered value, but user asked for "1 / 2" display.
+    } else if (type === "STOCK_CARD" || type === "TRANSFER") {
+      displayQty = delivered || ordered;
+    }
+
     const price = Number(item.don_gia || item.gia_ban || 0);
-    const total = qty * price;
+    const total = displayQty * price;
+
     return {
       ...item,
-      displayQty: qty,
+      displayQty: qtyString || displayQty,
+      effectiveQty: displayQty,
       displayPrice: price,
       displayTotal: total,
     };

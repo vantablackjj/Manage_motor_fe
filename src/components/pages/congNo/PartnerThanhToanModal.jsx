@@ -55,6 +55,8 @@ const PartnerThanhToanModal = ({ visible, onCancel, onSuccess, initData }) => {
     try {
       const payload = {
         ...values,
+        ma_doi_tac: values.ma_doi_tac || initData?.ma_doi_tac || initData?.ma_kh,
+        loai_cong_no: values.loai_cong_no || initData?.loai_cong_no,
       };
       // Call NEW API create partner payment
       await congNoAPI.createThanhToanDoiTac(payload);
