@@ -600,9 +600,9 @@ const ChuyenKhoCreate = () => {
         </Steps>
 
         <div style={{ minHeight: 300 }}>
-          {currentStep === 0 && <Step1Info />}
-          {currentStep === 1 && <Step2Items />}
-          {currentStep === 2 && <Step3Confirm />}
+          {currentStep === 0 && Step1Info()}
+          {currentStep === 1 && Step2Items()}
+          {currentStep === 2 && Step3Confirm()}
         </div>
 
         <div style={{ marginTop: 24, textAlign: "right" }}>

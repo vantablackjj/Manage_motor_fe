@@ -43,6 +43,7 @@ import {
   notificationService,
   authService,
 } from "../../../services";
+import usePermission from "../../../hooks/usePermission";
 import { TRANG_THAI_COLORS } from "../../../utils/constant";
 
 const { Option } = Select;
@@ -66,6 +67,10 @@ const SalesOrderDetail = () => {
   const [printModalVisible, setPrintModalVisible] = useState(false);
   const [printType, setPrintType] = useState("ORDER");
   const [headerModalVisible, setHeaderModalVisible] = useState(false);
+
+  const { canApproveSales, canApprovePurchase, canApproveAnything } =
+    usePermission();
+  const hasApprovePermission = canApproveSales() || canApproveAnything();
 
   const handlePrint = (type) => {
     setPrintType(type);
@@ -582,32 +587,38 @@ const SalesOrderDetail = () => {
             {/* Luồng Chờ duyệt (GUI_DUYET) */}
             {trang_thai === "GUI_DUYET" && (
               <>
-                <Button
-                  type="primary"
-                  icon={<CheckCircleOutlined />}
-                  onClick={() =>
-                    handleUpdateStatus(
-                      "DA_DUYET",
-                      "Duyệt đơn hàng",
-                      "Đơn hàng sẽ chuyển sang trạng thái sẵn sàng giao.",
-                    )
-                  }
-                >
-                  Phê duyệt
-                </Button>
-                <Button
-                  danger
-                  onClick={() =>
-                    handleUpdateStatus("TU_CHOI", "Từ chối đơn hàng")
-                  }
-                >
-                  Từ chối
-                </Button>
-                <Button
-                  onClick={() => handleUpdateStatus("NHAP", "Trả về soạn thảo")}
-                >
-                  Trả về
-                </Button>
+                {hasApprovePermission && (
+                  <>
+                    <Button
+                      type="primary"
+                      icon={<CheckCircleOutlined />}
+                      onClick={() =>
+                        handleUpdateStatus(
+                          "DA_DUYET",
+                          "Duyệt đơn hàng",
+                          "Đơn hàng sẽ chuyển sang trạng thái sẵn sàng giao.",
+                        )
+                      }
+                    >
+                      Phê duyệt
+                    </Button>
+                    <Button
+                      danger
+                      onClick={() =>
+                        handleUpdateStatus("TU_CHOI", "Từ chối đơn hàng")
+                      }
+                    >
+                      Từ chối
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        handleUpdateStatus("NHAP", "Trả về soạn thảo")
+                      }
+                    >
+                      Trả về
+                    </Button>
+                  </>
+                )}
               </>
             )}
 

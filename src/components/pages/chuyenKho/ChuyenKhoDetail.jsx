@@ -1,4 +1,4 @@
-﻿// src/components/pages/chuyenKho/ChuyenKhoDetail.jsx
+// src/components/pages/chuyenKho/ChuyenKhoDetail.jsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -28,6 +28,7 @@ import {
   formatService,
   authService,
 } from "../../../services";
+import usePermission from "../../../hooks/usePermission";
 import { TRANG_THAI_COLORS, TRANG_THAI_LABELS } from "../../../utils/constant";
 
 const { TextArea } = Input;
@@ -40,6 +41,10 @@ const ChuyenKhoDetail = () => {
   const [chi_tiet_xe, setChiTietXe] = useState([]); // Vehicle details
   const [chi_tiet_phu_tung, setChiTietPhuTung] = useState([]); // Part details
   const [khoList, setKhoList] = useState([]);
+
+  const { canApproveAnything, can } = usePermission();
+  const hasApprovePermission =
+    canApproveAnything() || can("inventory", "approve");
 
   // Actions
   const [rejectModalHtml, setRejectModalHtml] = useState(false);
@@ -244,8 +249,7 @@ const ChuyenKhoDetail = () => {
   if (!phieu) return null;
 
   const canSubmit = phieu.trang_thai === "NHAP";
-  const canApprove =
-    authService.canApprove() && phieu.trang_thai === "GUI_DUYET";
+  const canApprove = hasApprovePermission && phieu.trang_thai === "GUI_DUYET";
   const canNhapKho =
     phieu.trang_thai === "DA_DUYET" || phieu.trang_thai === "DANG_NHAP_KHO";
   const canCancel = phieu.trang_thai === "NHAP";

@@ -39,6 +39,7 @@ import {
   TRANG_THAI_COLORS,
   TRANG_THAI_LABELS,
 } from "../../../../utils/constant";
+import usePermission from "../../../../hooks/usePermission";
 import OrderReceiveModal from "../OrderReceiveModal";
 
 const VehiclePurchaseDetail = () => {
@@ -53,6 +54,9 @@ const VehiclePurchaseDetail = () => {
   const [printModalVisible, setPrintModalVisible] = useState(false);
   const [printType, setPrintType] = useState("PURCHASE");
   const [printDataOverride, setPrintDataOverride] = useState(null);
+
+  const { canApprovePurchase, canApproveAnything } = usePermission();
+  const hasApprovePermission = canApprovePurchase() || canApproveAnything();
 
   const handlePrintLocal = (type, overrideData = null) => {
     setPrintType(type);
@@ -378,7 +382,7 @@ const VehiclePurchaseDetail = () => {
                 </Button>
               </Space>
             )}
-            {header.trang_thai === "GUI_DUYET" && authService.canApprove() && (
+            {header.trang_thai === "GUI_DUYET" && hasApprovePermission && (
               <Space>
                 <Button
                   type="primary"

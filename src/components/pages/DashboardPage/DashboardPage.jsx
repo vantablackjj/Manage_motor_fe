@@ -52,6 +52,8 @@ import {
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user, hasPermission, activeWarehouse } = useAuth();
+  const hasReportsView = hasPermission("reports", "view");
+  const hasFinancialView = hasPermission("reports", "view_financial");
   const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState([
@@ -90,6 +92,10 @@ const DashboardPage = () => {
 
   const fetchDashboardData = async () => {
     setLoading(true);
+    const canViewReminders = hasPermission("maintenance", "view") || 
+                           hasPermission("reports", "view") || 
+                           hasPermission("sales_orders", "view");
+    
     try {
       const params = {
         ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse : user?.ma_kho,
@@ -97,14 +103,21 @@ const DashboardPage = () => {
         den_ngay: dateRange[1].format("YYYY-MM-DD"),
       };
 
-      // Gọi API dashboard tổng quan và biểu đồ doanh thu
-      const [overviewRes, revenueRes, inventoryRes, reminderRes] =
-        await Promise.all([
-          reportAPI.dashboard.getOverview(params),
-          reportAPI.dashboard.getRevenueChart(params),
-          reportAPI.dashboard.getInventoryChart(params),
-          maintenanceAPI.getReminders({ limit: 5, trang_thai: "CHUA_NHAC" }), // Lấy 5 nhắc nhở chưa xử lý gần nhất
-        ]);
+      // Calls for dashboard overview and charts (Always called if in Dashboard)
+      const dashboardPromises = [
+        reportAPI.dashboard.getOverview(params),
+        reportAPI.dashboard.getRevenueChart(params),
+        reportAPI.dashboard.getInventoryChart(params),
+      ];
+      
+      // Conditionally call maintenance reminders
+      if (canViewReminders) {
+        dashboardPromises.push(maintenanceAPI.getReminders({ limit: 5, trang_thai: "CHUA_NHAC" }));
+      } else {
+        dashboardPromises.push(Promise.resolve({ data: [] }));
+      }
+
+      const [overviewRes, revenueRes, inventoryRes, reminderRes] = await Promise.all(dashboardPromises);
 
       const overview = overviewRes?.data || overviewRes;
       const revenueData =
@@ -500,7 +513,7 @@ const DashboardPage = () => {
 
       {/* Main Stats */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        {hasPermission("reports", "view") && (
+        {(hasReportsView || hasPermission("sales_orders", "view")) && (
           <>
             <Col xs={24} sm={12} lg={6}>
               <StatCard
@@ -561,7 +574,7 @@ const DashboardPage = () => {
           </>
         )}
 
-        {hasPermission("reports", "view_financial") && (
+        {(hasFinancialView || hasPermission("sales_orders", "view")) && (
           <>
             <Col xs={24} sm={12} lg={6}>
               <StatCard
@@ -625,7 +638,7 @@ const DashboardPage = () => {
               </Button>
             }
           >
-            {hasPermission("reports", "view") && (
+            {(hasReportsView || hasPermission("sales_orders", "view")) && (
               <div style={{ height: 350, width: "100%", marginTop: 16 }}>
                 {revenueChart.length === 0 ? (
                   <div

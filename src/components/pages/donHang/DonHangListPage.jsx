@@ -36,6 +36,7 @@ import {
   validationService,
   storageService,
 } from "../../../services";
+import usePermission from "../../../hooks/usePermission";
 import { TRANG_THAI_COLORS } from "../../../utils/constant";
 import { useResponsive } from "../../../hooks/useResponsive";
 
@@ -51,6 +52,11 @@ const DonHangListPage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const { canApprovePurchase, canApproveSales, canApproveAnything } =
+    usePermission();
+  const hasApprovePermission =
+    canApprovePurchase() || canApproveSales() || canApproveAnything();
 
   const [filters, setFilters] = useState(() => {
     return (
@@ -168,7 +174,7 @@ const DonHangListPage = () => {
       return;
     }
 
-    if (!authService.canApprove()) {
+    if (!hasApprovePermission) {
       notificationService.unauthorized();
       return;
     }
@@ -191,7 +197,7 @@ const DonHangListPage = () => {
   };
 
   const handleReject = (record) => {
-    if (!authService.canApprove()) {
+    if (!hasApprovePermission) {
       notificationService.unauthorized();
       return;
     }
@@ -317,7 +323,7 @@ const DonHangListPage = () => {
           )}
 
           {validationService.canApprove(record.trang_thai) &&
-            authService.canApprove() && (
+            hasApprovePermission && (
               <>
                 <Tooltip title="Phê duyệt">
                   <Button

@@ -41,6 +41,7 @@ import {
   notificationService,
   authService,
 } from "../../../services";
+import usePermission from "../../../hooks/usePermission";
 import { TRANG_THAI_COLORS, TRANG_THAI_LABELS } from "../../../utils/constant";
 
 const { TextArea } = Input;
@@ -54,6 +55,10 @@ const HoaDonBanDetail = () => {
   const [invoiceApprovalVisible, setInvoiceApprovalVisible] = useState(false);
   const [invoiceForm] = Form.useForm();
   const [form] = Form.useForm();
+
+  const { canApproveAnything, can } = usePermission();
+  const hasApprovePermission =
+    canApproveAnything() || can("invoices", "approve");
 
   const [printModalVisible, setPrintModalVisible] = useState(false);
   const [printType, setPrintType] = useState("INVOICE");
@@ -206,7 +211,7 @@ const HoaDonBanDetail = () => {
     ghi_chu_duyet_giao,
   } = data;
 
-  const isManager = authService.canApprove();
+  const isManager = hasApprovePermission;
 
   // Print Invoice
   const handlePrintInvoice = () => {

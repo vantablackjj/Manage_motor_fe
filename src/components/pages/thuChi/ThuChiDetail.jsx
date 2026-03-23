@@ -34,6 +34,7 @@ import {
   notificationService,
   authService,
 } from "../../../services";
+import usePermission from "../../../hooks/usePermission";
 import { TRANG_THAI_COLORS, LOAI_THU_CHI } from "../../../utils/constant";
 
 const { Title, Text } = Typography;
@@ -45,6 +46,9 @@ const ThuChiDetail = () => {
   const [data, setData] = useState(null);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [form] = Form.useForm();
+
+  const { canApproveAnything, can } = usePermission();
+  const hasApprovePermission = canApproveAnything() || can("payments", "approve");
 
   useEffect(() => {
     // Redirect if so_phieu is invalid
@@ -135,7 +139,7 @@ const ThuChiDetail = () => {
   const isThu = loai === LOAI_THU_CHI.THU;
   const isNhap = trang_thai === "NHAP";
   const isGuiDuyet = trang_thai === "GUI_DUYET";
-  const canApprove = isGuiDuyet && authService.canApprove();
+  const canApprove = isGuiDuyet && hasApprovePermission;
 
   const getTimelineItems = () => {
     const items = [

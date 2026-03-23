@@ -21,16 +21,16 @@ import {
   CloseCircleOutlined,
 } from "@ant-design/icons";
 import PrintTemplate from "../../features/Print/PrintTemplate";
-import { useNavigate, useParams } from "react-router-dom";
-import { maintenanceAPI, khoAPI } from "../../../api";
-import { formatService, notificationService } from "../../../services";
-import { TRANG_THAI_LABELS, TRANG_THAI_COLORS } from "../../../utils/constant";
+import usePermission from "../../../hooks/usePermission";
 
 const MaintenanceDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
+
+  const { canApproveMaintenance, canApproveAnything } = usePermission();
+  const hasApprovePermission = canApproveMaintenance() || canApproveAnything();
 
   const [khoList, setKhoList] = useState([]);
   const [statusLoading, setStatusLoading] = useState(false);
@@ -203,7 +203,7 @@ const MaintenanceDetailPage = () => {
                 Hoàn thành sửa {"->"} Chờ thanh toán
               </Button>
             )}
-            {data.trang_thai === "CHO_THANH_TOAN" && (
+            {data.trang_thai === "CHO_THANH_TOAN" && hasApprovePermission && (
               <Button
                 type="primary"
                 icon={<CheckCircleOutlined />}
@@ -270,7 +270,7 @@ const MaintenanceDetailPage = () => {
                 Hoàn thành & Xuất kho
               </Button>
             )}
-            {!["HOAN_THANH", "DA_HUY"].includes(data.trang_thai) && (
+            {!["HOAN_THANH", "DA_HUY"].includes(data.trang_thai) && hasApprovePermission && (
               <Button
                 danger
                 icon={<CloseCircleOutlined />}

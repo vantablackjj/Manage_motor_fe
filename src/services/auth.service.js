@@ -7,7 +7,14 @@ class AuthService {
   getCurrentUser() {
     try {
       const userStr = localStorage.getItem(STORAGE_KEYS.USER_INFO);
-      return userStr ? JSON.parse(userStr) : null;
+      if (!userStr) return null;
+      const user = JSON.parse(userStr);
+
+      // Robustly set vai_tro if missing but roles array exists
+      if (!user.vai_tro && user.roles && user.roles.length > 0) {
+        user.vai_tro = user.roles[0].ma_quyen;
+      }
+      return user;
     } catch (error) {
       console.error("Get current user error:", error);
       return null;
@@ -163,45 +170,24 @@ class AuthService {
       BAN_HANG: "BAN_HANG",
       ADMIN: "ADMIN",
     };
-    const rawRole = (user.vai_tro || "").toUpperCase();
-    const userRole = roleAliasMap[rawRole] || rawRole;
-
+    const userRole = (user.vai_tro || "").toUpperCase();
+    
     // ADMIN luôn có tất cả quyền
     if (userRole === "ADMIN") return true;
 
-    // Hardcoded safety block for sensitive modules
-    const sensitiveActions = ["create", "edit", "delete", "approve"];
+    // Hardcoded security block: Deny approve permission for BAN_HANG, NHAN_VIEN, KHO, WAREHOUSE
+    const restrictedRoles = ["BAN_HANG", "NHAN_VIEN", "SALE", "KHO", "WAREHOUSE", "STAFF"];
     if (
-      (userRole === "KHO" ||
-        userRole === "BAN_HANG" ||
-        userRole === "NHAN_VIEN") &&
-      moduleOrPermStr.includes("warehouses") &&
-      sensitiveActions.some(
-        (act) =>
-          action === act ||
-          (typeof moduleOrPermStr === "string" &&
-            moduleOrPermStr.endsWith("." + act)),
-      )
+      restrictedRoles.includes(userRole) &&
+        ((typeof moduleOrPermStr === "string" && moduleOrPermStr.includes(".approve")) || 
+         action === "approve")
     ) {
-      return false; // Explicitly block warehouse modifications for these roles
-    }
-
-    // Special Case: Allow sales_orders.create for all staff roles regardless of granular permission object
-    // This is a safety measure to ensure the "Create Slip" functionality is always available to authorized staff.
-    if (
-      moduleOrPermStr === "sales_orders.create" ||
-      (moduleOrPermStr === "sales_orders" && action === "create")
-    ) {
-      if (this.hasRole(["ADMIN", "QUAN_LY", "BAN_HANG", "KHO", "NHAN_VIEN"])) {
-        return true;
-      }
+      return false;
     }
 
     // Lấy permissions mặc định cho role
     const defaultPermissions = getPermissionsForRole(userRole);
 
-    // Merge default permissions with user permissions
-    // Cần merge sâu ít nhất 1 cấp để không làm mất các action khi module bị ghi đè
     const permissions = { ...defaultPermissions };
 
     if (user.permissions && typeof user.permissions === "object") {
@@ -222,6 +208,20 @@ class AuthService {
     }
 
     let hasPerm = false;
+    // Mapping of modern prefixes to their legacy counterparts
+    const legacyMap = {
+      sales_orders: "don_hang_ban_xe",
+      purchase_orders: "don_hang_mua_xe",
+      reports: "bao_cao",
+      inventory: "ton_kho",
+    };
+
+    const checkModPerm = (mod, act) => {
+      const modPerms = permissions[mod];
+      if (typeof modPerms === "boolean") return modPerms;
+      return !!(modPerms && modPerms[act]);
+    };
+
     // Dạng gọi: hasPermission("products.view")
     if (
       (action === null || action === undefined) &&
@@ -229,28 +229,47 @@ class AuthService {
       moduleOrPermStr.includes(".")
     ) {
       const [mod, act] = moduleOrPermStr.split(".");
-      const modPerms = permissions[mod];
-      if (typeof modPerms === "boolean") {
-        hasPerm = modPerms;
-      } else {
-        hasPerm = !!(modPerms && modPerms[act]);
+      hasPerm = checkModPerm(mod, act);
+
+      // Check legacy counterpart if not found
+      if (!hasPerm && legacyMap[mod]) {
+        hasPerm = checkModPerm(legacyMap[mod], act);
+      }
+      // Check reverse (if mod was legacy)
+      if (!hasPerm) {
+        const modernMod = Object.keys(legacyMap).find(
+          (key) => legacyMap[key] === mod,
+        );
+        if (modernMod) {
+          hasPerm = checkModPerm(modernMod, act);
+        }
       }
     }
     // Dạng gọi: hasPermission("products", "view")
     else if (action !== null && action !== undefined) {
-      const modPerms = permissions[moduleOrPermStr];
-      if (typeof modPerms === "boolean") {
-        hasPerm = modPerms;
-      } else {
-        hasPerm = !!(modPerms && modPerms[action]);
+      hasPerm = checkModPerm(moduleOrPermStr, action);
+
+      // Check legacy counterpart if not found
+      if (!hasPerm && legacyMap[moduleOrPermStr]) {
+        hasPerm = checkModPerm(legacyMap[moduleOrPermStr], action);
+      }
+      // Check reverse
+      if (!hasPerm) {
+        const modernMod = Object.keys(legacyMap).find(
+          (key) => legacyMap[key] === moduleOrPermStr,
+        );
+        if (modernMod) {
+          hasPerm = checkModPerm(modernMod, action);
+        }
       }
     }
 
-    if (!hasPerm && import.meta.env.DEV) {
-      console.warn(
-        `[Permission Check] Access to "${moduleOrPermStr}${action ? "." + action : ""}" denied for role: ${user.vai_tro}`,
-      );
-    }
+    // DEBUG LOGGING for the user to troubleshoot
+    console.groupCollapsed(`[Permission Check] ${moduleOrPermStr}.${action || ""}`);
+    console.log("User Role:", userRole);
+    console.log("Result:", hasPerm);
+    console.log("Full Permissions Object:", permissions);
+    console.groupEnd();
 
     return hasPerm;
   }
@@ -261,7 +280,23 @@ class AuthService {
 
   /** Có thể phê duyệt đơn hàng không */
   canApprove() {
-    return this.hasRole(["ADMIN", "QUAN_LY", "KE_TOAN"]);
+    const user = this.getCurrentUser();
+    if (!user) return false;
+    
+    const userRole = (user.vai_tro || "").toUpperCase();
+    if (userRole === "ADMIN" || userRole === "QUAN_LY") return true;
+    
+    // Safety block for Sales and Warehouse roles
+    const restrictedRoles = ["BAN_HANG", "NHAN_VIEN", "SALE", "KHO", "WAREHOUSE", "STAFF"];
+    if (restrictedRoles.includes(userRole)) return false;
+
+    // Kiểm tra xem có bất kỳ module nào có quyền "approve" không
+    if (!user.permissions) return false;
+    const permissions = user.permissions;
+    return Object.keys(permissions).some((mod) => {
+      const p = permissions[mod];
+      return p === true || (p && typeof p === "object" && p.approve === true);
+    });
   }
 
   /** Có thể xem báo cáo tài chính không */

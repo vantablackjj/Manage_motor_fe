@@ -37,6 +37,7 @@ import {
   TRANG_THAI_COLORS,
   TRANG_THAI_LABELS,
 } from "../../../../utils/constant";
+import usePermission from "../../../../hooks/usePermission";
 
 const PartPurchaseDetail = () => {
   const { id } = useParams();
@@ -44,6 +45,9 @@ const PartPurchaseDetail = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
+
+  const { canApprovePurchase, canApproveAnything } = usePermission();
+  const hasApprovePermission = canApprovePurchase() || canApproveAnything();
 
   const [headerModalVisible, setHeaderModalVisible] = useState(false);
   const [headerForm] = Form.useForm();
@@ -287,7 +291,7 @@ const PartPurchaseDetail = () => {
               </Button>
             )}
 
-            {trang_thai === "GUI_DUYET" && (
+            {trang_thai === "GUI_DUYET" && hasApprovePermission && (
               <Space>
                 <Button
                   type="primary"
