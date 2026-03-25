@@ -52,15 +52,21 @@ const HeaderBar = ({
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
   const { token } = theme.useToken();
-  const { activeWarehouse, changeWarehouse } = useAuth();
+  const { activeWarehouse, changeWarehouse, canManageAllWarehouses } = useAuth();
   const [warehouses, setWarehouses] = useState([]);
 
   React.useEffect(() => {
-    if (user?.vai_tro === "ADMIN") {
-      khoAPI
-        .getAll()
-        .then((res) => setWarehouses(res || []))
-        .catch(console.error);
+    if (canManageAllWarehouses()) {
+      // Nếu user có danh sách kho được gán cụ thể (Manager/Accountant restricted)
+      if (user?.allowed_warehouses?.length > 0) {
+        setWarehouses(user.allowed_warehouses);
+      } else {
+        // Nếu không (Admin hoặc Manager full access), tải tất cả kho
+        khoAPI
+          .getAll()
+          .then((res) => setWarehouses(res || []))
+          .catch(console.error);
+      }
     }
   }, [user]);
 
@@ -194,7 +200,7 @@ const HeaderBar = ({
 
       <div className="header-right">
         <Space size={isMobile ? 8 : "large"}>
-          {user?.vai_tro === "ADMIN" && (
+          {canManageAllWarehouses() && (
             <Select
               placeholder="Tất cả kho"
               value={activeWarehouse}

@@ -1,4 +1,4 @@
-﻿// src/components/pages/reports/SalesReportPage.jsx
+// src/components/pages/reports/SalesReportPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -31,7 +31,7 @@ const { Text } = Typography;
 
 const SalesReportPage = () => {
   const { isMobile } = useResponsive();
-  const { user, activeWarehouse } = useAuth();
+  const { user, activeWarehouse, canManageAllWarehouses } = useAuth();
   const [activeTab, setActiveTab] = useState("doanh-thu-theo-thang");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -39,7 +39,7 @@ const SalesReportPage = () => {
 
   // Filter params
   const [params, setParams] = useState({
-    ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+    ma_kho: canManageAllWarehouses() ? activeWarehouse || null : user?.ma_kho,
     nam: dayjs().year(),
     tu_ngay: dayjs().startOf("month"),
     den_ngay: dayjs(),
@@ -54,7 +54,7 @@ const SalesReportPage = () => {
     setParams((prev) => ({
       ...prev,
       ma_kho:
-        user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+        canManageAllWarehouses() ? activeWarehouse || null : user?.ma_kho,
     }));
   }, [activeWarehouse, user]);
 
@@ -359,7 +359,7 @@ const SalesReportPage = () => {
                 style={{ width: "100%" }}
                 placeholder="Tất cả kho"
                 allowClear
-                disabled={user?.vai_tro !== "ADMIN"}
+                 disabled={!canManageAllWarehouses()}
                 value={params.ma_kho}
                 onChange={(val) => setParams({ ...params, ma_kho: val })}
               >

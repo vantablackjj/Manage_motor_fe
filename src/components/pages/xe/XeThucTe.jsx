@@ -1,4 +1,4 @@
-﻿// src/pages/xe/XeThucTe.jsx
+// src/pages/xe/XeThucTe.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -70,7 +70,7 @@ const XeThucTe = () => {
         ma_loai_xe: null,
         ma_mau: null,
         trang_thai: "TON_KHO",
-        locked: null,
+        locked: false,
         search: "",
       }
     );
@@ -251,7 +251,7 @@ const XeThucTe = () => {
       ma_loai_xe: null,
       ma_mau: null,
       trang_thai: "TON_KHO",
-      locked: null,
+      locked: false,
       search: "",
     };
     setFilters(defaultFilters);

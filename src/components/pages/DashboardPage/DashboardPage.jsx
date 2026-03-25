@@ -51,9 +51,13 @@ import {
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { user, hasPermission, activeWarehouse } = useAuth();
+  const { user, hasPermission, activeWarehouse, canManageAllWarehouses } = useAuth();
   const hasReportsView = hasPermission("reports", "view");
   const hasFinancialView = hasPermission("reports", "view_financial");
+  const hasInventoryView = hasPermission("inventory", "view");
+  const hasMaintenanceView = hasPermission("maintenance", "view");
+  const hasSalesView = hasPermission("sales_orders", "view");
+
   const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState([
@@ -92,13 +96,10 @@ const DashboardPage = () => {
 
   const fetchDashboardData = async () => {
     setLoading(true);
-    const canViewReminders = hasPermission("maintenance", "view") || 
-                           hasPermission("reports", "view") || 
-                           hasPermission("sales_orders", "view");
     
     try {
       const params = {
-        ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse : user?.ma_kho,
+        ma_kho: canManageAllWarehouses() ? activeWarehouse : user?.ma_kho,
         tu_ngay: dateRange[0].format("YYYY-MM-DD"),
         den_ngay: dateRange[1].format("YYYY-MM-DD"),
       };
@@ -111,7 +112,7 @@ const DashboardPage = () => {
       ];
       
       // Conditionally call maintenance reminders
-      if (canViewReminders) {
+      if (hasMaintenanceView) {
         dashboardPromises.push(maintenanceAPI.getReminders({ limit: 5, trang_thai: "CHUA_NHAC" }));
       } else {
         dashboardPromises.push(Promise.resolve({ data: [] }));
@@ -150,7 +151,7 @@ const DashboardPage = () => {
     setLoadingLowStock(true);
     try {
       const res = await reportAPI.inventory.getParts({
-        ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse : user?.ma_kho,
+        ma_kho: canManageAllWarehouses() ? activeWarehouse : user?.ma_kho,
         canh_bao: true,
       });
       setLowStockDetail(res?.data || (Array.isArray(res) ? res : []));
@@ -513,7 +514,7 @@ const DashboardPage = () => {
 
       {/* Main Stats */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        {(hasReportsView || hasPermission("sales_orders", "view")) && (
+        {(hasReportsView || hasSalesView) && (
           <>
             <Col xs={24} sm={12} lg={6}>
               <StatCard
@@ -542,7 +543,7 @@ const DashboardPage = () => {
           </>
         )}
 
-        {hasPermission("inventory", "view") && (
+        {hasInventoryView && (
           <>
             <Col xs={24} sm={12} lg={6}>
               <StatCard
@@ -551,15 +552,6 @@ const DashboardPage = () => {
                 icon={<MotorcycleIcon />}
                 color="#1890ff"
                 onClick={() => navigate("/xe/danh-sach")}
-              />
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <StatCard
-                title="Xe đang sửa"
-                value={stats.stock_xe_fixing}
-                icon={<ToolOutlined />}
-                color="#52c41a"
-                onClick={() => navigate("/maintenance")}
               />
             </Col>
             <Col xs={24} sm={12} lg={6}>
@@ -574,7 +566,19 @@ const DashboardPage = () => {
           </>
         )}
 
-        {(hasFinancialView || hasPermission("sales_orders", "view")) && (
+        {hasMaintenanceView && (
+          <Col xs={24} sm={12} lg={6}>
+            <StatCard
+              title="Xe đang sửa"
+              value={stats.stock_xe_fixing}
+              icon={<ToolOutlined />}
+              color="#52c41a"
+              onClick={() => navigate("/maintenance")}
+            />
+          </Col>
+        )}
+
+        {(hasFinancialView || hasSalesView) && (
           <>
             <Col xs={24} sm={12} lg={6}>
               <StatCard
@@ -638,7 +642,7 @@ const DashboardPage = () => {
               </Button>
             }
           >
-            {(hasReportsView || hasPermission("sales_orders", "view")) && (
+            {(hasReportsView || hasSalesView) && (
               <div style={{ height: 350, width: "100%", marginTop: 16 }}>
                 {revenueChart.length === 0 ? (
                   <div
@@ -698,29 +702,31 @@ const DashboardPage = () => {
               />
             </Card>
 
-            <Card
-              title="Nhắc nhở bảo trì sắp tới"
-              size="small"
-              extra={
-                <Button
-                  type="link"
-                  size="small"
-                  onClick={() => navigate("/maintenance/reminders")}
-                >
-                  Xem thêm
-                </Button>
-              }
-            >
-              <Table
-                dataSource={maintenanceReminders}
-                columns={reminderColumns}
-                rowKey="id"
-                pagination={false}
+            {hasMaintenanceView && (
+              <Card
+                title="Nhắc nhở bảo trì sắp tới"
                 size="small"
-                loading={loading}
-                scroll={{ x: 800 }}
-              />
-            </Card>
+                extra={
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={() => navigate("/maintenance/reminders")}
+                  >
+                    Xem thêm
+                  </Button>
+                }
+              >
+                <Table
+                  dataSource={maintenanceReminders}
+                  columns={reminderColumns}
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                  loading={loading}
+                  scroll={{ x: 800 }}
+                />
+              </Card>
+            )}
           </Space>
         </Col>
       </Row>

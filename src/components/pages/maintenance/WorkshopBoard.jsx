@@ -45,7 +45,7 @@ const { Title, Text } = Typography;
 
 const WorkshopBoard = () => {
   const navigate = useNavigate();
-  const { user, activeWarehouse } = useAuth();
+  const { user, activeWarehouse, canManageAllWarehouses } = useAuth();
   const [loading, setLoading] = useState(false);
   const [lifts, setLifts] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -60,7 +60,7 @@ const WorkshopBoard = () => {
     setLoading(true);
     try {
       const res = await maintenanceAPI.getWorkshopBoard({
-        ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse : user?.ma_kho,
+        ma_kho: canManageAllWarehouses() ? activeWarehouse : user?.ma_kho,
       });
       setLifts(res.data || []);
       setLastUpdated(new Date());
@@ -223,7 +223,7 @@ const WorkshopBoard = () => {
   const handleAddLift = async (values) => {
     setSavingLift(true);
     try {
-      const ma_kho = user?.vai_tro === "ADMIN" ? activeWarehouse : user?.ma_kho;
+      const ma_kho = canManageAllWarehouses() ? activeWarehouse : user?.ma_kho;
       await maintenanceAPI.addBanNang({ ...values, ma_kho });
       notificationService.success("Thêm bàn nâng thành công");
       manageForm.resetFields();

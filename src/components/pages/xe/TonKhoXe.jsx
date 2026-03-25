@@ -26,6 +26,7 @@ const TonKhoXe = ({ ma_kho, khoList }) => {
       // Lấy danh sách xe thực tế từ kho
       const response = await xeAPI.getTonKho(selectedKho, {
         trang_thai: "TON_KHO",
+        locked: false,
       });
       const xeList = response.data || [];
 

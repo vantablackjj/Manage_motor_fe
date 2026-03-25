@@ -1,4 +1,4 @@
-﻿// src/components/pages/reports/FinancialReportPage.jsx
+// src/components/pages/reports/FinancialReportPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -34,7 +34,7 @@ const { Text } = Typography;
 
 const FinancialReportPage = () => {
   const { isMobile } = useResponsive();
-  const { user, activeWarehouse } = useAuth();
+  const { user, activeWarehouse, canManageAllWarehouses } = useAuth();
   const [activeTab, setActiveTab] = useState("cong-no-noi-bo");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -43,7 +43,7 @@ const FinancialReportPage = () => {
 
   // Filter params
   const [params, setParams] = useState({
-    ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+    ma_kho: canManageAllWarehouses() ? activeWarehouse || null : user?.ma_kho,
     tu_ngay: dayjs().startOf("month"),
     den_ngay: dayjs(),
     loai: "XE", // For profit report: XE or PHU_TUNG
@@ -60,7 +60,7 @@ const FinancialReportPage = () => {
     setParams((prev) => ({
       ...prev,
       ma_kho:
-        user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+        canManageAllWarehouses() ? activeWarehouse || null : user?.ma_kho,
     }));
   }, [activeWarehouse, user]);
 

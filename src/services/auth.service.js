@@ -124,6 +124,14 @@ class AuthService {
     return this.hasRole("QUAN_LY");
   }
 
+  /**
+   * Kiểm tra user có quyền xem/quản lý tất cả các kho không
+   * Dành cho ADMIN, QUAN_LY (Manager), và KE_TOAN (Accountant)
+   */
+  canManageAllWarehouses() {
+    return this.hasRole(["ADMIN", "QUAN_LY", "KE_TOAN"]);
+  }
+
   // Legacy aliases (backward compat)
   isCompanyManager() {
     return this.isQuanLy();

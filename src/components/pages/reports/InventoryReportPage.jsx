@@ -1,4 +1,4 @@
-﻿// src/components/pages/reports/InventoryReportPage.jsx
+// src/components/pages/reports/InventoryReportPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -31,7 +31,7 @@ const { Text } = Typography;
 
 const InventoryReportPage = () => {
   const { isMobile } = useResponsive();
-  const { user, activeWarehouse } = useAuth();
+  const { user, activeWarehouse, canManageAllWarehouses } = useAuth();
   const [activeTab, setActiveTab] = useState("ton-kho-xe");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -43,7 +43,7 @@ const InventoryReportPage = () => {
 
   // Filter params
   const [params, setParams] = useState({
-    ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+    ma_kho: canManageAllWarehouses() ? activeWarehouse || null : user?.ma_kho,
     ma_loai_xe: null,
     ma_mau: null,
     nhom_pt: null,
@@ -63,7 +63,7 @@ const InventoryReportPage = () => {
     setParams((prev) => ({
       ...prev,
       ma_kho:
-        user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+        canManageAllWarehouses() ? activeWarehouse || null : user?.ma_kho,
     }));
   }, [activeWarehouse, user]);
 
@@ -322,7 +322,7 @@ const InventoryReportPage = () => {
                 style={{ width: "100%" }}
                 placeholder="Tất cả kho"
                 allowClear
-                disabled={user?.vai_tro !== "ADMIN"}
+                disabled={!canManageAllWarehouses()}
                 value={params.ma_kho}
                 onChange={(val) => setParams({ ...params, ma_kho: val })}
               >

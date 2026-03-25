@@ -103,6 +103,7 @@ export const AuthProvider = ({ children }) => {
     isKho: () => authService.isKho(),
     isKeToan: () => authService.isKeToan(),
     isQuanLy: () => authService.isQuanLy(),
+    canManageAllWarehouses: () => authService.canManageAllWarehouses(),
     canApprove: () => authService.canApprove(),
     canViewFinancial: () => authService.canViewFinancial(),
     canViewCost: () => authService.canViewCost(),

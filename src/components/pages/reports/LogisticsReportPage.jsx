@@ -1,4 +1,4 @@
-﻿// src/components/pages/reports/LogisticsReportPage.jsx
+// src/components/pages/reports/LogisticsReportPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -33,7 +33,7 @@ const { Text } = Typography;
 
 const LogisticsReportPage = () => {
   const { isMobile } = useResponsive();
-  const { user, activeWarehouse } = useAuth();
+  const { user, activeWarehouse, canManageAllWarehouses } = useAuth();
   const [activeTab, setActiveTab] = useState("nhap-xuat-xe");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -42,7 +42,7 @@ const LogisticsReportPage = () => {
 
   // Filter params
   const [params, setParams] = useState({
-    ma_kho: user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+    ma_kho: canManageAllWarehouses() ? activeWarehouse || null : user?.ma_kho,
     ma_pt: null,
     tu_ngay: dayjs().startOf("month"),
     den_ngay: dayjs(),
@@ -56,7 +56,7 @@ const LogisticsReportPage = () => {
     setParams((prev) => ({
       ...prev,
       ma_kho:
-        user?.vai_tro === "ADMIN" ? activeWarehouse || null : user?.ma_kho,
+        canManageAllWarehouses() ? activeWarehouse || null : user?.ma_kho,
     }));
   }, [activeWarehouse, user]);
 
@@ -532,7 +532,7 @@ const LogisticsReportPage = () => {
                 style={{ width: "100%" }}
                 placeholder="Tất cả kho"
                 allowClear
-                disabled={user?.vai_tro !== "ADMIN"}
+                disabled={!canManageAllWarehouses()}
                 value={params.ma_kho}
                 onChange={(val) => setParams({ ...params, ma_kho: val })}
               >
